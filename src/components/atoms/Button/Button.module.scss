@@ -1,0 +1,84 @@
+.button {
+  font-weight: 700;
+  font-size: 0.875rem; /* 14px */
+  min-width: 8rem; /* ~103px */
+  padding: 0.625rem 1.5rem; /* 10px 24px */
+  line-height: 1.25rem; /* 20px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem; /* 8px */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--accent);
+  color: var(--foreground);
+  border: 0.15rem solid var(--foreground);
+  border-radius: 0;
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0.25rem 0.25rem 0 var(--foreground);
+  transform: translate(-0.15rem, -0.15rem);
+  margin: 0.5rem 0.5rem 1rem 0;
+  
+  &:hover {
+    transform: translate(0, 0);
+    box-shadow: 0 0 0 var(--foreground);
+  }
+  
+  
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.primary {
+  background: var(--accent);
+  color: var(--foreground);
+}
+
+.secondary {
+  background: transparent;
+  color: var(--foreground);
+}
+
+.disabledPrimary,
+.disabledSecondary {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  
+  &:hover,
+  &:active {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+.loadingIcon {
+  animation: spin 1.5s linear infinite;
+  font-size: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,16 @@
+.container {
+  container-type: inline-size;
+  container-name: main-container;
+
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 12px;
+  box-sizing: border-box;
+  flex: 1;
+  overflow-x: visible;
+}
+@media (max-width: 768px) {
+  .container {
+    overflow: hidden;
+  }
+}

@@ -1,0 +1,74 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  border: 0.125rem solid var(--foreground);
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--foreground);
+  border: none;
+  padding: 0.375rem 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+  
+  &:hover:not(:disabled) {
+    background-color: var(--foreground);
+    color: var(--background);
+  }
+  
+  &:focus {
+    outline: 0.125rem solid var(--foreground);
+    outline-offset: 0.125rem;
+    z-index: 1;
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.sizeIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  border-left: 0.0625rem solid var(--foreground);
+  border-right: 0.0625rem solid var(--foreground);
+  font-weight: bold;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--foreground);
+}
+
+.plus, .minus {
+  font-size: 0.75rem;
+  position: relative;
+  top: -0.125rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

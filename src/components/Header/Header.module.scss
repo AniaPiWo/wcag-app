@@ -1,0 +1,159 @@
+.wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 2.5rem; /* 12px 40px */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 101;
+  background-color: var(--background);
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+
+
+  .container {
+    max-width: 77.5rem; /* 1240px */
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  @media (max-width: 48rem) { /* 768px */
+    padding: 0.75rem; /* 12px */
+  }
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.5rem; /* 24px */
+  color: var(--foreground);
+  transition: color 0.1s;
+}
+
+.mobilebutton {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  border: 1px solid var(--foreground);
+  color: var(--foreground);
+  padding: 0.5rem 1rem; /* 8px 16px */
+  font-size: 0.875rem; /* 14px */
+
+  &:hover, &:focus {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.menuMobile {
+  position: relative;
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+}
+
+.mobileMenuContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 3.75rem; /* 60px */
+  right: 0;
+  background-color: var(--background);
+  color: var(--foreground);
+  padding: 1.875rem 0.75rem; /* 30px 12px */
+  width: 100%;
+  z-index: 10;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out, background-color 0.1s, color 0.1s;
+  visibility: visible;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.menuOpen {
+  transform: translateX(0);
+}
+
+.menuDesktop {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* 16px */
+
+  @media (max-width: 48rem) { /* 768px */
+    display: none;
+  }
+}
+
+.themeSwitchContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* 8px */
+}
+
+.themeLabel {
+  font-size: 0.875rem; /* 14px */
+  color: var(--foreground);
+}
+
+.themeSwitch {
+  position: relative;
+  display: inline-block;
+  width: 3.25rem; /* 52px */
+  height: 1.625rem; /* 26px */
+  background: transparent;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+
+  
+  .slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--background);
+    border: 0.125rem solid var(--foreground); /* 2px */
+    border-radius: 2.125rem; /* 34px */
+    transition: all 0.5s ease;
+  }
+  
+  .switchKnob {
+    position: absolute;
+    content: "";
+    height: 1.125rem; /* 18px */
+    width: 1.125rem; /* 18px */
+    left: 0.1875rem; /* 3px */
+    bottom: 0.125rem; /* 2px */
+    background-color: var(--foreground);
+    border-radius: 50%;
+    transition: transform 0.5s ease, background-color 0.5s ease;
+  }
+}
+
+/* Dla ciemnego motywu przesuwamy przełącznik */
+html[data-theme="dark"] .switchKnob {
+  transform: translateX(1.625rem); /* 26px */
+}
+
+.accessibilityControls {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* 16px */
+}
+
+.accessibilityControlsMobile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem; /* 16px */
+  margin-top: 1rem; /* 16px */
+  padding: 0.625rem 0; /* 10px 0 */
+}
