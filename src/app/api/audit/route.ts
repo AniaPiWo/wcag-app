@@ -2,16 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { chromium, Page } from 'playwright';
 import { z } from 'zod';
 import { queueAudit } from './queue';
+import { auditService } from '@/lib/db/audit-service';
 
-// Maksymalna liczba prób uruchomienia Playwright
 const MAX_PLAYWRIGHT_RETRIES = 3;
 
-// Timeout dla operacji Playwright (30 sekund)
 const PLAYWRIGHT_TIMEOUT = 30000;
 
-/**
- * Podstawowe zasady dostępności do sprawdzenia, gdy axe-core nie może być wstrzyknięty
- */
+
 const BASIC_ACCESSIBILITY_CHECKS = [
   { name: 'alt-text', description: 'Obrazy powinny mieć tekst alternatywny', wcag: 'WCAG 1.1.1' },
   { name: 'heading-order', description: 'Nagłówki powinny być w odpowiedniej kolejności', wcag: 'WCAG 1.3.1, 2.4.6' },
@@ -22,21 +19,18 @@ const BASIC_ACCESSIBILITY_CHECKS = [
   { name: 'document-structure', description: 'Dokument powinien mieć poprawną strukturę', wcag: 'WCAG 1.3.1, 2.4.1' }
 ];
 
-// Deklaracja typu dla window.axe
 declare global {
   interface Window {
     axe?: unknown;
   }
 }
 
-// Schema for validating the request
 const auditRequestSchema = z.object({
   url: z.string().url('Niepoprawny adres URL'),
   email: z.string().email('Niepoprawny adres email').optional(),
   name: z.string().min(2, 'Imię jest zbyt krótkie').optional(),
 });
 
-// Types for axe-core results
 interface AxeViolation {
   id: string;
   impact: 'critical' | 'serious' | 'moderate' | 'minor' | null;
@@ -89,7 +83,6 @@ interface AxeResults {
   error?: string;
 }
 
-// Type for audit results summary
 type AuditSummary = {
   url: string;
   totalIssuesCount: number;
@@ -102,11 +95,8 @@ type AuditSummary = {
   timestamp: string;
 };
 
-/**
- * Runs an accessibility audit on the provided URL using axe-core and Playwright
- */
+
 export async function POST(request: NextRequest) {
-  // Dodanie nagłówków CORS dla obsługi żądań z różnych źródeł
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -116,13 +106,12 @@ export async function POST(request: NextRequest) {
     'Expires': '0'
   };
 
-  // Obsługa preflight request
   if (request.method === 'OPTIONS') {
     return new NextResponse(null, { status: 204, headers });
   }
 
   try {
-    // Parse request body
+
     let body;
     try {
       body = await request.json();
@@ -134,7 +123,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Validate the request data
     const validationResult = auditRequestSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
@@ -145,11 +133,21 @@ export async function POST(request: NextRequest) {
     
     const { url, email, name } = validationResult.data;
     
-    // Sprawdzenie czy URL jest dostępny przed uruchomieniem audytu
+    let auditRequest;
     try {
-      // Ustawienie limitu czasu za pomocą AbortController
+      auditRequest = await auditService.createAuditRequest({
+        url,
+        email,
+        name
+      });
+      console.log('Utworzono żądanie audytu:', auditRequest.id);
+    } catch (dbError) {
+      console.error('Błąd podczas tworzenia żądania audytu w bazie danych:', dbError);
+    }
+
+    try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // Zwiększony timeout do 10 sekund
+      const timeoutId = setTimeout(() => controller.abort(), 10000); 
       
       // Próba GET zamiast HEAD - niektóre serwery nie obsługują HEAD poprawnie
       const urlCheckResponse = await fetch(url, { 
@@ -162,8 +160,6 @@ export async function POST(request: NextRequest) {
       
       clearTimeout(timeoutId);
       
-      // Akceptujemy szerszy zakres kodów odpowiedzi jako sukces
-      // Niektóre strony mogą zwracać niestandardowe kody, ale nadal są dostępne
       const statusCode = urlCheckResponse.status;
       const isSuccess = statusCode >= 200 && statusCode < 500 && statusCode !== 404 && statusCode !== 403;
       
@@ -184,34 +180,49 @@ export async function POST(request: NextRequest) {
         { status: 400, headers }
       );
     }
-    
-    // Run the accessibility audit with queue management and retry logic
-    // Dodajemy audyt do kolejki, co zapobiega przeciążeniu serwera przy wielu jednoczesnych żądaniach
+
     let auditResults;
     let retryCount = 0;
     let lastError;
     
-    // Próbujemy uruchomić audyt kilka razy w przypadku błędów
     while (retryCount < MAX_PLAYWRIGHT_RETRIES) {
       try {
+
+        if (auditRequest) {
+          await auditService.updateAuditRequestStatus(auditRequest.id, 'in-progress');
+        }
+        
         auditResults = await queueAudit(url, runAccessibilityAudit);
-        break; // Jeśli się udało, przerywamy pętlę
+        break; 
       } catch (error) {
         lastError = error;
         console.error(`Próba ${retryCount + 1}/${MAX_PLAYWRIGHT_RETRIES} nie powiodła się:`, error);
         retryCount++;
         
-        // Krótkie opóźnienie przed kolejną próbą
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
-    
-    // Jeśli wszystkie próby zawiodły, zwróć błąd
+
     if (!auditResults) {
-      throw new Error(`Nie udało się przeprowadzić audytu po ${MAX_PLAYWRIGHT_RETRIES} próbach: ${lastError instanceof Error ? lastError.message : String(lastError)}`);
+      const errorMessage = `Nie udało się przeprowadzić audytu po ${MAX_PLAYWRIGHT_RETRIES} próbach: ${lastError instanceof Error ? lastError.message : String(lastError)}`;
+
+      if (auditRequest) {
+        await auditService.recordFailedAudit(auditRequest.id, errorMessage);
+      }
+      
+      throw new Error(errorMessage);
     }
     
-    // Return the audit results
+    if (auditRequest) {
+      try {
+        await auditService.saveAuditResults(auditRequest.id, auditResults);
+        console.log('Zapisano wyniki audytu dla żądania:', auditRequest.id);
+        //console.log('Wyniki audytu:', auditResults);
+      } catch (dbError) {
+        console.error('Błąd podczas zapisywania wyników audytu:', dbError);
+      }
+    }
+    
     return NextResponse.json({
       success: true,
       url,
@@ -232,21 +243,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Alternatywna metoda audytu dostępności dla stron z restrykcyjnymi ustawieniami CSP
- * Wykorzystuje podstawowe sprawdzenia dostępności bez użycia axe-core
- */
+
 async function runBasicAccessibilityAudit(page: Page, url: string): Promise<{
   summary: AuditSummary;
   violations: AxeViolation[];
 }> {
   console.log('Uruchamianie podstawowego audytu dostępności bez axe-core');
   
-  // Tworzymy pustą listę naruszeń dostępności
   const violations: AxeViolation[] = [];
   
   try {
-    // Sprawdzenie obrazków bez tekstu alternatywnego
+
     const imagesWithoutAlt = await page.evaluate(() => {
       const images = Array.from(document.querySelectorAll('img'));
       return images
@@ -278,7 +285,6 @@ async function runBasicAccessibilityAudit(page: Page, url: string): Promise<{
       });
     }
     
-    // Sprawdzenie nagłówków w niewłaściwej kolejności
     const headingsOrder = await page.evaluate(() => {
       const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
       const result = [];
@@ -288,7 +294,6 @@ async function runBasicAccessibilityAudit(page: Page, url: string): Promise<{
         const level = parseInt(heading.tagName.charAt(1));
         const text = heading.textContent || 'Pusty nagłówek';
         
-        // Nagłówek nie powinien przeskakiwać o więcej niż jeden poziom
         if (previousLevel > 0 && level > previousLevel && level - previousLevel > 1) {
           result.push({
             html: heading.outerHTML,

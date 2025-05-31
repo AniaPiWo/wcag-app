@@ -1,0 +1,81 @@
+.fullBackground {
+  position: relative;
+  width: 100dvw;
+  height: 400px;
+  background-color: #313131;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.gridBackground {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.08) 0.0625rem, transparent 0.0625rem),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 0.0625rem, transparent 0.0625rem);
+  background-size: 1.25rem 1.875rem;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 30%, rgba(0, 0, 0, 0) 90%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 30%, rgba(0, 0, 0, 0) 90%);
+}
+
+.wrapper {
+  position: relative;
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  z-index: 1;
+}
+
+.text {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  max-width: 40.625rem;
+  color: #ffffff;
+  padding: 0 1rem;
+}
+
+.title {
+  text-align: center;
+  font-size: 2.75rem;
+  font-style: normal;
+  font-weight: var(--font-weight-semibold);
+  line-height: 2.5rem; /* 88.636% */
+  letter-spacing: -0.0725rem;
+}
+
+
+.desc {
+  text-align: center;
+  font-weight: var(--font-weight-regular);
+  line-height: 1.625rem;
+  margin: 0;
+}
+
+.buttonWrapper {
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .fullBackground {
+    padding: 3rem 1rem;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .desc {
+    font-size: 1rem;
+  }
+}

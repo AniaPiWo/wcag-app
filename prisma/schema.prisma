@@ -1,0 +1,35 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model AuditRequest {
+  id              String   @id @default(uuid())
+  url             String
+  name            String   @default("")
+  email           String   @default("")
+  status          String   @default("pending") // pending, in-progress, completed, failed
+  completedAt     DateTime?
+  
+  // podsumowanie audytu
+  totalIssuesCount Int?     @default(0)
+  criticalCount   Int?     @default(0)
+  seriousCount    Int?     @default(0)
+  moderateCount   Int?     @default(0)
+  minorCount      Int?     @default(0)
+  passedRules     Int?     @default(0)
+  incompleteRules Int?     @default(0)
+  timestamp       String?
+  
+  violations      String?  @db.String // JSON z naruszeniami
+  
+  // pola systemowe
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  errorMessage    String?  // W przypadku niepowodzenia
+}

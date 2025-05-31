@@ -6,7 +6,7 @@ type ThemeSwitcherProps = {
   showLabels?: boolean;
 }
 
-export const ThemeSwitcher = ({ showLabels = false }: ThemeSwitcherProps) => {
+export const ThemeSwitcher = ({ }: ThemeSwitcherProps) => {
   const [theme, setTheme] = useState('light')
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export const ThemeSwitcher = ({ showLabels = false }: ThemeSwitcherProps) => {
 
   return (
     <div className={styles.themeSwitchContainer}>
-      {showLabels && <span className={styles.themeLabel}>Jasny</span>}
+
       <button 
         className={styles.themeSwitch}
         onClick={toggleTheme}
@@ -34,7 +34,7 @@ export const ThemeSwitcher = ({ showLabels = false }: ThemeSwitcherProps) => {
           <span className={styles.switchKnob}></span>
         </span>
       </button>
-      {showLabels && <span className={styles.themeLabel}>Ciemny</span>}
+
     </div>
   )
 }

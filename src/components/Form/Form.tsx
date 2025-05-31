@@ -6,6 +6,41 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, SubmitHandler, FieldErrors } from 'react-hook-form';
 
+// Typy dla wyników audytu
+interface AuditViolation {
+  id: string;
+  impact: string;
+  tags: string[];
+  description: string;
+  help: string;
+  nodes: Array<{ [key: string]: unknown }>;
+}
+
+interface AuditSummary {
+  url: string;
+  totalIssuesCount: number;
+  criticalCount: number;
+  seriousCount: number;
+  moderateCount: number;
+  minorCount: number;
+  passedRules: number;
+  incompleteRules: number;
+  timestamp: string;
+}
+
+interface AuditResults {
+  summary: AuditSummary;
+  violations: AuditViolation[];
+}
+
+interface AuditResponse {
+  success: boolean;
+  url: string;
+  email: string;
+  name: string;
+  results: AuditResults;
+}
+
 // walidacja url, akceptuje www i bez www
 const websiteSchema = z.string()
   .nonempty('Podaj adres strony internetowej')
@@ -41,14 +76,25 @@ const FormSchema = z.object({
 
 type FormInputs = z.infer<typeof FormSchema>;
 
+// Typ dla odpowiedzi z API w przypadku błędu
+
 export const Form = () => {
   const [errorField, setErrorField] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorTimeout, setErrorTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-  const [isSuccess, setIsSuccess] = useState<boolean>(true);
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  const [isContactLoading, setIsContactLoading] = useState<boolean>(false);
   const wrapperRef = useRef<HTMLElement>(null);
+  
+  // Funkcja do obsługi przycisku "Napisz do mnie"
+  const handleContactClick = () => {
+    setIsContactLoading(true);
+    // Otwórz klienta poczty z predefiniowanym tematem
+    window.location.href = 'mailto:kontakt@wcag-audyt.pl?subject=Prośba o automatyczny audyt WCAG';
+    setTimeout(() => setIsContactLoading(false), 1000);
+  };
 
   const {
     register,
@@ -64,7 +110,7 @@ export const Form = () => {
       setErrorField(null);
       setErrorMessage(null);
       
-      console.log('Wysyłanie danych do audytu:', data);
+      //console.log('Wysyłanie danych do audytu:', data);
       
       const payload = {
         url: data.website,
@@ -73,7 +119,7 @@ export const Form = () => {
       };
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 sekund timeout
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // timeout
       
       try {
         const response = await fetch('/api/audit', {
@@ -88,13 +134,28 @@ export const Form = () => {
         
         clearTimeout(timeoutId);
         
-        const result = await response.json();
+        // Odczytujemy dane z odpowiedzi tylko raz
+        const responseData = await response.json();
         
+        // Sprawdzamy status odpowiedzi
         if (!response.ok) {
-          throw new Error(result.error || 'Wystąpił błąd podczas przeprowadzania audytu');
+          throw new Error(responseData.error || 'Wystąpił błąd podczas przeprowadzania audytu');
         }
         
+        // Traktujemy dane jako AuditResponse
+        const result = responseData as AuditResponse;
+        
         console.log('Wyniki audytu:', result);
+        
+        // Wypisz szczegółowe informacje o błędach dostepności
+        if (result.results && result.results.violations && result.results.violations.length > 0) {
+          console.log(`Znaleziono ${result.results.violations.length} błędów dostepności:`);
+          result.results.violations.forEach((violation, index) => {
+            console.log(`${index + 1}. ${violation.id} (${violation.impact}): ${violation.description}`);
+          });
+        } else {
+          console.log('Nie znaleziono błędów dostepności lub brak danych o błędach.');
+        }
         
         // Sukces - pokaż komunikat z podziękowaniem
         setIsSuccess(true);
@@ -156,9 +217,9 @@ export const Form = () => {
   };
 
   return (
-    <div className={styles.fullBackground}>
+    <section className={styles.fullBackground} ref={wrapperRef} id="form">
       <div className={styles.gridBackground} />
-      <section id="Form" ref={wrapperRef} className={styles.wrapper}>
+      <div className={styles.wrapper}>
 
         
         {isSubmitted ? (
@@ -170,18 +231,26 @@ export const Form = () => {
               <p className={styles.desc}>
                 {isSuccess 
                   ? 'Raport zostanie wysłany na podany adres e-mail w ciągu kilku minut.' 
-                  : 'Spróbuj ponownie później!'}
+                  : 'Nie udało się przeprowadzić audytu. Być może strona, którą chcesz sprawdzić, ma zabezpieczenia, które blokują nasz automatyczny audyt.'}
               </p>
-              {isSuccess && (
-                <p className={styles.desc}>Sprawdź swoją skrzynkę odbiorczą (oraz folder spam).</p>
-              )}
+              <p className={styles.desc}>
+                {isSuccess 
+                  ? 'Sprawdź swoją skrzynkę odbiorczą (oraz folder spam).' 
+                  : 'Napisz do mnie, a wykonam dla Ciebie automatyczny audyt bez żadnych opłat!'}
+              </p>
               <Button 
-                onClick={() => setIsSubmitted(false)}
-                aria-label="Powrót do formularza"
+                onClick={isSuccess ? () => {
+                  setIsSubmitted(false);
+                  setIsSuccess(false);
+                  reset();
+                } : handleContactClick}
+                aria-label={isSuccess ? "Powrót do formularza" : "Napisz do mnie"}  
                 variant="primary"
+                isLoading={!isSuccess && isContactLoading}
               >
-                {isSuccess ? 'OK!' : 'Spróbuj ponownie'}
+                {isSuccess ? 'OK!' : 'Napisz do mnie'}
               </Button>
+            
             </div>
           </div>
         ) : (
@@ -289,7 +358,7 @@ export const Form = () => {
           </form>
           </>
         )}
-      </section>
-    </div>
+      </div>
+    </section>
   );
 };

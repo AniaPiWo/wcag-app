@@ -1,7 +1,6 @@
 .page {
     padding-top: 10rem;
     max-width: 77.5rem; /* 1240px / 16 */
-    margin-inline: auto;
     min-height: calc(100dvh - 3.75rem); /* 60px / 16 */
     margin: 0 auto;
 }
@@ -13,12 +12,13 @@
     justify-content: center;
     gap: 8rem; /* 90px / 16 */
     margin-inline: 1rem;
+
 }
 
 @media (max-width: 48rem) { /* 768px / 16 */
     .page {
-        padding-top: 4.375rem; /* 70px / 16 */
-        margin-inline: 0.5rem;
+        padding-top: 6rem; /* 70px / 16 */
+
     }
 }
 

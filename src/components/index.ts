@@ -8,4 +8,5 @@ export { Hero } from './Hero/Hero';
 export { Button } from './atoms/Button/Button';
 export { Form } from './Form/Form';
 export { AboutMe } from './AboutMe/AboutMe';
+export { GoToForm } from './GoToForm/GoToForm';
 
