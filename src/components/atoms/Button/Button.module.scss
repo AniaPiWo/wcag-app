@@ -11,7 +11,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   background: var(--accent);
-  color: var(--foreground);
+  color: #000000; /* Zapewnia wysoki kontrast z tłem przycisku */
   border: 0.15rem solid var(--foreground);
   border-radius: 0;
   position: relative;
@@ -34,12 +34,31 @@
 
 .primary {
   background: var(--accent);
-  color: var(--foreground);
+  color: #000000; /* Zapewnia wysoki kontrast z tłem przycisku */
 }
 
 .secondary {
   background: transparent;
   color: var(--foreground);
+}
+
+/* W trybie ciemnym zapewniamy lepszy kontrast dla przycisków secondary */
+@media (prefers-color-scheme: dark) {
+  .secondary {
+    border-color: var(--foreground);
+  }
+  
+  .secondary:hover {
+    background-color: rgba(240, 246, 252, 0.1); /* Lekkie podświetlenie przy hover dla lepszej widoczności */
+  }
+}
+
+html[data-theme="dark"] .secondary {
+  border-color: var(--foreground);
+}
+
+html[data-theme="dark"] .secondary:hover {
+  background-color: rgba(240, 246, 252, 0.1); /* Lekkie podświetlenie przy hover dla lepszej widoczności */
 }
 
 .disabledPrimary,

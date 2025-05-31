@@ -26,17 +26,19 @@ export const AboutMe = () => {
             </div>
 
             <div className={styles.right}>
-              <div className={styles.top}>
+              <div className={styles.titleSection}>
+                <h2 className={styles.title}>Kim jestem</h2>
+              </div>
+              
+              <div className={styles.columnsContainer}>
                 <div className={styles.column}>
-                  <h2 className={styles.title}>Kim jestem</h2>
-
                   <p className={styles.desc}>
-                    Jestem certyfikowanym specjalistą dostępności cyfrowej z ponad 15-letnim doświadczeniem w branży e-commerce i tworzeniu stron internetowych. Pomagam budować skuteczne, 
+                   Jestem <strong>certyfikowanym specjalistą dostępności cyfrowej</strong> z ponad 15-letnim doświadczeniem w branży e-commerce i tworzeniu stron internetowych. Pomagam budować skuteczne, 
                     nowoczesne i dostępne serwisy, które działają szybko, wyglądają profesjonalnie i są zgodne 
-                    z aktualnymi standardami. Dbam zarówno o dostępność WCAG, jak i optymalizację SEO.
+                    z aktualnymi standardami. Dbam zarówno o <strong>dostępność WCAG</strong>, jak i optymalizację SEO.
                   </p>
                   <p className={styles.desc}>
-                    Specjalizuję się w adaptacji istniejących stron internetowych do standardów dostępności WCAG 2.2. 
+                    Specjalizuję się w <strong>adaptacji istniejących stron</strong> do standardów dostępności <strong>WCAG 2.2</strong>. 
                     Tworzę również nowe, w pełni dostępne strony od podstaw. Sprawiam, że witryny są dostępne dla 
                     wszystkich użytkowników, niezależnie od ich możliwości czy ograniczeń.
                   </p>
@@ -45,11 +47,11 @@ export const AboutMe = () => {
                 <div className={styles.column}>
                   <p className={styles.desc}>
                     Jako freelancer nie utrzymuję działu HR, księgowości ani biura – dzięki temu mogę zaproponować 
-                    uczciwą, niższą cenę bez utraty jakości. Skupiam się w 100% na Twoim projekcie, co oznacza 
+                    <strong> uczciwą, niższą cenę</strong> bez utraty jakości. Skupiam się w 100% na Twoim projekcie, co oznacza 
                     bezpośredni kontakt i indywidualne podejście.
                   </p>
                   <p className={styles.desc}>
-                    Nie przyjmuję nadmiaru zleceń – dzięki temu mogę zaoferować krótkie terminy realizacji i pełne 
+                    Nie przyjmuję nadmiaru zleceń – dzięki temu mogę zaoferować <strong>krótkie terminy realizacji</strong> i pełne 
                     zaangażowanie. Każdy projekt traktuję kompleksowo – łącząc dostępność WCAG z optymalizacją SEO, 
                     co zapewnia nie tylko zgodność z przepisami, ale również lepszą widoczność w wyszukiwarkach.
                   </p>

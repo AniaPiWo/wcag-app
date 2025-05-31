@@ -35,8 +35,10 @@ export const Button = ({
     >
       {isLoading ? (
         <>
+       
+          <span>Ładowanie...</span>
           <AiOutlineLoading3Quarters className={styles.loadingIcon} aria-hidden="true" />
-          <span className={styles.srOnly}>Ładowanie...</span>
+
         </>
       ) : children}
     </button>

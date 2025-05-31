@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Footer, Header } from "@/components";
 import "./globals.scss";
 
+// Dynamiczny import komponentu AccessibilityChecker (tylko dla środowiska deweloperskiego)
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -17,9 +19,9 @@ export const metadata: Metadata = {
   title: "Audyt i wdrożenie dostępności cyfrowej WCAG 2.2 | Profesjonalne usługi",
   description: "Specjalizuję się w adaptacji stron internetowych do standardów dostępności WCAG 2.2. Oferuję audyty, wdrożenia i tworzenie nowych, w pełni dostępnych stron.",
   keywords: "WCAG 2.2, dostępność cyfrowa, audyt dostępności, wdrożenie WCAG, strony internetowe, e-commerce, dostępne strony",
-  authors: [{ name: "Specjalista WCAG" }],
-  creator: "Specjalista WCAG",
-  publisher: "Specjalista WCAG",
+  authors: [{ name: "Seahorse" }],
+  creator: "Seahorse",
+  publisher: "Seahorse",
   openGraph: {
     title: "Audyt i wdrożenie dostępności cyfrowej WCAG 2.2",
     description: "Profesjonalne usługi w zakresie dostępności cyfrowej. Audyty, wdrożenia i tworzenie dostępnych stron zgodnych z WCAG 2.2.",
@@ -32,8 +34,7 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#ffffff" }, { media: "(prefers-color-scheme: dark)", color: "#313131" }],
-  viewport: { width: "device-width", initialScale: 1 },
+
   verification: {
     google: "verification_token",
   },
