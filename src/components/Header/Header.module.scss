@@ -83,10 +83,54 @@
 .menuDesktop {
   display: flex;
   align-items: center;
-  gap: 1rem; /* 16px */
+  gap: 2rem;
 
   @media (max-width: 48rem) { /* 768px */
     display: none;
+  }
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+}
+
+.navList {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1.5rem;
+}
+
+.navItem {
+  margin: 0;
+  padding: 0;
+}
+
+.navLink {
+  color: var(--foreground);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: color 0.2s ease;
+  
+
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    transition: width 0.3s ease;
+  }
+  
+  &:hover::after {
+    width: 100%;
   }
 }
 
@@ -146,6 +190,52 @@ html[data-theme="dark"] .switchKnob {
   display: flex;
   align-items: center;
   gap: 1rem; /* 16px */
+}
+
+.mobileNavigation {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.mobileNavList {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1rem;
+  width: 100%;
+  align-items: center;
+}
+
+.mobileNavItem {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  text-align: center;
+}
+
+.mobileNavLink {
+  color: var(--foreground);
+  text-decoration: none;
+  font-size: 1.125rem;
+  font-weight: 500;
+  padding: 0.75rem 0;
+  display: block;
+  width: 100%;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  border-radius: 0.25rem;
+  
+  &:hover, &:focus {
+    color: var(--primary);
+    background-color: var(--background-secondary);
+    text-decoration: none;
+  }
+  
+  &:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
 }
 
 .accessibilityControlsMobile {

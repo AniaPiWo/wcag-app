@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import styles from './AboutMe.module.scss';
 
+
 export const AboutMe = () => {
   return (
     <section id="aboutMe" className={styles.wrapper}>
@@ -11,7 +12,7 @@ export const AboutMe = () => {
             <div className={styles.left}>
               <div className={styles.imageWrapper}>
                 <Image
-                  src="/pug.jpg"
+                  src="/Ania_Piotrowiak.png"
                   alt="Ania Piotrowiak-Wołosiuk, specjalista dostępności cyfrowej"
                   fill
                   sizes="max-width: 640px"
@@ -47,7 +48,7 @@ export const AboutMe = () => {
                 <div className={styles.column}>
                   <p className={styles.desc}>
                     Jako freelancer nie utrzymuję działu HR, księgowości ani biura – dzięki temu mogę zaproponować 
-                    <strong> uczciwą, niższą cenę</strong> bez utraty jakości. Skupiam się w 100% na Twoim projekcie, co oznacza 
+                    <strong> niższą cenę</strong> bez utraty jakości. Skupiam się w 100% na Twoim projekcie, co oznacza 
                     bezpośredni kontakt i indywidualne podejście.
                   </p>
                   <p className={styles.desc}>

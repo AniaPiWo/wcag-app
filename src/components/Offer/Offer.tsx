@@ -10,7 +10,7 @@ export const offers = [
     title: 'Audyt dostępności WCAG',
     alt: 'Ikona symbolizująca audyt dostępności',
     description:
-      'Szczegółowa analiza Twojej strony pod kątem zgodności z WCAG 2.2. Otrzymasz ode mnie praktyczny raport z rekomendacjami możliwymi do wdrożenia od razu.',
+      'Szczegółowa analiza Twojej strony pod kątem zgodności z WCAG 2.2. Otrzymasz ode mnie praktyczny raport z rekomendacjami dotyczącymi naprawy problemów zgodności.',
   },
   {
     id: '2',
@@ -23,7 +23,7 @@ export const offers = [
   {
     id: '3',
     image: '/pug.jpg',
-    title: 'Projektowanie dostępnych rozwiązań',    
+    title: 'Tworzę dostępne rozwiązania',    
     alt: 'Ikona symbolizująca projektowanie dostępnych rozwiązań',
     description:
       'Tworzę dostępne serwisy i aplikacje od podstaw – zgodne z WCAG 2.2, przyjazne dla użytkownika i zaprojektowane zgodnie z zasadami dobrego UX.',
