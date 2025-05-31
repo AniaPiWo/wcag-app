@@ -6,29 +6,26 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, SubmitHandler, FieldErrors } from 'react-hook-form';
 
-// Walidacja adresu URL - akceptuje adresy bez http/https i www
+// walidacja url, akceptuje www i bez www
 const websiteSchema = z.string()
   .nonempty('Podaj adres strony internetowej')
   .refine(
     (val) => {
-      // Prosty wzorzec sprawdzający czy to wygląda jak domena
       const domainPattern = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
       const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,})([/\w .-]*)*\/?$/;
       
-      // Akceptujemy pełne URL-e lub same domeny
       return urlPattern.test(val) || domainPattern.test(val);
     },
     { message: 'Niepoprawny adres strony' }
   )
   .transform((val) => {
-    // Dodaj https:// jeśli brakuje
     if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
       return `https://${val}`;
     }
     return val;
   });
 
-// walidacja
+// walidacja formularza
 const FormSchema = z.object({
   name: z
     .string()
@@ -50,6 +47,7 @@ export const Form = () => {
   const [errorTimeout, setErrorTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [isSuccess, setIsSuccess] = useState<boolean>(true);
   const wrapperRef = useRef<HTMLElement>(null);
 
   const {
@@ -63,15 +61,66 @@ export const Form = () => {
   const onSubmit: SubmitHandler<FormInputs> = async (data) => {
     try {
       setIsSubmitting(true);
+      setErrorField(null);
+      setErrorMessage(null);
       
-      console.log('Wprowadzone dane:', data);
-      await new Promise(resolve => setTimeout(resolve, 1500)); // symulacja opoznienia
+      console.log('Wysyłanie danych do audytu:', data);
       
-      setIsSubmitted(true);
-      reset(); 
+      const payload = {
+        url: data.website,
+        email: data.email,
+        name: data.name
+      };
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 sekund timeout
+      
+      try {
+        const response = await fetch('/api/audit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Wystąpił błąd podczas przeprowadzania audytu');
+        }
+        
+        console.log('Wyniki audytu:', result);
+        
+        // Sukces - pokaż komunikat z podziękowaniem
+        setIsSuccess(true);
+        setIsSubmitted(true);
+        reset();
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        
+        if (fetchError instanceof TypeError && fetchError.message.includes('Failed to fetch')) {
+          console.error('Błąd połączenia z API:', fetchError);
+          throw new Error('Nie można połączyć się z serwerem audytu. Sprawdź połączenie internetowe i spróbuj ponownie.');
+        }
+        
+        if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
+          throw new Error('Przekroczono czas oczekiwania na odpowiedź serwera. Spróbuj ponownie później.');
+        }
+        
+        throw fetchError;
+      }
     } catch (error) {
-      console.error('Błąd podczas wysyłania formularza:', error);
-
+      console.error('Błąd podczas przeprowadzania audytu:', error);
+      
+      // Błąd - pokaż komunikat o niepowodzeniu
+      setIsSuccess(false);
+      setIsSubmitted(true);
+      reset();
     } finally {
       setIsSubmitting(false);
     }
@@ -115,11 +164,25 @@ export const Form = () => {
         {isSubmitted ? (
           <div className={styles.thankYou}>
             <div className={styles.text}>
-            <h2 className={styles.title}>Dziękujemy za zamówienie audytu!</h2>
-              <p className={styles.desc}>Raport zostanie wysłany na podany adres e-mail w ciągu kilku minut.</p>
-              <p className={styles.desc}>Sprawdź swoją skrzynkę odbiorczą (oraz folder spam).</p>
+              <h2 className={styles.title}>
+                {isSuccess ? 'Dziękujemy za zamówienie audytu!' : 'Upss coś poszło nie tak...'}
+              </h2>
+              <p className={styles.desc}>
+                {isSuccess 
+                  ? 'Raport zostanie wysłany na podany adres e-mail w ciągu kilku minut.' 
+                  : 'Spróbuj ponownie później!'}
+              </p>
+              {isSuccess && (
+                <p className={styles.desc}>Sprawdź swoją skrzynkę odbiorczą (oraz folder spam).</p>
+              )}
+              <Button 
+                onClick={() => setIsSubmitted(false)}
+                aria-label="Powrót do formularza"
+                variant="primary"
+              >
+                {isSuccess ? 'OK!' : 'Spróbuj ponownie'}
+              </Button>
             </div>
-    
           </div>
         ) : (
           <>
