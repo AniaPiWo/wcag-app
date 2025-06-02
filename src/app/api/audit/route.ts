@@ -3,6 +3,8 @@ import { chromium, Page } from 'playwright';
 import { z } from 'zod';
 import { queueAudit } from './queue';
 import { auditService } from '@/lib/db/audit-service';
+import fs from 'fs';
+import path from 'path';
 
 const MAX_PLAYWRIGHT_RETRIES = 3;
 
@@ -243,7 +245,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-
+// jesli nie mozemy uzyc axe-core - audyt podstawowy
 async function runBasicAccessibilityAudit(page: Page, url: string): Promise<{
   summary: AuditSummary;
   violations: AxeViolation[];
@@ -284,6 +286,8 @@ async function runBasicAccessibilityAudit(page: Page, url: string): Promise<{
         }))
       });
     }
+    
+
     
     const headingsOrder = await page.evaluate(() => {
       const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
@@ -456,6 +460,7 @@ async function runBasicAccessibilityAudit(page: Page, url: string): Promise<{
   }
 }
 
+// axe full audit
 async function runAccessibilityAudit(url: string): Promise<{
   summary: AuditSummary;
   violations: AxeViolation[];
@@ -522,23 +527,53 @@ async function runAccessibilityAudit(url: string): Promise<{
       throw new Error(`Nie udało się załadować strony: ${error instanceof Error ? error.message : String(error)}`);
     }
     
-    // Scroll through the page to ensure all lazy-loaded elements are visible
+    // Przewijamy stronę dla elementów lazy-loaded
     await autoScroll(page);
     
-    // Wstrzykujemy axe-core bezpośrednio jako string zamiast ładować go z CDN
-    // To pozwala ominąć problemy z Content Security Policy (CSP) na stronach
     try {
-      // Pobieramy axe-core z CDN jako string
-      const axeResponse = await fetch('https://unpkg.com/axe-core@4.10.3/axe.min.js');
-      if (!axeResponse.ok) {
-        throw new Error(`Nie udało się pobrać axe-core: ${axeResponse.status} ${axeResponse.statusText}`);
-      }
-      const axeScript = await axeResponse.text();
+      // Wczytujemy axe-core z node_modules
+      const axeCorePath = path.resolve(process.cwd(), 'node_modules', 'axe-core', 'axe.min.js');
+      let axeScript;
       
-      // Próbujemy kilku metod wstrzykiwania axe-core, aby obejść CSP
+      try {
+        // Zabezpieczenie przed path traversal
+        const normalizedPath = path.normalize(axeCorePath);
+        if (!normalizedPath.startsWith(process.cwd())) {
+          throw new Error('Niedozwolona ścieżka do pliku');
+        }
+        
+        axeScript = fs.readFileSync(normalizedPath, 'utf-8');
+        console.log('Wczytano axe-core');
+      } catch (fsError) {
+        console.error('Błąd odczytu axe-core:', fsError);
+        // Fallback do CDN
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
+          const axeResponse = await fetch('https://unpkg.com/axe-core@4.10.3/axe.min.js', {
+            signal: controller.signal,
+            headers: { 'Accept': 'application/javascript' }
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (!axeResponse.ok) {
+            throw new Error(`Nie udało się pobrać axe-core z CDN: ${axeResponse.status}`);
+          }
+          
+          axeScript = await axeResponse.text();
+          console.log('Użyto axe-core z CDN');
+        } catch (fetchError) {
+          console.error('Błąd CDN:', fetchError);
+          throw new Error(`Nie udało się pobrać axe-core: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
+        }
+      }
+      
+      // Wstrzykiwanie axe-core (3 metody)
       let axeLoaded = false;
       
-      // Metoda 1: Standardowe wstrzykiwanie przez document.createElement
+      // Metoda 1: document.createElement
       try {
         await page.evaluate((axeScriptContent) => {
           try {
@@ -547,82 +582,75 @@ async function runAccessibilityAudit(url: string): Promise<{
             document.head.appendChild(script);
             return true;
           } catch (e) {
-            console.error('Błąd podczas wstrzykiwania axe-core (metoda 1):', e);
+            console.error('Błąd metody 1:', e);
             return false;
           }
         }, axeScript);
         
-        // Sprawdzamy czy axe jest dostępny
         axeLoaded = await page.evaluate(() => {
           return typeof window['axe' as keyof Window] !== 'undefined';
         });
         
         if (axeLoaded) {
-          console.log('Biblioteka axe-core została pomyślnie wstrzyknięta (metoda 1)');
+          console.log('Wstrzyknięto axe-core (metoda 1)');
         }
       } catch (e) {
-        console.warn('Metoda 1 wstrzykiwania axe-core nie powiodła się:', e);
+        console.warn('Metoda 1 nie powiodła się:', e);
       }
       
-      // Metoda 2: Wstrzykiwanie przez eval (jeśli metoda 1 nie zadziałała)
+      // Metoda 2: eval
       if (!axeLoaded) {
         try {
           await page.evaluate((axeScriptContent) => {
             try {
-              // Bezpośrednio wykonujemy kod axe-core
               eval(axeScriptContent);
               return true;
             } catch (e) {
-              console.error('Błąd podczas wstrzykiwania axe-core (metoda 2):', e);
+              console.error('Błąd metody 2:', e);
               return false;
             }
           }, axeScript);
           
-          // Sprawdzamy czy axe jest dostępny
           axeLoaded = await page.evaluate(() => {
             return typeof window['axe' as keyof Window] !== 'undefined';
           });
           
           if (axeLoaded) {
-            console.log('Biblioteka axe-core została pomyślnie wstrzyknięta (metoda 2)');
+            console.log('Wstrzyknięto axe-core (metoda 2)');
           }
         } catch (e) {
-          console.warn('Metoda 2 wstrzykiwania axe-core nie powiodła się:', e);
+          console.warn('Metoda 2 nie powiodła się:', e);
         }
       }
       
-      // Metoda 3: Wstrzykiwanie przez Function constructor (jeśli metody 1 i 2 nie zadziałały)
+      // Metoda 3: Function constructor
       if (!axeLoaded) {
         try {
           await page.evaluate((axeScriptContent) => {
             try {
-              // Tworzymy nową funkcję z kodu axe-core i wykonujemy ją
               new Function(axeScriptContent)();
               return true;
             } catch (e) {
-              console.error('Błąd podczas wstrzykiwania axe-core (metoda 3):', e);
+              console.error('Błąd metody 3:', e);
               return false;
             }
           }, axeScript);
           
-          // Sprawdzamy czy axe jest dostępny
           axeLoaded = await page.evaluate(() => {
             return typeof window['axe' as keyof Window] !== 'undefined';
           });
           
           if (axeLoaded) {
-            console.log('Biblioteka axe-core została pomyślnie wstrzyknięta (metoda 3)');
+            console.log('Wstrzyknięto axe-core (metoda 3)');
           }
         } catch (e) {
-          console.warn('Metoda 3 wstrzykiwania axe-core nie powiodła się:', e);
+          console.warn('Metoda 3 nie powiodła się:', e);
         }
       }
       
-      // Jeśli żadna metoda wstrzykiwania axe-core nie zadziałała, próbujemy alternatywnej metody audytu
+      // Fallback do podstawowego audytu
       if (!axeLoaded) {
-        console.warn('Nie udało się wstrzyknąć axe-core - próbujemy alternatywnej metody audytu');
-        
-        // Wykonujemy podstawowy audyt dostępności bez axe-core
+        console.warn('Nie udało się wstrzyknąć axe-core - użycie audytu podstawowego');
         return await runBasicAccessibilityAudit(page, url);
       }
     } catch (error) {
@@ -630,28 +658,44 @@ async function runAccessibilityAudit(url: string): Promise<{
       throw new Error(`Nie udało się wstrzyknąć biblioteki axe-core: ${error instanceof Error ? error.message : String(error)}`);
     }
     
-    // Run the accessibility audit
-    const results = await page.evaluate(() => {
-      return new Promise<AxeResults | { error: string }>((resolve) => {
-        // @ts-expect-error - axe is injected at runtime
-        window.axe.run(
-          document,
-          {
-            runOnly: {
-              type: 'tag',
-              values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice', 'section508']
-            }
-          },
-          (err: Error | null, results: AxeResults) => {
-            if (err) {
-              resolve({ error: err.toString() });
-            } else {
-              resolve(results);
-            }
+    // Uruchomienie audytu z timeoutem
+    const results = await Promise.race([
+      page.evaluate(() => {
+        return new Promise<AxeResults | { error: string }>((resolve) => {
+          try {
+            // @ts-expect-error - axe is injected at runtime
+            window.axe.run(
+              document,
+              {
+                runOnly: {
+                  type: 'tag',
+                  values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice', 'section508']
+                },
+                maxRules: 100,
+                elementRef: false,
+                selectors: false,
+                resultTypes: ['violations', 'incomplete', 'passes'],
+                reporter: 'v2'
+              },
+              (err: Error | null, results: AxeResults) => {
+                if (err) {
+                  resolve({ error: err.toString() });
+                } else {
+                  resolve(results);
+                }
+              }
+            );
+          } catch (e) {
+            resolve({ error: `Błąd axe: ${e instanceof Error ? e.message : String(e)}` });
           }
-        );
-      });
-    });
+        });
+      }),
+      new Promise<{ error: string }>((resolve) => {
+        setTimeout(() => {
+          resolve({ error: 'Timeout audytu' });
+        }, PLAYWRIGHT_TIMEOUT - 5000);
+      })
+    ]);
     
     // Process the results
     let totalIssuesCount = 0;
