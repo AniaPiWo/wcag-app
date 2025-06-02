@@ -76,8 +76,6 @@ const FormSchema = z.object({
 
 type FormInputs = z.infer<typeof FormSchema>;
 
-// Typ dla odpowiedzi z API w przypadku błędu
-
 export const Form = () => {
   const [errorField, setErrorField] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -88,11 +86,11 @@ export const Form = () => {
   const [isContactLoading, setIsContactLoading] = useState<boolean>(false);
   const wrapperRef = useRef<HTMLElement>(null);
   
-  // Funkcja do obsługi przycisku "Napisz do mnie"
+  // napisz do mnie
   const handleContactClick = () => {
     setIsContactLoading(true);
-    // Otwórz klienta poczty z predefiniowanym tematem
-    window.location.href = 'mailto:kontakt@wcag-audyt.pl?subject=Prośba o automatyczny audyt WCAG';
+    const emailParts = ['biuro', 'wcag.co'];
+    window.location.href = `mailto:${emailParts[0]}@${emailParts[1]}?subject=Prośba o automatyczny audyt WCAG`;
     setTimeout(() => setIsContactLoading(false), 1000);
   };
 
@@ -110,7 +108,7 @@ export const Form = () => {
       setErrorField(null);
       setErrorMessage(null);
       
-      //console.log('Wysyłanie danych do audytu:', data);
+      //console.log('Wysyłanie danych do audytu:', data); // debug
       
       const payload = {
         url: data.website,
@@ -134,30 +132,16 @@ export const Form = () => {
         
         clearTimeout(timeoutId);
         
-        // Odczytujemy dane z odpowiedzi tylko raz
         const responseData = await response.json();
         
-        // Sprawdzamy status odpowiedzi
         if (!response.ok) {
           throw new Error(responseData.error || 'Wystąpił błąd podczas przeprowadzania audytu');
         }
         
-        // Traktujemy dane jako AuditResponse
         const result = responseData as AuditResponse;
         
-        console.log('Wyniki audytu:', result);
+        console.log('Wyniki audytu:', result); // debug
         
-        // Wypisz szczegółowe informacje o błędach dostepności
-        if (result.results && result.results.violations && result.results.violations.length > 0) {
-          console.log(`Znaleziono ${result.results.violations.length} błędów dostepności:`);
-          result.results.violations.forEach((violation, index) => {
-            console.log(`${index + 1}. ${violation.id} (${violation.impact}): ${violation.description}`);
-          });
-        } else {
-          console.log('Nie znaleziono błędów dostepności lub brak danych o błędach.');
-        }
-        
-        // Sukces - pokaż komunikat z podziękowaniem
         setIsSuccess(true);
         setIsSubmitted(true);
         reset();
@@ -178,7 +162,6 @@ export const Form = () => {
     } catch (error) {
       console.error('Błąd podczas przeprowadzania audytu:', error);
       
-      // Błąd - pokaż komunikat o niepowodzeniu
       setIsSuccess(false);
       setIsSubmitted(true);
       reset();

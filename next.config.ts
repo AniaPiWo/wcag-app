@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['playwright-core', 'playwright']
   },
+  // Optymalizacja ładowania czcionek - rozwiązanie problemu z preload
+  optimizeFonts: false,
   // Zwiększenie limitu czasu dla API Routes
   api: {
     responseLimit: false,
