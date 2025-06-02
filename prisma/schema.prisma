@@ -27,6 +27,7 @@ model AuditRequest {
   timestamp       String?
   
   violations      String?  @db.String // JSON z naruszeniami
+  aiAnalysis      String?  @db.String // Analiza AI wyników audytu
   
   // pola systemowe
   createdAt       DateTime @default(now())
