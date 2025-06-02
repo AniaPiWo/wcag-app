@@ -8,7 +8,7 @@ export const Hero = () => {
   const [isContactLoading, setIsContactLoading] = useState(false);
 
   const handleAuditClick = useCallback(() => {
-    const formSection = document.getElementById('Form');
+    const formSection = document.getElementById('form');
     if (formSection) {
 
       const formRect = formSection.getBoundingClientRect();
