@@ -138,9 +138,10 @@ export const Form = () => {
           throw new Error(responseData.error || 'Wystąpił błąd podczas przeprowadzania audytu');
         }
         
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const result = responseData as AuditResponse;
         
-        console.log('Wyniki audytu:', result); // debug
+        //console.log('Wyniki audytu:', result); // debug
         
         setIsSuccess(true);
         setIsSubmitted(true);
