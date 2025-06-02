@@ -10,18 +10,4 @@ export const prisma =
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
-export async function testDatabaseConnection() {
-  try {
-
-    const result = await prisma.$queryRaw`SELECT 1 as test`;
-    console.log('Połączenie z bazą danych udane!');
-    console.log('Wynik:', result);
-    return true;
-  } catch (error) {
-    console.error('Błąd połączenia z bazą danych:', error);
-    return false;
-  }
-}
-
-
-testDatabaseConnection().catch(console.error);
+// Usunięto test połączenia z bazą danych

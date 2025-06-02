@@ -218,10 +218,15 @@ export async function POST(request: NextRequest) {
     if (auditRequest) {
       try {
         await auditService.saveAuditResults(auditRequest.id, auditResults);
-        console.log('Zapisano wyniki audytu dla żądania:', auditRequest.id);
-        //console.log('Wyniki audytu:', auditResults);
+        console.log('\x1b[32m%s\x1b[0m', 'Zapisano wyniki audytu dla żądania:', auditRequest.id);
+        
+        // Uruchomienie analizy AI w tle (bez oczekiwania na zakończenie)
+        auditService.runAiAnalysisInBackground(auditRequest.id, auditResults.violations)
+          .catch(aiError => {
+            console.error('\x1b[31m%s\x1b[0m', 'Błąd podczas uruchamiania analizy AI:', aiError);
+          });
       } catch (dbError) {
-        console.error('Błąd podczas zapisywania wyników audytu:', dbError);
+        console.error('\x1b[31m%s\x1b[0m', 'Błąd podczas zapisywania wyników audytu:', dbError);
       }
     }
     
@@ -505,7 +510,7 @@ async function runAccessibilityAudit(url: string): Promise<{
       // Sprawdzamy status odpowiedzi, ale akceptujemy szerszy zakres kodów
       if (response) {
         const status = response.status();
-        console.log(`Status odpowiedzi strony: ${status}`);
+        console.log(`\x1b[34m%s\x1b[0m`, `Status odpowiedzi strony: ${status}`);
         
         // Akceptujemy kody 2xx, 3xx i niektóre 4xx (np. 404 dla części zasobów nie powinien przerywać audytu)
         const isServerError = status >= 500 || status === 404 || status === 403;
@@ -514,16 +519,16 @@ async function runAccessibilityAudit(url: string): Promise<{
           throw new Error(`Nie udało się załadować strony: kod odpowiedzi ${status}`);
         }
       } else {
-        console.warn('Brak obiektu odpowiedzi, ale kontynuujemy audyt');
+        console.warn('\x1b[33m%s\x1b[0m', 'Brak obiektu odpowiedzi, ale kontynuujemy audyt');
       }
       
       // Dodatkowe oczekiwanie na załadowanie strony
       await page.waitForLoadState('load', { timeout: PLAYWRIGHT_TIMEOUT / 2 }).catch(err => {
-        console.warn('Timeout podczas oczekiwania na pełne załadowanie strony, ale kontynuujemy:', err.message);
+        console.warn('\x1b[33m%s\x1b[0m', 'Timeout podczas oczekiwania na pełne załadowanie strony, ale kontynuujemy:', err.message);
       });
       
     } catch (error) {
-      console.error('Błąd podczas ładowania strony:', error);
+      console.error('\x1b[31m%s\x1b[0m', 'Błąd podczas ładowania strony:', error);
       throw new Error(`Nie udało się załadować strony: ${error instanceof Error ? error.message : String(error)}`);
     }
     
@@ -543,9 +548,11 @@ async function runAccessibilityAudit(url: string): Promise<{
         }
         
         axeScript = fs.readFileSync(normalizedPath, 'utf-8');
-        console.log('Wczytano axe-core');
+        console.log('\x1b[32m%s\x1b[0m', 'Wczytano axe-core');
+
       } catch (fsError) {
-        console.error('Błąd odczytu axe-core:', fsError);
+        console.error('\x1b[31m%s\x1b[0m', 'Błąd odczytu axe-core:', fsError);
+
         // Fallback do CDN
         try {
           const controller = new AbortController();
@@ -563,9 +570,9 @@ async function runAccessibilityAudit(url: string): Promise<{
           }
           
           axeScript = await axeResponse.text();
-          console.log('Użyto axe-core z CDN');
+          console.log('\x1b[32m%s\x1b[0m', 'Użyto axe-core z CDN');
         } catch (fetchError) {
-          console.error('Błąd CDN:', fetchError);
+          console.error('\x1b[31m%s\x1b[0m', 'Błąd CDN:', fetchError);
           throw new Error(`Nie udało się pobrać axe-core: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
         }
       }
@@ -592,10 +599,11 @@ async function runAccessibilityAudit(url: string): Promise<{
         });
         
         if (axeLoaded) {
-          console.log('Wstrzyknięto axe-core (metoda 1)');
+          console.log('\x1b[35m%s\x1b[0m', 'Wstrzyknięto axe-core (metoda 1)');
+
         }
       } catch (e) {
-        console.warn('Metoda 1 nie powiodła się:', e);
+        console.warn('\x1b[33m%s\x1b[0m', 'Metoda 1 nie powiodła się:', e);
       }
       
       // Metoda 2: eval
@@ -616,10 +624,10 @@ async function runAccessibilityAudit(url: string): Promise<{
           });
           
           if (axeLoaded) {
-            console.log('Wstrzyknięto axe-core (metoda 2)');
+            console.log('\x1b[35m%s\x1b[0m', 'Wstrzyknięto axe-core (metoda 2)');
           }
         } catch (e) {
-          console.warn('Metoda 2 nie powiodła się:', e);
+          console.warn('\x1b[33m%s\x1b[0m', 'Metoda 2 nie powiodła się:', e);
         }
       }
       
@@ -641,10 +649,10 @@ async function runAccessibilityAudit(url: string): Promise<{
           });
           
           if (axeLoaded) {
-            console.log('Wstrzyknięto axe-core (metoda 3)');
+            console.log('\x1b[35m%s\x1b[0m', 'Wstrzyknięto axe-core (metoda 3)');
           }
         } catch (e) {
-          console.warn('Metoda 3 nie powiodła się:', e);
+          console.warn('\x1b[33m%s\x1b[0m', 'Metoda 3 nie powiodła się:', e);
         }
       }
       
