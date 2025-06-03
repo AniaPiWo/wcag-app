@@ -1,0 +1,19 @@
+.logoContainer {
+  display: inline-flex;
+}
+
+.logoText {
+    font-weight: var(--font-weight-semibold);
+    font-size: 44px;
+    line-height: 100%;
+    letter-spacing: -4%;
+    margin: 0;
+}
+
+.accent {
+  display: inline-block;
+}
+
+.logoIcon {
+  display: inline-flex;
+}

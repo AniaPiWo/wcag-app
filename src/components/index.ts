@@ -9,4 +9,6 @@ export { Button } from './atoms/Button/Button';
 export { Form } from './Form/Form';
 export { AboutMe } from './AboutMe/AboutMe';
 export { GoToForm } from './GoToForm/GoToForm';
+export { FAQ } from './FAQ/FAQ';
+export { Logo } from './Logo/Logo';
 

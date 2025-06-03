@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import styles from './Header.module.scss'
 import { ThemeSwitcher } from '../atoms/ThemeSwitcher/ThemeSwitcher'
+import { Logo } from '../Logo/Logo'
 
 export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -57,11 +57,7 @@ export const Header = () => {
 
       <header className={styles.wrapper}>
       <div className={styles.container}>
-        <Link href="/" className={styles.logoLink} aria-label="WCAG Strona główna">
-          <div className={styles.logo}>
-            WCAG
-          </div>
-        </Link>
+        <Logo href="/" className={styles.logoLink} />
 
         <div id="menu_glowne" className={styles.menuDesktop}>
           <nav className={styles.navigation}>
