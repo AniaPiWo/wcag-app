@@ -3,7 +3,7 @@
   height: 34rem; /* 524px */
   border-width: 0.0625rem; /* 1px */
   border: 0.4rem solid var(--black); /* 1px */
-background-color: ivory;
+//background-color: ivory;
   padding: 1.25rem; /* 20px */
   display: flex;
   flex-direction: column;
@@ -41,6 +41,9 @@ background-color: ivory;
   );
   border: 3px solid black;
 
+  @media (max-width: 768px) {
+    right: -15px;
+  }
 }
 
 .priceAmount {
