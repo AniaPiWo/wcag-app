@@ -145,19 +145,30 @@ export const Form = () => {
       setIsSubmitting(true);
       setErrorField(null);
       setErrorMessage(null);
-      setStatusMessage('Sprawdzam adres strony...');
       
-      // Sprawdzenie czy URL istnieje przed wysyłaniem formularza
+      // Sprawdzenie czy URL istnieje przed wysyłaniem formularza - bez aktualizacji statusMessage
       const urlCheckResult = await checkUrlExists(data.website);
       
       if (!urlCheckResult.exists) {
+        // Ustawiamy focus z powrotem na pole website, aby uniknąć zmiany kontekstu
+        const websiteInput = document.getElementById('website');
+        if (websiteInput) {
+          websiteInput.focus();
+        }
+        
         setErrorField('website');
         setErrorMessage(urlCheckResult.error || 'Podany adres strony jest nieprawidłowy lub strona nie istnieje. Sprawdź poprawność adresu.');
         setIsSubmitting(false);
         return;
       }
       
-      setStatusMessage('Trwa wysyłanie formularza, proszę czekać...');
+      // Aktualizacja statusMessage dopiero po potwierdzeniu, że URL istnieje
+      // Ustawiamy pusty string, a następnie po krótkiej chwili właściwy komunikat
+      // aby wymusić ponowne odczytanie przez czytnik ekranu
+      setStatusMessage('');
+      setTimeout(() => {
+        setStatusMessage('Trwa wysyłanie formularza, proszę czekać...');
+      }, 50);
       
       //console.log('Wysyłanie danych do audytu:', data); // debug
       
@@ -190,7 +201,11 @@ export const Form = () => {
           console.error('Błąd z serwera:', responseData.error);
           setIsSuccess(false);
           setIsSubmitted(true);
-          setStatusMessage(responseData.error || 'Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
+          // Resetujemy komunikat, a następnie ustawiamy właściwy, aby wymusić odczytanie przez czytnik ekranu
+          setStatusMessage('');
+          setTimeout(() => {
+            setStatusMessage(responseData.error || 'Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
+          }, 50);
           reset();
           setIsSubmitting(false);
           return; // Przerywamy wykonanie funkcji
@@ -203,7 +218,11 @@ export const Form = () => {
         
         setIsSuccess(true);
         setIsSubmitted(true);
-        setStatusMessage('Dziękujemy za zamówienie audytu! Raport zostanie wysłany na podany adres e-mail w ciągu kilku minut.');
+        // Resetujemy komunikat, a następnie ustawiamy właściwy, aby wymusić odczytanie przez czytnik ekranu
+        setStatusMessage('');
+        setTimeout(() => {
+          setStatusMessage('Formularz został wysłany.');
+        }, 50);
         reset();
         
         // Komunikat został wyświetlony, nie ustawiamy na nim focusa
@@ -215,7 +234,11 @@ export const Form = () => {
           console.error('Błąd podczas wykonywania żądania:', fetchError);
           setIsSuccess(false);
           setIsSubmitted(true);
-          setStatusMessage('Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
+          // Resetujemy komunikat, a następnie ustawiamy właściwy, aby wymusić odczytanie przez czytnik ekranu
+          setStatusMessage('');
+          setTimeout(() => {
+            setStatusMessage('Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
+          }, 50);
           reset();
           setIsSubmitting(false);
           return; // Przerywamy wykonanie funkcji
@@ -322,7 +345,7 @@ export const Form = () => {
             >
               <div className="sr-only">{statusMessage}</div>
               <h2 className={styles.title}>
-                {isSuccess ? 'Dziękujemy za zamówienie audytu!' : 'Upss coś poszło nie tak...'}
+                {isSuccess ? 'Dziękujemy za zamówienie audytu!' : 'Upss,  coś poszło nie tak...'}
               </h2>
               <p className={styles.desc}>
                 {isSuccess 
@@ -462,11 +485,20 @@ export const Form = () => {
               <div 
                 className={styles.srOnly} 
                 aria-live="assertive" 
-                role="status" 
+                role="alert" 
                 id="form-status-message"
                 ref={statusMessageRef}
               >
-                {isSubmitting && "Trwa wysyłanie formularza, proszę czekać..."}
+                {statusMessage && statusMessage}
+              </div>
+              
+              <div 
+                className={styles.srOnly} 
+                aria-live="assertive" 
+                role="alert" 
+                id="url-error-message"
+              >
+                {errorField === 'website' && errorMessage}
               </div>
               
               <Button 
