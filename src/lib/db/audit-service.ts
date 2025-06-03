@@ -121,7 +121,7 @@ export const auditService = {
     });
   },
 
-  // uruchamia analizę AI w tle
+  // uruchamia analizę AI w tle i zapisuje wyniki do bazy danych
   async runAiAnalysisInBackground(requestId: string, violations: AxeViolation[]) {
     try {
       console.log('\x1b[36m%s\x1b[0m', `⚙️ Rozpoczynam analizę AI dla audytu ${requestId}...`);
@@ -135,15 +135,14 @@ export const auditService = {
       console.log('\x1b[32m%s\x1b[0m', `✅ Analiza AI dla audytu ${requestId} zakończona`);
       console.log(aiAnalysis);
 
-      // Tutaj możemy dodać kod do zapisywania analizy AI do bazy danych,
-      // gdy problem z Prisma zostanie rozwiązany
-      // await prisma.aiAnalysis.create({
-      //   data: {
-      //     auditRequestId: requestId,
-      //     content: aiAnalysis,
-      //     createdAt: new Date()
-      //   }
-      // });
+      // Zapisujemy analizę AI do bazy danych za pomocą bezpośredniego zapytania SQL
+      try {
+        await prisma.$executeRaw`UPDATE "AuditRequest" SET "aiAnalysis" = ${aiAnalysis} WHERE id = ${requestId}`;
+        console.log('\x1b[32m%s\x1b[0m', `✅ Zapisano analizę AI do bazy danych dla audytu ${requestId}`);
+      } catch (dbError) {
+        console.error('\x1b[31m%s\x1b[0m', `❌ Błąd podczas zapisywania analizy AI do bazy danych:`, dbError);
+        // Kontynuujemy mimo błędu zapisu do bazy - analiza została już wygenerowana
+      }
 
       return aiAnalysis;
     } catch (error) {
