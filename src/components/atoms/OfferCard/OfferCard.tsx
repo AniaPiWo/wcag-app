@@ -7,6 +7,7 @@ type OfferCardProps = {
   title: string;
   alt: string;
   description: string;
+  id?: string; // Dodanie id do identyfikacji karty z audytem
 };
 
 export const OfferCard = ({
@@ -14,9 +15,21 @@ export const OfferCard = ({
   title,
   alt,
   description,
+  id,
 }: OfferCardProps) => {
   return (
     <div className={styles.card}>
+      {id === '1' && (
+        <div className={styles.priceBanner} aria-label="Cena 99 złotych netto">
+          <div className={styles.priceWrapper}>
+            <div className={styles.priceRow}>
+              <span className={styles.priceAmount}>99</span>
+              <span className={styles.priceCurrency}>PLN</span>
+            </div>
+            <span className={styles.priceType}>netto</span>
+          </div>
+        </div>
+      )}
       <Image
         src={image}
         alt={alt}
