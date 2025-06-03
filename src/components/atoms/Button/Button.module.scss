@@ -11,7 +11,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   background: var(--accent);
-  color: #000000; /* Zapewnia wysoki kontrast z tłem przycisku */
+  color: var(--black); /* Zapewnia wysoki kontrast z tłem przycisku */
   border: 0.15rem solid var(--foreground);
   border-radius: 0;
   position: relative;
@@ -34,7 +34,7 @@
 
 .primary {
   background: var(--accent);
-  color: #000000; /* Zapewnia wysoki kontrast z tłem przycisku */
+  color: var(--black); /* Zapewnia wysoki kontrast z tłem przycisku */
 }
 
 .secondary {
