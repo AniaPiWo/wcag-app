@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './CookiesConsent.module.scss';
 import { Button } from '../atoms/Button/Button';
 
@@ -20,10 +20,38 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookie
   const dialogRef = useRef<HTMLDivElement>(null);
   
 
-  // Użyj wartości z props, jeśli zostały przekazane, w przeciwnym razie użyj wartości domyślnych
   const [necessaryCookies, setNecessaryCookies] = useState(cookieStates?.necessary ?? true); // always enabled
   const [analyticsCookies, setAnalyticsCookies] = useState(cookieStates?.analytics ?? false);
   const [marketingCookies, setMarketingCookies] = useState(cookieStates?.marketing ?? false);
+  
+  // Definicja handleAccept z użyciem useCallback
+  const handleAccept = useCallback(() => {
+    try {
+      const cookiesData = {
+        consented: true,
+        consentDate: new Date().toISOString(),
+        preferences: {
+          necessary: true, 
+          analytics: analyticsCookies,
+          marketing: marketingCookies
+        }
+      };
+      
+      localStorage.setItem('wcagCookies', JSON.stringify(cookiesData));
+
+      if (onAccept) {
+        onAccept();
+      }
+      
+      setIsVisible(false);
+    } catch (error) {
+      setIsVisible(false);
+      
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Wystąpił problem przy zapisywaniu preferencji cookies');
+      }
+    }
+  }, [analyticsCookies, marketingCookies, onAccept, setIsVisible]);
   
   useEffect(() => {
     if (cookieStates) {
@@ -32,7 +60,7 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookie
     }
 
     try {
-      const cookiesData = localStorage.getItem('WcagCookies');
+      const cookiesData = localStorage.getItem('wcagCookies');
       
       if (!cookiesData) {
         setIsVisible(true);
@@ -40,7 +68,6 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookie
         const parsedData = JSON.parse(cookiesData);
         
         if (parsedData.consented) {
-          // Ustaw zapisane preferencje
           if (parsedData.preferences) {
             if (parsedData.preferences.analytics !== undefined) {
               setAnalyticsCookies(parsedData.preferences.analytics);
@@ -63,8 +90,16 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookie
 
       dialogRef.current.focus();
       
-      // przechwytywanie tab po zaladowaniu
+      
       const handleKeyDown = (e: KeyboardEvent) => {
+   
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          handleAccept();
+          return;
+        }
+        
+
         if (e.key === 'Tab' && dialogRef.current) {
           const focusableElements = dialogRef.current.querySelectorAll(
             'button, [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -88,37 +123,7 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookie
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [isVisible]);
-
-  const handleAccept = () => {
-    try {
-
-      const cookiesData = {
-        consented: true,
-        consentDate: new Date().toISOString(),
-        preferences: {
-          necessary: true, 
-          analytics: analyticsCookies,
-          marketing: marketingCookies
-        }
-      };
-      
-  
-      localStorage.setItem('WcagCookies', JSON.stringify(cookiesData));
-
-      if (onAccept) {
-        onAccept();
-      }
-      
-      setIsVisible(false);
-    } catch (error) {
-      setIsVisible(false);
-      
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn('Wystąpił problem przy zapisywaniu preferencji cookies');
-      }
-    }
-  };
+  }, [isVisible, handleAccept]);
 
   const handleModify = () => {
     try {
@@ -167,21 +172,21 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookie
         aria-describedby="cookies-description"
         aria-label="Ustawienia cookies strony"
         lang="pl"
-        tabIndex={-1}
+        tabIndex={0}
         aria-modal="true"
       >
         <div className={styles.cookiesContent}>
           <h2 id="cookies-title" className={styles.cookiesTitle}><span className={styles.srOnly}>Wcag - </span>Ustawienia cookies </h2>
           <div id="cookies-description" className={styles.cookiesText}>
           <p>
-          Korzystając ze strony zgadzasz się na użycie plików cookies.</p>  <p> Możesz przeczytać więcej w <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className={styles.privacyLink}>Polityce prywatności</a>.</p>
+          Korzystając ze strony zgadzasz się na użycie plików cookies.</p>
           </div>
           <div className={styles.switchesGroup}>
     
             <div className={styles.switchItem}>
               <div className={styles.switchLabel}>
-                <span className={styles.switchTitle} id="necessary-label">Niezbędne</span>
-             
+                <span className={styles.switchTitle} id="necessary-label" aria-hidden="true">Niezbędne</span>
+                <span className={styles.srOnly}>Niezbędne pliki cookie (zawsze włączone)</span>
               </div>
               <label className={styles.switch} htmlFor="necessary-cookies">
                 <input 
@@ -196,7 +201,7 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookie
                   aria-checked={necessaryCookies}
                 />
                 <span className={styles.slider}></span>
-                <span className={styles.srOnly}>Niezbędne pliki cookie (zawsze włączone)</span>
+    
               </label>
             </div>
             
@@ -219,7 +224,7 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookie
                   tabIndex={0}
                 />
                 <span className={styles.slider}></span>
-                <span className={styles.srOnly}>Analityczne pliki cookie</span>
+      
               </label>
             </div>
             
@@ -248,18 +253,22 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookie
           </div>
           <div className={styles.buttonGroup}>
             <Button 
+            className={styles.button}
               variant="primary"
               onClick={handleAccept}
-
             >
               Akceptuję
             </Button>
             <Button 
+            className={styles.button}
               variant="secondary"
               onClick={handleModify}
             >
               Dostosuj
             </Button>
+          </div>
+          <div className={styles.privacyLinkContainer}>
+            <p>Możesz przeczytać więcej w <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className={styles.privacyLink}>Polityce prywatności</a>.</p>
           </div>
         </div>
       </div>

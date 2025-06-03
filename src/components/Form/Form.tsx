@@ -1,10 +1,35 @@
 'use client';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styles from './Form.module.scss';
 import { Button } from '../atoms/Button/Button';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, SubmitHandler, FieldErrors } from 'react-hook-form';
+
+// Funkcja sprawdzająca dostępność adresu URL
+async function checkUrlExists(url: string): Promise<{ exists: boolean; error?: string }> {
+  try {
+    // Upewnij się, że URL ma prawidłowy format
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+    }
+    
+    // Używamy API proxy na serwerze, aby uniknąć problemów CORS
+    const response = await fetch('/api/check-url', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ url })
+    });
+    
+    const data = await response.json();
+    return { exists: response.ok, error: data.error };
+  } catch (error) {
+    console.error('Błąd podczas sprawdzania URL:', error);
+    return { exists: false, error: 'Wystąpił błąd podczas sprawdzania adresu URL' };
+  }
+}
 
 // Typy dla wyników audytu
 interface AuditViolation {
@@ -84,7 +109,20 @@ export const Form = () => {
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [isContactLoading, setIsContactLoading] = useState<boolean>(false);
+  const [statusMessage, setStatusMessage] = useState<string>('');
   const wrapperRef = useRef<HTMLElement>(null);
+  const statusRef = useRef<HTMLDivElement>(null);
+  const statusMessageRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (isSubmitted && !isSubmitting) {
+      setTimeout(() => {
+        if (statusMessageRef.current) {
+          statusMessageRef.current.textContent = "Formularz został wysłany pomyślnie. Dziękujemy!";
+        }
+      }, 500);
+    }
+  }, [isSubmitted, isSubmitting]);
   
   // napisz do mnie
   const handleContactClick = () => {
@@ -107,6 +145,19 @@ export const Form = () => {
       setIsSubmitting(true);
       setErrorField(null);
       setErrorMessage(null);
+      setStatusMessage('Sprawdzam adres strony...');
+      
+      // Sprawdzenie czy URL istnieje przed wysyłaniem formularza
+      const urlCheckResult = await checkUrlExists(data.website);
+      
+      if (!urlCheckResult.exists) {
+        setErrorField('website');
+        setErrorMessage(urlCheckResult.error || 'Podany adres strony jest nieprawidłowy lub strona nie istnieje. Sprawdź poprawność adresu.');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      setStatusMessage('Trwa wysyłanie formularza, proszę czekać...');
       
       //console.log('Wysyłanie danych do audytu:', data); // debug
       
@@ -135,7 +186,14 @@ export const Form = () => {
         const responseData = await response.json();
         
         if (!response.ok) {
-          throw new Error(responseData.error || 'Wystąpił błąd podczas przeprowadzania audytu');
+          // Obsługa błędów z serwera
+          console.error('Błąd z serwera:', responseData.error);
+          setIsSuccess(false);
+          setIsSubmitted(true);
+          setStatusMessage(responseData.error || 'Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
+          reset();
+          setIsSubmitting(false);
+          return; // Przerywamy wykonanie funkcji
         }
         
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -145,28 +203,63 @@ export const Form = () => {
         
         setIsSuccess(true);
         setIsSubmitted(true);
+        setStatusMessage('Dziękujemy za zamówienie audytu! Raport zostanie wysłany na podany adres e-mail w ciągu kilku minut.');
         reset();
+        
+        // Komunikat został wyświetlony, nie ustawiamy na nim focusa
       } catch (fetchError) {
         clearTimeout(timeoutId);
         
-        if (fetchError instanceof TypeError && fetchError.message.includes('Failed to fetch')) {
-          console.error('Błąd połączenia z API:', fetchError);
-          throw new Error('Nie można połączyć się z serwerem audytu. Sprawdź połączenie internetowe i spróbuj ponownie.');
+        // Ogólna obsługa błędów połączenia
+        if (fetchError instanceof Error) {
+          console.error('Błąd podczas wykonywania żądania:', fetchError);
+          setIsSuccess(false);
+          setIsSubmitted(true);
+          setStatusMessage('Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
+          reset();
+          setIsSubmitting(false);
+          return; // Przerywamy wykonanie funkcji
+        }
+        
+        // Sprawdzamy, czy błąd dotyczy nieprawidłowego adresu URL
+        if (fetchError instanceof Error && 
+            (fetchError.message.includes('URL') || 
+             fetchError.message.includes('adres') || 
+             fetchError.message.includes('nieprawidłowy'))) {
+          console.error('Błąd adresu URL:', fetchError);
+          setIsSuccess(false);
+          setIsSubmitted(true);
+          setStatusMessage('Podany adres strony jest nieprawidłowy lub strona nie istnieje. Sprawdź poprawność adresu i spróbuj ponownie.');
+          reset();
+          setIsSubmitting(false);
+          return; // Przerywamy wykonanie funkcji
         }
         
         if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
-          throw new Error('Przekroczono czas oczekiwania na odpowiedź serwera. Spróbuj ponownie później.');
+          console.error('Przekroczono czas oczekiwania:', fetchError);
+          setIsSuccess(false);
+          setIsSubmitted(true);
+          setStatusMessage('Przekroczono czas oczekiwania na odpowiedź serwera. Spróbuj ponownie później.');
+          reset();
+          setIsSubmitting(false);
+          return; // Przerywamy wykonanie funkcji
         }
         
-        throw fetchError;
+        // Obsługa pozostałych błędów
+        console.error('Nieobsłużony błąd:', fetchError);
+        setIsSuccess(false);
+        setIsSubmitted(true);
+        setStatusMessage('Wystąpił nieoczekiwany błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
+        reset();
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Błąd podczas przeprowadzania audytu:', error);
       
       setIsSuccess(false);
       setIsSubmitted(true);
+      setStatusMessage('Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
       reset();
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -202,13 +295,32 @@ export const Form = () => {
 
   return (
     <section className={styles.fullBackground} ref={wrapperRef} id="form">
+      {/* Komunikat dla czytników ekranu o wysłaniu formularza */}
+      {isSubmitted && !isSubmitting && isSuccess && (
+        <div aria-live="assertive" className="sr-only" role="alert">
+          Formularz został wysłany pomyślnie
+        </div>
+      )}
+      
+      {/* Komunikat dla czytników ekranu o błędzie */}
+      {isSubmitted && !isSubmitting && !isSuccess && (
+        <div aria-live="assertive" className="sr-only" role="alert">
+          Wystąpił błąd podczas wysyłania formularza. {statusMessage}
+        </div>
+      )}
       <div className={styles.gridBackground} />
       <div className={styles.wrapper}>
 
         
         {isSubmitted ? (
           <div className={styles.thankYou}>
-            <div className={styles.text}>
+            <div 
+              className={styles.text}
+              ref={statusRef}
+              role="status"
+              aria-live="polite"
+            >
+              <div className="sr-only">{statusMessage}</div>
               <h2 className={styles.title}>
                 {isSuccess ? 'Dziękujemy za zamówienie audytu!' : 'Upss coś poszło nie tak...'}
               </h2>
@@ -222,19 +334,38 @@ export const Form = () => {
                   ? 'Sprawdź swoją skrzynkę odbiorczą (oraz folder spam).' 
                   : 'Napisz do mnie, a wykonam dla Ciebie automatyczny audyt bez żadnych opłat!'}
               </p>
-              <Button 
-                onClick={isSuccess ? () => {
-                  setIsSubmitted(false);
-                  setIsSuccess(false);
-                  reset();
-                } : handleContactClick}
-                aria-label={isSuccess ? "Powrót do formularza" : "Napisz do mnie"}  
-                variant="primary"
-                isLoading={!isSuccess && isContactLoading}
-              >
-                {isSuccess ? 'OK!' : 'Napisz do mnie'}
-              </Button>
-            
+              <div className={styles.buttonContainer}>
+              
+                <Button 
+                  onClick={isSuccess ? () => {
+                    setIsSubmitted(false);
+                    setIsSuccess(false);
+                    setStatusMessage('');
+                    setIsSubmitting(false);
+                    reset();
+                  } : handleContactClick}
+                  aria-label={isSuccess ? "Powrót do formularza" : "Napisz do mnie"}  
+                  variant="primary"
+                  isLoading={!isSuccess && isContactLoading}
+                >
+                  {isSuccess ? 'OK!' : 'Napisz do mnie'}
+                </Button>
+                {!isSuccess && (
+                  <Button 
+                    onClick={() => {
+                      setIsSubmitted(false);
+                      setIsSuccess(false);
+                      setStatusMessage('');
+                      setIsSubmitting(false);
+                      reset();
+                    }}
+                    aria-label="Powrót do formularza"
+                    variant="secondary"
+                  >
+                    Powrót
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         ) : (
@@ -327,14 +458,28 @@ export const Form = () => {
               </div>
             </div>
 
-            <Button 
-              variant="primary" 
-              type="submit" 
-              disabled={isSubmitting}
-              isLoading={isSubmitting}
-            >
-              Zamów audyt
-            </Button>
+            <div>
+              <div 
+                className={styles.srOnly} 
+                aria-live="assertive" 
+                role="status" 
+                id="form-status-message"
+                ref={statusMessageRef}
+              >
+                {isSubmitting && "Trwa wysyłanie formularza, proszę czekać..."}
+              </div>
+              
+              <Button 
+                variant="primary" 
+                type="submit" 
+                disabled={isSubmitting}
+                isLoading={isSubmitting}
+                loadingText="Audytuję..."
+                aria-busy={isSubmitting}
+              >
+                Zamów audyt
+              </Button>
+            </div>
 
             <p className={styles.info}>
               Dane wykorzystam wyłącznie do przesłania audytu. Żadnych newsletterów i spamu.

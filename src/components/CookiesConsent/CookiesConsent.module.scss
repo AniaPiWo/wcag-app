@@ -52,11 +52,21 @@
 .privacyLink {
   text-decoration: underline;
   font-weight: 500;
-  transition: opacity 0.2s ease;
 }
 
-.privacyLink:hover {
-  opacity: 0.8;
+
+.privacyLinkContainer {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.privacyLinkContainer p {
+  margin: 0;
+}
+
+.button {
+  width: 100%;
 }
 
 /* Class for text visible only to screen readers */
@@ -189,7 +199,7 @@ input:checked + .slider:before {
 
 .buttonGroup {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   justify-content: center;
   width: 100%;
 }

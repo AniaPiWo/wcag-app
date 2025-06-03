@@ -68,7 +68,7 @@ export async function analyzeAccessibilityResults(violations: AccessibilityViola
     }));
 
     const prompt = `
-Przeanalizuj następujące naruszenia dostępności stron internetowych i przygotuj raport w języku polskim.
+Przeanalizuj następujące naruszenia dostępności stron internetowych i przygotuj raport w całości jedynie w JĘZYKU POLSKIM.
 
 Jeśli nie wykryto żadnych naruszeń:
 - Wyświetl komunikat: „Automatyczna analiza nie wykryła błędów na stronie – wygląda na to, że wszystko jest gotowe na nadchodzące zmiany w prawie!

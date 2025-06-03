@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Footer, Header } from "@/components";
+import { Footer, Header, CookiesConsent } from "@/components";
 import "./globals.scss";
 
-// Dynamiczny import komponentu AccessibilityChecker (tylko dla środowiska deweloperskiego)
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,6 +47,7 @@ export default function RootLayout({
   return (
     <html lang="pl" data-theme="light">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <CookiesConsent />
         <Header />
           {children}
         <Footer />

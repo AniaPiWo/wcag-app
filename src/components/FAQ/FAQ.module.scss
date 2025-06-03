@@ -27,7 +27,7 @@
 }
 
 .rightColumn {
-  flex: 1.5;
+  flex: 1.6;
 }
 
 .title {
@@ -65,7 +65,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 0;
+  padding: 1rem 0.5rem;
   background: none;
   border: none;
   text-align: left;
@@ -75,16 +75,8 @@
   cursor: pointer;
   transition: color 0.3s ease;
   
-  &:hover, &:focus {
-    color: var(--primary-color);
-    outline: none;
-  }
   
-  &:focus-visible {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
+
 }
 
 .iconWrapper {
@@ -104,6 +96,8 @@
   
   &.expanded {
     padding-bottom: 1rem;
+    height: auto !important; /* Wymuszenie pełnej wysokości */
+    max-height: 1000px; /* Duża wartość, aby pomieścić długie odpowiedzi */
   }
 }
 

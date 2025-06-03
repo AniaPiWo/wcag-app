@@ -10,7 +10,9 @@ interface ButtonProps {
   children: React.ReactNode;
   type?: "button" | "submit";
   isLoading?: boolean;
+  loadingText?: string;
   "aria-label"?: string;
+  className?: string;
 }
 
 export const Button = ({
@@ -20,9 +22,11 @@ export const Button = ({
   children,
   type = "button",
   isLoading = false,
-  "aria-label": ariaLabel
+  loadingText = "Wysyłam...",
+  "aria-label": ariaLabel,
+  className: customClassName
 }: ButtonProps) => {
-  const className = `${styles.button} ${styles[variant]} ${disabled || isLoading ? (variant === "primary" ? styles.disabledPrimary : styles.disabledSecondary) : ""}`;
+  const className = `${styles.button} ${styles[variant]} ${disabled || isLoading ? (variant === "primary" ? styles.disabledPrimary : styles.disabledSecondary) : ""} ${customClassName || ""}`;
   
   return (
     <button
@@ -35,10 +39,8 @@ export const Button = ({
     >
       {isLoading ? (
         <>
-       
-          <span>Ładowanie...</span>
+          <span>{loadingText}</span>
           <AiOutlineLoading3Quarters className={styles.loadingIcon} aria-hidden="true" />
-
         </>
       ) : children}
     </button>

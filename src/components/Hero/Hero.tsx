@@ -61,6 +61,7 @@ export const Hero = () => {
         <div className={styles.buttonContainer}>
           <Button variant="primary" onClick={handleAuditClick}>Darmowy audyt</Button>
           <Button 
+            variant="secondary" 
             onClick={handleContactClick}
             isLoading={isContactLoading}
             aria-label="Wyślij email"

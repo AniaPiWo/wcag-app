@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import styles from './FAQ.module.scss';
 
 interface FAQItem {
@@ -10,76 +10,40 @@ interface FAQItem {
 
 export const FAQ = () => {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
-  const [heights, setHeights] = useState<{[key: string]: number}>({});
   const answerRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
-  
-  // Mierzenie wysokości zawartości odpowiedzi
-  useEffect(() => {
-    const newHeights: {[key: string]: number} = {};
-    
-    Object.keys(answerRefs.current).forEach(id => {
-      const element = answerRefs.current[id];
-      if (element) {
-        // Tymczasowo usuwamy style ukrywające, aby zmierzyć rzeczywistą wysokość
-        const originalHeight = element.style.height;
-        const originalPosition = element.style.position;
-        const originalVisibility = element.style.visibility;
-        
-        element.style.height = 'auto';
-        element.style.position = 'absolute';
-        element.style.visibility = 'hidden';
-        
-        // Mierzymy wysokość
-        newHeights[id] = element.scrollHeight;
-        
-        // Przywracamy oryginalne style
-        element.style.height = originalHeight;
-        element.style.position = originalPosition;
-        element.style.visibility = originalVisibility;
-      }
-    });
-    
-    setHeights(newHeights);
-  }, []);
   
   const toggleAccordion = (id: string) => {
     setExpandedIds(prev => {
-      // Sprawdzamy, czy ID jest już w tablicy rozwijanych elementów
       if (prev.includes(id)) {
-        // Jeśli tak, usuwamy je (zwijamy)
         return prev.filter(itemId => itemId !== id);
       } else {
-        // Jeśli nie, dodajemy je (rozwijamy)
         return [...prev, id];
       }
     });
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent, id: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault(); 
+      toggleAccordion(id);
+    }
   };
 
   const faqItems: FAQItem[] = [
     {
       id: 'faq-1',
-      question: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit?',
-      answer: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl eget ultricies tincidunt, nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl. Nullam auctor, nisl eget ultricies tincidunt, nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl.'
+      question: 'Czy wdrożenie standardu WCAG jest obowiązkowe?',
+      answer: 'Tak, wdrożenie standardu WCAG jest obowiązkowe. Od 28 czerwca 2025 roku, zgodnie z europejskim European Accessibility Act (EAA), wszystkie strony internetowe i sklepy e-commerce w Polsce będą musiały spełniać standard WCAG 2.1 na poziomie AA. Obowiązek ten dotyczy wszystkich firm z wyjątkiem mikroprzedsiębiorstw (do 9 pracowników). Dla podmiotów publicznych obowiązek ten wynika z ustawy z dnia 4 kwietnia 2019 roku o dostępności cyfrowej.'
     },
     {
       id: 'faq-2',
-      question: 'Nullam auctor, nisl eget ultricies tincidunt?',
-      answer: 'Nullam auctor, nisl eget ultricies tincidunt, nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl eget ultricies tincidunt, nisl nisl aliquam nisl.'
+      question: 'Czy za brak dostępności WCAG można otrzymać karę finansową?',
+      answer: 'Tak, za brak dostępności WCAG można otrzymać karę finansową. Dla firm prywatnych kara może wynosić do 10% rocznego obrotu lub do dziesięciokrotności przeciętnego wynagrodzenia. Dla podmiotów publicznych kary finansowe mogą wynosić od 5 000 zł do 100 000 zł. Dodatkowo, firmy mogą zostać zobowiązane do wycofania niedostępnych produktów z rynku. Klienci mogą również składać oficjalne skargi, a brak reakcji w ciągu 30 dni otwiera drogę do postępowania przed organami nadzoru.'
     },
     {
       id: 'faq-3',
-      question: 'Eget ultricies nisl nisl eget nisl, lorem ipsum dolor sit amet?',
-      answer: 'Eget ultricies nisl nisl eget nisl. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl eget ultricies tincidunt, nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl.'
-    },
-    {
-      id: 'faq-4',
-      question: 'Consectetur adipiscing elit, nullam auctor?',
-      answer: 'Consectetur adipiscing elit. Nullam auctor, nisl eget ultricies tincidunt, nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl. Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    },
-    {
-      id: 'faq-5',
-      question: 'Nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl?',
-      answer: 'Nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl eget ultricies tincidunt, nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl.'
+      question: 'Jakie są korzyści z wdrożenia standardu WCAG na stronie internetowej?',
+      answer: 'Wdrożenie standardu WCAG przynosi wiele korzyści, nie tylko prawnych. Przede wszystkim zwiększa grono odbiorców - w Polsce jest około 5 milionów osób z niepełnosprawnościami, które mogą stać się Twoimi klientami. Poprawia również pozycjonowanie w wyszukiwarkach, gdyż algorytmy Google preferują dostępne strony. Buduje pozytywny wizerunek marki jako odpowiedzialnej społecznie. Dodatkowo, dostępne strony są zazwyczaj bardziej intuicyjne i łatwiejsze w obsłudze dla wszystkich użytkowników, co przekłada się na lepsze doświadczenia użytkownika i wyższe wskaźniki konwersji.'
     }
   ];
 
@@ -87,22 +51,17 @@ export const FAQ = () => {
     <section className={styles.faqSection} id="faq" aria-labelledby="faq-heading">
       <div className={styles.container}>
         <div className={styles.leftColumn}>
-          <h2 id="faq-heading" className={styles.title}>Często zadawane pytania</h2>
+          <h2 id="faq-heading" className={styles.title}>FAQ</h2>
           <p className={styles.description}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl eget ultricies tincidunt, 
-            nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl. Nullam auctor, nisl eget ultricies tincidunt.
-          </p>
-          <p className={styles.description}>
-            Nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl. Lorem ipsum dolor sit amet, consectetur 
-            adipiscing elit. Nullam auctor, nisl eget ultricies tincidunt.
-          </p>
+            Znajdź odpowiedzi na najczęściej zadawane pytania dotyczące naszych usług i dostępności cyfrowej.
+       </p>
         </div>
         
         <div className={styles.rightColumn}>
-          <ul className={styles.accordionList} aria-label="Lista często zadawanych pytań">
+
+          <ul className={styles.accordionList}>
             {faqItems.map((item) => {
               const isExpanded = expandedIds.includes(item.id);
-              const contentHeight = isExpanded ? heights[item.id] || 'auto' : 0;
               
               return (
                 <li key={item.id} className={styles.accordionItem}>
@@ -110,6 +69,7 @@ export const FAQ = () => {
                     id={`${item.id}-button`}
                     className={styles.accordionButton}
                     onClick={() => toggleAccordion(item.id)}
+                    onKeyDown={(e) => handleKeyDown(e, item.id)}
                     aria-expanded={isExpanded}
                     aria-controls={`${item.id}-content`}
                   >
@@ -126,13 +86,10 @@ export const FAQ = () => {
                     className={`${styles.accordionContent} ${isExpanded ? styles.expanded : ''}`}
                     role="region"
                     aria-labelledby={`${item.id}-button`}
+                    aria-hidden={!isExpanded}
                     style={{ 
-                      height: typeof contentHeight === 'number' ? `${contentHeight}px` : contentHeight,
-                      opacity: isExpanded ? 1 : 0,
-                      visibility: isExpanded ? 'visible' : 'hidden',
-                      transition: isExpanded 
-                        ? 'height 0.3s ease-out, opacity 0.2s ease-out 0.1s, visibility 0s 0s' 
-                        : 'height 0.3s ease-in, opacity 0.2s ease-in, visibility 0s 0.3s'
+                      height: isExpanded ? 'auto' : '0px',
+        
                     }}
                   >
                     <div 

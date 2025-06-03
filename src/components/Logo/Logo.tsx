@@ -19,7 +19,8 @@ export const Logo: React.FC<LogoProps> = ({
       href={href} 
       className={`${styles.logoContainer} ${className}`}
       onClick={onClick}
-      aria-label="Strona główna - WCAG Audyty"
+      aria-label="WCAG Audyty - strona główna"
+
     >
       <div className={styles.logoText}>
         WCAG
