@@ -42,7 +42,7 @@
   position: relative;
   width: 350px;
   height: 400px;
-  border: 3px solid #000000;
+  border: 3px solid var(--black);
   box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.75);
   z-index: 1;
   
@@ -115,14 +115,14 @@ margin: 0;
   margin: 0 0 1rem 0;
   padding: 0.75rem 1.25rem;
   background-color: var(--accent);
-  color: #000000;
+  color: var(--black);
   display: inline-block;
   transform: rotate(-1deg);
-  box-shadow: 5px 5px 0 #000000;
+  box-shadow: 5px 5px 0 var(--black);
   text-transform: uppercase;
   position: relative;
   z-index: 1;
-  border: 3px solid #000000;
+  border: 3px solid var(--black);
   
   @media (max-width: 768px) {
     font-size: 32px;
@@ -245,3 +245,4 @@ margin: 0;
     justify-content: flex-start;
   }
 }
+

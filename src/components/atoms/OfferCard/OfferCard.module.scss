@@ -2,7 +2,7 @@
   width: 20.625rem; /* 330px */
   height: 34rem; /* 524px */
   border-width: 0.0625rem; /* 1px */
-  border: 0.4rem solid black; /* 1px */
+  border: 0.4rem solid var(--black); /* 1px */
   padding: 1.25rem; /* 20px */
   display: flex;
   flex-direction: column;
@@ -65,3 +65,4 @@
     box-shadow: none;
   }
 }
+
