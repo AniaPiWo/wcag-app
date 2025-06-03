@@ -6,15 +6,15 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, SubmitHandler, FieldErrors } from 'react-hook-form';
 
-// Funkcja sprawdzająca dostępność adresu URL
+
 async function checkUrlExists(url: string): Promise<{ exists: boolean; error?: string }> {
   try {
-    // Upewnij się, że URL ma prawidłowy format
+
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = 'https://' + url;
     }
     
-    // Używamy API proxy na serwerze, aby uniknąć problemów CORS
+
     const response = await fetch('/api/check-url', {
       method: 'POST',
       headers: {
@@ -31,7 +31,7 @@ async function checkUrlExists(url: string): Promise<{ exists: boolean; error?: s
   }
 }
 
-// Typy dla wyników audytu
+
 interface AuditViolation {
   id: string;
   impact: string;
@@ -146,11 +146,11 @@ export const Form = () => {
       setErrorField(null);
       setErrorMessage(null);
       
-      // Sprawdzenie czy URL istnieje przed wysyłaniem formularza - bez aktualizacji statusMessage
+
       const urlCheckResult = await checkUrlExists(data.website);
       
       if (!urlCheckResult.exists) {
-        // Ustawiamy focus z powrotem na pole website, aby uniknąć zmiany kontekstu
+
         const websiteInput = document.getElementById('website');
         if (websiteInput) {
           websiteInput.focus();
@@ -162,15 +162,13 @@ export const Form = () => {
         return;
       }
       
-      // Aktualizacja statusMessage dopiero po potwierdzeniu, że URL istnieje
-      // Ustawiamy pusty string, a następnie po krótkiej chwili właściwy komunikat
-      // aby wymusić ponowne odczytanie przez czytnik ekranu
+
       setStatusMessage('');
       setTimeout(() => {
         setStatusMessage('Trwa wysyłanie formularza, proszę czekać...');
       }, 50);
       
-      //console.log('Wysyłanie danych do audytu:', data); // debug
+      console.log('Wysyłanie danych do audytu:', data); // debug
       
       const payload = {
         url: data.website,
@@ -197,35 +195,35 @@ export const Form = () => {
         const responseData = await response.json();
         
         if (!response.ok) {
-          // Obsługa błędów z serwera
+
           console.error('Błąd z serwera:', responseData.error);
           setIsSuccess(false);
           setIsSubmitted(true);
-          // Resetujemy komunikat, a następnie ustawiamy właściwy, aby wymusić odczytanie przez czytnik ekranu
+
           setStatusMessage('');
           setTimeout(() => {
             setStatusMessage(responseData.error || 'Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
           }, 50);
           reset();
           setIsSubmitting(false);
-          return; // Przerywamy wykonanie funkcji
+          return; 
         }
         
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const result = responseData as AuditResponse;
         
-        //console.log('Wyniki audytu:', result); // debug
+        console.log('Wyniki audytu:', result); // debug
         
         setIsSuccess(true);
         setIsSubmitted(true);
-        // Resetujemy komunikat, a następnie ustawiamy właściwy, aby wymusić odczytanie przez czytnik ekranu
+
         setStatusMessage('');
         setTimeout(() => {
           setStatusMessage('Formularz został wysłany.');
         }, 50);
         reset();
         
-        // Komunikat został wyświetlony, nie ustawiamy na nim focusa
+
       } catch (fetchError) {
         clearTimeout(timeoutId);
         
@@ -234,17 +232,17 @@ export const Form = () => {
           console.error('Błąd podczas wykonywania żądania:', fetchError);
           setIsSuccess(false);
           setIsSubmitted(true);
-          // Resetujemy komunikat, a następnie ustawiamy właściwy, aby wymusić odczytanie przez czytnik ekranu
+    
           setStatusMessage('');
           setTimeout(() => {
             setStatusMessage('Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
           }, 50);
           reset();
           setIsSubmitting(false);
-          return; // Przerywamy wykonanie funkcji
+          return;
         }
         
-        // Sprawdzamy, czy błąd dotyczy nieprawidłowego adresu URL
+
         if (fetchError instanceof Error && 
             (fetchError.message.includes('URL') || 
              fetchError.message.includes('adres') || 
@@ -255,7 +253,7 @@ export const Form = () => {
           setStatusMessage('Podany adres strony jest nieprawidłowy lub strona nie istnieje. Sprawdź poprawność adresu i spróbuj ponownie.');
           reset();
           setIsSubmitting(false);
-          return; // Przerywamy wykonanie funkcji
+          return;   
         }
         
         if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
@@ -265,10 +263,10 @@ export const Form = () => {
           setStatusMessage('Przekroczono czas oczekiwania na odpowiedź serwera. Spróbuj ponownie później.');
           reset();
           setIsSubmitting(false);
-          return; // Przerywamy wykonanie funkcji
+          return;   
         }
         
-        // Obsługa pozostałych błędów
+
         console.error('Nieobsłużony błąd:', fetchError);
         setIsSuccess(false);
         setIsSubmitted(true);
