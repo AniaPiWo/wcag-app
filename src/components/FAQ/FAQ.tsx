@@ -44,6 +44,16 @@ export const FAQ = () => {
       id: 'faq-3',
       question: 'Jakie są korzyści z wdrożenia standardu WCAG na stronie internetowej?',
       answer: 'Wdrożenie standardu WCAG przynosi wiele korzyści, nie tylko prawnych. Przede wszystkim zwiększa grono odbiorców - w Polsce jest około 5 milionów osób z niepełnosprawnościami, które mogą stać się Twoimi klientami. Poprawia również pozycjonowanie w wyszukiwarkach, gdyż algorytmy Google preferują dostępne strony. Buduje pozytywny wizerunek marki jako odpowiedzialnej społecznie. Dodatkowo, dostępne strony są zazwyczaj bardziej intuicyjne i łatwiejsze w obsłudze dla wszystkich użytkowników, co przekłada się na lepsze doświadczenia użytkownika i wyższe wskaźniki konwersji.'
+    },
+    {
+      id: 'faq-4',
+      question: 'Z jakimi technologiami internetowymi pracujesz?',
+      answer: 'Pracuję w klasycznym HTML/CSS/JS, ale niestraszne są mi frameworki jak Next.js, React i inne. Dostosowuję się do technologii wykorzystywanej w Twoim projekcie, aby zapewnić najlepszą jakość usług i kompatybilność z istniejącymi rozwiązaniami.'
+    },
+    {
+      id: 'faq-5',
+      question: 'Gdzie mogę zapoznać się z cennikiem?',
+      answer: 'Cenniki ustalam indywidualnie w zależności od poziomu skomplikowania projektu, ilości błędów i wykorzystywanego stacku technologicznego. Ceny zaczynają się od 500 zł netto. Jeśli zamówiłeś audyt dostępności, to w nim otrzymasz wycenę korekty witryny pomniejszoną o koszt audytu.'
     }
   ];
 

@@ -47,6 +47,7 @@ export const Offer = () => {
         {offers.map((card) => (
           <OfferCard
             key={card.id}
+            id={card.id}
             image={card.image}
             alt={card.alt}
             title={card.title}
@@ -60,8 +61,9 @@ export const Offer = () => {
         {offers.map((card) => (
           <div key={card.id} className={styles.cardItem}>
             <OfferCard
-                image={card.image}
-                alt={card.alt}
+              id={card.id}
+              image={card.image}
+              alt={card.alt}
               title={card.title}
               description={card.description}
             />
