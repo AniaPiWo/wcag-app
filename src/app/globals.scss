@@ -20,11 +20,14 @@
 html[data-theme="dark"] {
   --background: #0d1117;
   --foreground: #f0f6fc;
+  --border: #6e7681;
+  --accent: #bf9fff;
+  --black: #ffffff;
 }
 
-* {
+/* * {
   transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
-}
+} */
 
 html,
 body {
@@ -83,8 +86,15 @@ p {
 }
 
 @media (prefers-color-scheme: dark) {
-  html {
+  html:not([data-theme="light"]) {
     color-scheme: dark;
+    &:not([data-theme="dark"]) {
+      --background: #0d1117;
+      --foreground: #f0f6fc;
+      --border: #6e7681;
+      --accent: #bf9fff;
+      --black: #ffffff;
+    }
   }
 }
 

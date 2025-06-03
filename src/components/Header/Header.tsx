@@ -9,13 +9,12 @@ export const Header = () => {
   const [headerHeight, setHeaderHeight] = useState(0)
 
   useEffect(() => {
-    // Pobierz wysokość nagłówka po załadowaniu strony
+
     const header = document.querySelector('header')
     if (header) {
       setHeaderHeight(header.offsetHeight)
     }
 
-    // Aktualizuj wysokość nagłówka przy zmianie rozmiaru okna
     const handleResize = () => {
       if (header) {
         setHeaderHeight(header.offsetHeight)
@@ -29,23 +28,21 @@ export const Header = () => {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen((prev) => !prev)
   }
-  
-  // Funkcja do płynnego przewijania z uwzględnieniem wysokości nagłówka
+
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     e.preventDefault()
     const section = document.getElementById(sectionId)
     
     if (section) {
-      // Zamknij menu mobilne, jeśli jest otwarte
+
       if (isMobileMenuOpen) {
         setIsMobileMenuOpen(false)
       }
       
-      // Oblicz pozycję sekcji z uwzględnieniem wysokości nagłówka
       const sectionTop = section.getBoundingClientRect().top + window.pageYOffset
-      const offsetTop = sectionTop - headerHeight - 20 // 20px dodatkowego marginesu
+      const offsetTop = sectionTop - headerHeight - 20 
       
-      // Przewiń do sekcji
+
       window.scrollTo({
         top: offsetTop,
         behavior: 'smooth'

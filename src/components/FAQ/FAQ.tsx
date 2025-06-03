@@ -31,30 +31,31 @@ export const FAQ = () => {
 
   const faqItems: FAQItem[] = [
     {
-      id: 'faq-1',
-      question: 'Czy wdrożenie standardu WCAG jest obowiązkowe?',
-      answer: 'Tak, wdrożenie standardu WCAG jest obowiązkowe. Od 28 czerwca 2025 roku, zgodnie z europejskim European Accessibility Act (EAA), wszystkie strony internetowe i sklepy e-commerce w Polsce będą musiały spełniać standard WCAG 2.1 na poziomie AA. Obowiązek ten dotyczy wszystkich firm z wyjątkiem mikroprzedsiębiorstw (do 9 pracowników). Dla podmiotów publicznych obowiązek ten wynika z ustawy z dnia 4 kwietnia 2019 roku o dostępności cyfrowej.'
+      "id": "faq-1",
+      "question": "Jakie są korzyści z wdrożenia standardu WCAG na stronie internetowej?",
+      "answer": "Wdrożenie WCAG to nie tylko obowiązek, ale realne korzyści. Dzięki dostępności docierasz do szerszego grona odbiorców – w Polsce to nawet 5 milionów osób z niepełnosprawnościami. Dodatkowo, strony zgodne ze standardem WCAG są lepiej pozycjonowane w Google, bardziej intuicyjne i łatwiejsze w obsłudze. To wszystko przekłada się na lepsze doświadczenia użytkowników i wyższe wskaźniki konwersji. A do tego budujesz wizerunek marki odpowiedzialnej społecznie."
     },
     {
-      id: 'faq-2',
-      question: 'Czy za brak dostępności WCAG można otrzymać karę finansową?',
-      answer: 'Tak, za brak dostępności WCAG można otrzymać karę finansową. Dla firm prywatnych kara może wynosić do 10% rocznego obrotu lub do dziesięciokrotności przeciętnego wynagrodzenia. Dla podmiotów publicznych kary finansowe mogą wynosić od 5 000 zł do 100 000 zł. Dodatkowo, firmy mogą zostać zobowiązane do wycofania niedostępnych produktów z rynku. Klienci mogą również składać oficjalne skargi, a brak reakcji w ciągu 30 dni otwiera drogę do postępowania przed organami nadzoru.'
+      "id": "faq-2",
+      "question": "Z jakimi technologiami internetowymi pracujesz?",
+      "answer": "Pracuję zarówno z klasycznymi technologiami jak HTML, CSS, JavaScript, jak i z nowoczesnymi frameworkami – m.in. React, Next.js i innymi rozwiązaniami dopasowanymi do Twojego projektu. Wkrótce planuję również poszerzenie oferty o WordPress."
     },
     {
-      id: 'faq-3',
-      question: 'Jakie są korzyści z wdrożenia standardu WCAG na stronie internetowej?',
-      answer: 'Wdrożenie standardu WCAG przynosi wiele korzyści, nie tylko prawnych. Przede wszystkim zwiększa grono odbiorców - w Polsce jest około 5 milionów osób z niepełnosprawnościami, które mogą stać się Twoimi klientami. Poprawia również pozycjonowanie w wyszukiwarkach, gdyż algorytmy Google preferują dostępne strony. Buduje pozytywny wizerunek marki jako odpowiedzialnej społecznie. Dodatkowo, dostępne strony są zazwyczaj bardziej intuicyjne i łatwiejsze w obsłudze dla wszystkich użytkowników, co przekłada się na lepsze doświadczenia użytkownika i wyższe wskaźniki konwersji.'
+      "id": "faq-3",
+      "question": "Gdzie mogę zapoznać się z cennikiem?",
+      "answer": "Wyceny dokonuję indywidualnie – zależy ona od zakresu prac, poziomu skomplikowania strony i rodzaju zastosowanych technologii. Cena korekty dostępności zaczyna się od 500 zł netto. Jeśli wcześniej zamówisz audyt, jego koszt zostanie odjęty od finalnej wyceny wdrożenia."
     },
     {
-      id: 'faq-4',
-      question: 'Z jakimi technologiami internetowymi pracujesz?',
-      answer: 'Pracuję w klasycznym HTML/CSS/JS, ale niestraszne są mi frameworki jak Next.js, React i inne. Dostosowuję się do technologii wykorzystywanej w Twoim projekcie, aby zapewnić najlepszą jakość usług i kompatybilność z istniejącymi rozwiązaniami.'
+      "id": "faq-4",
+      "question": "Czy wdrożenie standardu WCAG jest obowiązkowe?",
+      "answer": "Tak. Od 28 czerwca 2025 roku, zgodnie z European Accessibility Act (EAA), wszystkie strony internetowe i sklepy e-commerce w Polsce będą musiały spełniać WCAG 2.1 na poziomie AA. Z obowiązku mogą być zwolnione tylko mikroprzedsiębiorstwa (do 10 pracowników i 2 mln euro obrotu), pod warunkiem że nie świadczą usług cyfrowych o charakterze publicznym."
     },
     {
-      id: 'faq-5',
-      question: 'Gdzie mogę zapoznać się z cennikiem?',
-      answer: 'Cenniki ustalam indywidualnie w zależności od poziomu skomplikowania projektu, ilości błędów i wykorzystywanego stacku technologicznego. Ceny zaczynają się od 500 zł netto. Jeśli zamówiłeś audyt dostępności, to w nim otrzymasz wycenę korekty witryny pomniejszoną o koszt audytu.'
+      "id": "faq-5",
+      "question": "Czy za brak dostępności WCAG można otrzymać karę finansową?",
+      "answer": "Tak. Dla firm prywatnych kara może wynieść nawet 10% rocznego obrotu lub dziesięciokrotność przeciętnego wynagrodzenia. Dla instytucji publicznych – od 5 000 zł do 100 000 zł. Brak reakcji na zgłoszenie może skutkować postępowaniem przed organami nadzoru. Niedostępne produkty mogą zostać wycofane z rynku, a opinia o marce — poważnie nadszarpnięta."
     }
+  
   ];
 
   return (

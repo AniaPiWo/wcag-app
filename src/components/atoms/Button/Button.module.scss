@@ -44,11 +44,11 @@
 
 /* W trybie ciemnym zapewniamy lepszy kontrast dla przycisków secondary */
 @media (prefers-color-scheme: dark) {
-  .secondary {
+  html:not([data-theme="light"]) .secondary {
     border-color: var(--foreground);
   }
   
-  .secondary:hover {
+  html:not([data-theme="light"]) .secondary:hover {
     background-color: rgba(240, 246, 252, 0.1); /* Lekkie podświetlenie przy hover dla lepszej widoczności */
   }
 }

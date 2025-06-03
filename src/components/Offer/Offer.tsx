@@ -7,7 +7,7 @@ export const offers = [
   {
     id: '1',
     image: '/pug.jpg',
-    title: 'Audyt dostępności WCAG',
+    title: 'Manualny audyt dostępności',
     alt: 'Ikona symbolizująca audyt dostępności',
     description:
       'Szczegółowa analiza Twojej strony pod kątem zgodności z WCAG 2.2. Otrzymasz ode mnie praktyczny raport z rekomendacjami dotyczącymi naprawy problemów zgodności.',
