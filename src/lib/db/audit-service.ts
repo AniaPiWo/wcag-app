@@ -17,7 +17,7 @@ export const auditService = {
 
 
   // aktualizuje status audytu
-  async updateAuditRequestStatus(id: string, status: 'pending' | 'in-progress' | 'completed' | 'failed') {
+  async updateAuditRequestStatus(id: string, p0: string, errorMessage: string, status: 'pending' | 'in-progress' | 'completed' | 'failed') {
     return prisma.auditRequest.update({
       where: { id },
       data: { status },
