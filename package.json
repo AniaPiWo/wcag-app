@@ -7,7 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "npx playwright install --with-deps"
+    "postinstall": "echo '== Instaluję Playwright... ==' && npx playwright install --with-deps && echo '== Playwright zainstalowany! ==' "
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
