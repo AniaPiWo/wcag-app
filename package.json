@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "npx playwright install --with-deps && prisma generate && next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "npx playwright install --with-deps"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
