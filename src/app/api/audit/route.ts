@@ -21,11 +21,7 @@ const BASIC_ACCESSIBILITY_CHECKS = [
   { name: 'document-structure', description: 'Dokument powinien mieć poprawną strukturę', wcag: 'WCAG 1.3.1, 2.4.1' }
 ];
 
-declare global {
-  interface Window {
-    axe?: unknown;
-  }
-}
+
 
 const auditRequestSchema = z.object({
   url: z.string().url('Niepoprawny adres URL'),
@@ -191,7 +187,7 @@ export async function POST(request: NextRequest) {
       try {
 
         if (auditRequest) {
-          await auditService.updateAuditRequestStatus(auditRequest.id, 'in-progress');
+          await auditService.updateAuditRequestStatus(auditRequest.id, 'Audyt w toku', '', 'in-progress');
         }
         
         auditResults = await queueAudit(url, runAccessibilityAudit);
