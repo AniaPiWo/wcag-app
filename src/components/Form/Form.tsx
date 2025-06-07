@@ -148,7 +148,7 @@ export const Form = () => {
       
 
       const urlCheckResult = await checkUrlExists(data.website);
-      
+    
       if (!urlCheckResult.exists) {
 
         const websiteInput = document.getElementById('website');
@@ -177,9 +177,10 @@ export const Form = () => {
       };
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // timeout
+      const timeoutId = setTimeout(() => controller.abort(), 600000); // timeout
       
       try {
+        console.log('Adres OK – zaczynam audyt dla:', data.website);
         const response = await fetch('/api/audit', {
           method: 'POST',
           headers: {

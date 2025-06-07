@@ -19,13 +19,24 @@ export async function POST(request: Request) {
 
     try {
       // Próba pobrania nagłówków strony, aby sprawdzić czy istnieje
-      const response = await fetch(formattedUrl, {
+      let response = await fetch(formattedUrl, {
         method: 'HEAD',
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         },
         redirect: 'follow',
       });
+
+      // Jeśli serwer zwróci 449 (Retry With), spróbuj GET
+      if (response.status === 449) {
+        response = await fetch(formattedUrl, {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          },
+          redirect: 'follow',
+        });
+      }
 
       if (response.ok) {
         return NextResponse.json({ exists: true });

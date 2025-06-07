@@ -8,7 +8,7 @@ import path from 'path';
 
 const MAX_PLAYWRIGHT_RETRIES = 3;
 
-const PLAYWRIGHT_TIMEOUT = 30000;
+const PLAYWRIGHT_TIMEOUT = 300000;
 
 
 const BASIC_ACCESSIBILITY_CHECKS = [
