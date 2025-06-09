@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation'
 import styles from './Header.module.scss'
 import { Logo } from '../Logo/Logo'
+import Link from 'next/link'
 
 export const AdminHeader = () => {
   const router = useRouter()
@@ -35,7 +36,7 @@ export const AdminHeader = () => {
           <nav className={styles.navigation}>
             <ul className={styles.navList}>
               <li className={styles.navItem}>
-                <a href="/admin" className={styles.navLink}>Panel administratora</a>
+                <Link href="/admin" className={styles.navLink}>Panel administratora</Link>
               </li>
             </ul>
           </nav>
@@ -54,7 +55,7 @@ export const AdminHeader = () => {
             <nav className={styles.mobileNavigation}>
               <ul className={styles.mobileNavList}>
                 <li className={styles.mobileNavItem}>
-                  <a href="/admin" className={styles.mobileNavLink}>Panel administratora</a>
+                  <Link href="/admin" className={styles.mobileNavLink}>Panel administratora</Link>
                 </li>
               </ul>
             </nav>
