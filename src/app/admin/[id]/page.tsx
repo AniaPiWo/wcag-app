@@ -36,7 +36,12 @@ type AuditWithViolations = {
   errorMessage: string | null;
 };
 
-export default async function AuditDetailsPage({ params }: { params: { id: string } }) {
+type PageProps = {
+  params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
+
+export default async function AuditDetailsPage({ params }: PageProps) {
   const audit = await auditService.getAuditRequest(params.id) as unknown as AuditWithViolations;
   if (!audit) return notFound();
   
