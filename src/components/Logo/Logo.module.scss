@@ -1,5 +1,7 @@
 .logoContainer {
-  display: inline-flex;
+  display: flex;
+gap: 0.5rem;
+  align-items: flex-end;
 }
 
 .logoText {

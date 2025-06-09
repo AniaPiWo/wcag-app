@@ -192,6 +192,27 @@ html[data-theme="dark"] .switchKnob {
   gap: 1rem; /* 16px */
 }
 
+.logoutButton {
+  background-color: var(--accent);
+  color: white;
+  border: 2px solid black;
+  box-shadow: 4px 4px 0 black;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 black;
+  }
+  
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 black;
+  }
+}
+
 .mobileNavigation {
   width: 100%;
   margin-bottom: 1.5rem;

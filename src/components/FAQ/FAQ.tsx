@@ -48,7 +48,7 @@ export const FAQ = () => {
     {
       "id": "faq-4",
       "question": "Czy wdrożenie standardu WCAG jest obowiązkowe?",
-      "answer": "Tak. Od 28 czerwca 2025 roku, zgodnie z European Accessibility Act (EAA), wszystkie strony internetowe i sklepy e-commerce w Polsce będą musiały spełniać WCAG 2.1 na poziomie AA. Z obowiązku mogą być zwolnione tylko mikroprzedsiębiorstwa (do 10 pracowników i 2 mln euro obrotu), pod warunkiem że nie świadczą usług cyfrowych o charakterze publicznym."
+      "answer": "Tak. Od 28 czerwca 2025 roku, zgodnie z European Accessibility Act (EAA), wszystkie strony internetowe i sklepy e-commerce w Polsce będą musiały spełniać WCAG 2.1 na poziomie AA. Z obowiązku mogą być zwolnione tylko mikroprzedsiębiorstwa, pod warunkiem że nie świadczą usług cyfrowych o charakterze publicznym."
     },
     {
       "id": "faq-5",

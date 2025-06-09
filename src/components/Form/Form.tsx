@@ -168,7 +168,7 @@ export const Form = () => {
         setStatusMessage('Trwa wysyłanie formularza, proszę czekać...');
       }, 50);
       
-      console.log('Wysyłanie danych do audytu:', data); // debug
+      //console.log('Wysyłanie danych do audytu:', data); // debug
       
       const payload = {
         url: data.website,
@@ -213,7 +213,7 @@ export const Form = () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const result = responseData as AuditResponse;
         
-        console.log('Wyniki audytu:', result); // debug
+        //console.log('Wyniki audytu:', result); // debug
         
         setIsSuccess(true);
         setIsSubmitted(true);
@@ -398,7 +398,8 @@ export const Form = () => {
           </h2>
           <p className={styles.desc}>
             Sprawdź, czy Twoja strona jest zgodna z standardami dostępności WCAG 2.2. <br/>
-            Audyt jest automatyczny i w kilka minut otrzymasz raport na podany adres e-mail.
+            Audyt jest automatyczny i w ciągu kilku minut otrzymasz raport na podany adres e-mail.
+            Audyt może chwilkę potrwać, nie odświeżaj strony.
           </p>
         </div>
         

@@ -21,7 +21,15 @@
   z-index: 2;
 }
 
-.top .title {
+.title {
+  font-weight: var(--font-weight-semibold);
+  font-size: 44px;
+  line-height: 100%;
+  letter-spacing: -4%;
+  margin: 0;
+  }
+
+/* .top .title {
   font-size: 38px;
   font-weight: var(--font-weight-bold);
   line-height: 110%;
@@ -49,7 +57,9 @@
     font-size: 28px;
     transform: rotate(-0.5deg);
   }
-}
+} */
+
+
 
 .top .desc {
   font-size: 16px;

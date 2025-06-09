@@ -25,6 +25,7 @@ export const Logo: React.FC<LogoProps> = ({
       <div className={styles.logoText}>
         WCAG
       </div>
+      <p className={styles.logoIcon}>by Ania</p>
     </Link>
   );
 };

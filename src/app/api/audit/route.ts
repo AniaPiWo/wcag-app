@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
         console.log('\x1b[32m%s\x1b[0m', 'Zapisano wyniki audytu dla żądania:', auditRequest.id);
         
         // Uruchomienie analizy AI w tle (bez oczekiwania na zakończenie)
-        auditService.runAiAnalysisInBackground(auditRequest.id, auditResults.violations)
+        auditService.runAiAnalysisInBackground(auditRequest.id, auditResults.violations, auditResults.summary)
           .catch(aiError => {
             console.error('\x1b[31m%s\x1b[0m', 'Błąd podczas uruchamiania analizy AI:', aiError);
           });
