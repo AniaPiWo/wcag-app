@@ -36,13 +36,19 @@ type AuditWithViolations = {
   errorMessage: string | null;
 };
 
+// Using a more specific type for props
 type PageProps = {
-  params: { id: string };
+  params: { id: string } | Promise<{ id: string }>;
   searchParams?: { [key: string]: string | string[] | undefined };
 };
 
-export default async function AuditDetailsPage({ params }: PageProps) {
-  const audit = await auditService.getAuditRequest(params.id) as unknown as AuditWithViolations;
+export default async function AuditDetailsPage(props: PageProps) {
+  // Safely extract the ID, handling both Promise and non-Promise cases
+  const id = props.params instanceof Promise ? 
+    (await props.params).id : 
+    props.params.id;
+  
+  const audit = await auditService.getAuditRequest(id) as unknown as AuditWithViolations;
   if (!audit) return notFound();
   
   if (!audit.parsedViolations) {
