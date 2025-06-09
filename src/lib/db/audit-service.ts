@@ -122,12 +122,12 @@ export const auditService = {
   },
 
   // uruchamia analizę AI w tle i zapisuje wyniki do bazy danych
-  async runAiAnalysisInBackground(requestId: string, violations: AxeViolation[]) {
+  async runAiAnalysisInBackground(requestId: string, violations: AxeViolation[], summary: AuditSummary) {
     try {
       console.log('\x1b[36m%s\x1b[0m', `⚙️ Rozpoczynam analizę AI dla audytu ${requestId}...`);
       // Konwertujemy violations na typ AccessibilityViolation
       const accessibilityViolations = violations as unknown as AccessibilityViolation[];
-      const aiAnalysisPromise = analyzeAccessibilityResults(accessibilityViolations);
+      const aiAnalysisPromise = analyzeAccessibilityResults(accessibilityViolations, summary);
       const timeoutPromise = new Promise<string>((_, reject) => {
         setTimeout(() => reject(new Error('Timeout analizy AI')), 30000);
       });
@@ -150,4 +150,17 @@ export const auditService = {
       return null;
     }
   },
+
+  // usuwa audyt o podanym ID
+  async deleteAuditRequest(id: string) {
+    try {
+      // Usuwamy audyt
+      return await prisma.auditRequest.delete({
+        where: { id }
+      });
+    } catch (error) {
+      console.error(`Błąd podczas usuwania audytu ${id}:`, error);
+      throw error;
+    }
+  }
 };

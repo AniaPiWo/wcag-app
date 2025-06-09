@@ -53,58 +53,69 @@ export interface AccessibilityViolation {
   [key: string]: unknown;
 }
 
-export async function analyzeAccessibilityResults(violations: AccessibilityViolation[]) {
+// Now takes both violations and summary for full context
+import type { AuditSummary } from '@/app/api/audit/types';
+
+export async function analyzeAccessibilityResults(
+  violations: AccessibilityViolation[],
+  summary: AuditSummary
+) {
   //console.log(violations);
-  try {
-    // Upraszczamy dane, skupiając się tylko na najważniejszych informacjach
-    const simplifiedViolations = violations.map(violation => ({
-      id: violation.id,
-      impact: violation.impact,
-      description: violation.description,
-      help: violation.help,
-      helpUrl: violation.helpUrl,
-      // Tylko liczba wystąpień (ilość elementów w tablicy nodes)
-      occurrencesCount: violation.nodes?.length || 0
-    }));
+  
 
     const prompt = `
-Przeanalizuj następujące naruszenia dostępności stron internetowych i przygotuj raport w całości jedynie w JĘZYKU POLSKIM.
+Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej i przygotuj raport w całości jedynie w JĘZYKU POLSKIM.
+
+Podsumowanie audytu:
+- Adres URL: ${summary.url}
+- Liczba wszystkich problemów: ${summary.totalIssuesCount}
+- Krytyczne: ${summary.criticalCount}
+- Poważne: ${summary.seriousCount}
+- Umiarkowane: ${summary.moderateCount}
+- Drobne: ${summary.minorCount}
+- Liczba zaliczonych reguł: ${summary.passedRules}
+- Liczba niepełnych reguł (incomplete): ${summary.incompleteRules}
+- Data i czas audytu: ${summary.timestamp}
 
 Jeśli nie wykryto żadnych naruszeń:
 - Wyświetl komunikat: „Automatyczna analiza nie wykryła błędów na stronie – wygląda na to, że wszystko jest gotowe na nadchodzące zmiany w prawie!
 Warto jednak pamiętać, że automat też może coś przeoczyć. Jeśli chcesz mieć pełną pewność, mogę przeprowadzić manualny test z wykorzystaniem profesjonalnych narzędzi.”
 
-Jeśli wykryto naruszenia:
+Jeśli wykryto naruszenia, napisz raport w całości jedynie w JĘZYKU POLSKIM:
 - Wypisz je jako wypunktowaną listę (bez numerowania).
-- użyj emotek podkreślenia wagi naruszenia (krytyczny-‼️, poważny-❗, umiarkowany-⚠️), po emotce daj spacje.
+- użyj emotek podkreślenia wagi naruszenia (krytyczny-‼️, poważny-❗, umiarkowany-⚠️, zaliczony-✅), po emotce daj spacje.
 - zacznij od najważniejszych i kończ najmniej ważnymi.
 - Dla każdego naruszenia zastosuj format:
-  Błąd waga – krótkie streszczenie problemu
-  Opis problemu: krótki opis
-  Liczba wystąpień: liczba
+  Błąd waga – krótkie streszczenie problemu PO POLSKU
+  Opis problemu: krótki opis PO POLSKU
+  Łączna liczba wystąpień tego błędu: liczba
+
+- dla zaliczonych wymień co było w porządku
 
 Nie dodawaj żadnych oznaczeń takich jak ** oraz nie podawaj żadnego kodu źródłowego.
-Nie pisz w formie maila – ma to być czysty raport.
+
 
 Użyj poniższych danych jako danych wejściowych:
-${JSON.stringify(simplifiedViolations, null, 2)}
+${JSON.stringify(summary, null, 2)}
 
 `;
     
-    const messages = [
-      { 
-        role: 'system' as const, 
-        content: 'Jesteś ekspertem ds. dostępności stron internetowych. Twoje odpowiedzi są zwięzłe, techniczne i zawsze zawierają praktyczne przykłady kodu. Masz doskonałą wiedzę na temat WCAG 2.2' 
-      },
-      { role: 'user' as const, content: prompt }
-    ];
-    
-    return await createChatCompletion(messages, {
-      temperature: 0.5,
-      max_tokens: 3000,
-    });
-  } catch (error) {
+    try {
+      const messages = [
+        { 
+          role: 'system' as const, 
+          content: 'Jesteś ekspertem ds. dostępności stron internetowych. Twoje odpowiedzi są zwięzłe, techniczne i zawsze zawierają praktyczne przykłady kodu. Masz doskonałą wiedzę na temat zasad WCAG 2.2' 
+        },
+        { role: 'user' as const, content: prompt }
+      ];
+      
+      return await createChatCompletion(messages, {
+        temperature: 0.5,
+        max_tokens: 3000,
+      });
+    } catch (error) {
     console.error('Błąd analizy dostępności:', error);
     return 'Nie udało się przeprowadzić analizy wyników. Spróbuj ponownie później.';
   }
 }
+       

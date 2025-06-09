@@ -12,8 +12,11 @@
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
     "@prisma/client": "^6.8.2",
+    "@types/jsonwebtoken": "^9.0.9",
     "axe-core": "^4.10.3",
+    "crypto": "^1.0.1",
     "framer-motion": "^12.15.0",
+    "jsonwebtoken": "^9.0.2",
     "next": "15.3.2",
     "openai": "^5.0.1",
     "playwright": "^1.52.0",

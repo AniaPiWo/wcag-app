@@ -16,7 +16,15 @@
   width: 50%;
 }
 
-.top .title {
+.title {
+  font-weight: var(--font-weight-semibold);
+  font-size: 44px;
+  line-height: 100%;
+  letter-spacing: -4%;
+  margin: 0;
+  }
+
+/* .top .title {
   font-size: 44px;
   font-weight: var(--font-weight-bold);
   line-height: 100%;
@@ -38,7 +46,7 @@
     transform: rotate(-0.5deg);
     padding: 0.5rem 1rem;
   }
-}
+} */
 
 .top .desc {
   font-size: 16px;
