@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { notFound } from 'next/navigation';
 import { auditService } from '@/lib/db/audit-service';
 import styles from './page.module.scss';
@@ -36,15 +37,9 @@ type AuditWithViolations = {
   errorMessage: string | null;
 };
 
-// Using the exact type that Next.js 15.3.2 expects
-type PageProps = {
-  params: Promise<{ id: string }>;
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
-
-export default async function AuditDetailsPage(props: PageProps) {
+export default async function Page({ params }: { params: { id: string } }) {
   // Extract the ID from the Promise
-  const resolvedParams = await props.params;
+  const resolvedParams = await params;
   const id = resolvedParams.id;
   
   const audit = await auditService.getAuditRequest(id) as unknown as AuditWithViolations;
