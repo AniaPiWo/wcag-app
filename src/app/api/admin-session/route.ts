@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { validateSession } from '@/lib/auth/admin-session';
 
-export async function GET({ }: { req: NextRequest; }) {
+export async function GET() {
   const isValid = await validateSession();
   return NextResponse.json({ valid: isValid });
 }

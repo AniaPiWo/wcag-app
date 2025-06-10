@@ -4,12 +4,13 @@ import { validateSession } from '@/lib/auth/admin-session';
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!params?.id) {
+  const { id } = await params;
+  if (!id) {
     return NextResponse.json({ error: 'Brak ID audytu' }, { status: 400 });
   }
-  const audit = await auditService.getAuditRequest(params.id);
+  const audit = await auditService.getAuditRequest(id);
   if (!audit) {
     return NextResponse.json({ error: 'Nie znaleziono audytu' }, { status: 404 });
   }
@@ -18,7 +19,7 @@ export async function GET(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Sprawdź sesję administratora
   const isAdmin = await validateSession();
@@ -26,12 +27,13 @@ export async function DELETE(
     return NextResponse.json({ error: 'Nieautoryzowany dostęp' }, { status: 401 });
   }
 
-  if (!params?.id) {
+  const { id } = await params;
+  if (!id) {
     return NextResponse.json({ error: 'Brak ID audytu' }, { status: 400 });
   }
 
   try {
-    await auditService.deleteAuditRequest(params.id);
+    await auditService.deleteAuditRequest(id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Błąd podczas usuwania audytu:', error);

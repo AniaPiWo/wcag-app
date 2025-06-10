@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/rules-of-hooks */
 import { notFound } from 'next/navigation';
 import { auditService } from '@/lib/db/audit-service';
 import styles from './page.module.scss';
@@ -37,11 +37,15 @@ type AuditWithViolations = {
   errorMessage: string | null;
 };
 
-export default async function Page({ params }: { params: { id: string } }) {
-  // Extract the ID from the Promise
-  const resolvedParams = await params;
-  const id = resolvedParams.id;
+
+
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const id = (await params).id;
   
+  return <AuditDetails id={id} />;
+}
+
+async function AuditDetails({ id }: { id: string }) {
   const audit = await auditService.getAuditRequest(id) as unknown as AuditWithViolations;
   if (!audit) return notFound();
   

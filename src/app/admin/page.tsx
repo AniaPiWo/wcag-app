@@ -7,7 +7,6 @@ import { Button } from '@/components/atoms/Button/Button';
 import Loader from '@/components/Loader/Loader';
 
 export default function AdminPage() {
-  // ... pozostałe useState i funkcje ...
 
   const handleDelete = async (id: string) => {
     try {
