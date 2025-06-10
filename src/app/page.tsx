@@ -1,5 +1,5 @@
 import styles from "./page.module.scss";
-import { Hero, Offer, Form, AboutMe, GoToForm, FAQ } from "../components/index";
+import { Hero, Offer, Form, AboutMe, GoToForm, FAQ, MyProjects } from "../components/index";
 
 export default function Home() {
   return (
@@ -7,10 +7,11 @@ export default function Home() {
       <main className={styles.main}>
           <Hero />
           <Form />
-          <AboutMe />
           <Offer />
-          <GoToForm />
+          <MyProjects />
+          <AboutMe />
           <FAQ />
+          <GoToForm />
       </main>
     </div>
   );
