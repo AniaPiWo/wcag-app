@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import styles from './login.module.scss';
 import { Button } from '@/components/atoms/Button/Button';
 import Loader from '@/components/Loader/Loader';
+import { CSRF_HEADER_NAME } from '@/lib/csrf';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -13,12 +14,14 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [csrfToken, setCsrfToken] = useState('');
 
-  // Check if already logged in
+  // Check if already logged in and fetch CSRF token
   useEffect(() => {
     let ignore = false;
     setCheckingSession(true);
     
+    // Sprawdź sesję
     fetch('/api/admin-session')
       .then(res => res.json())
       .then(data => {
@@ -29,6 +32,16 @@ export default function AdminLoginPage() {
         setCheckingSession(false);
       })
       .catch(() => setCheckingSession(false));
+    
+    // Pobierz token CSRF
+    fetch('/api/csrf-token')
+      .then(res => res.json())
+      .then(data => {
+        if (!ignore && data.token) {
+          setCsrfToken(data.token);
+        }
+      })
+      .catch(err => console.error('Błąd pobierania tokenu CSRF:', err));
       
     return () => { ignore = true; };
   }, [router]);
@@ -42,7 +55,10 @@ export default function AdminLoginPage() {
     try {
       const res = await fetch('/api/admin-login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          [CSRF_HEADER_NAME]: csrfToken // Dodajemy token CSRF w nagłówku
+        },
         body: JSON.stringify({ login, password }),
         credentials: 'include',
         cache: 'no-store'

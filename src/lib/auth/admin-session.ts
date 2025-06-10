@@ -3,7 +3,28 @@ import jwt from 'jsonwebtoken';
 
 const SESSION_COOKIE_NAME = 'admin_session';
 const SESSION_TIMEOUT = 60 * 60 * 2; // 2h w sekundach
-const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-secret';
+
+// Funkcja do pobierania i walidacji sekretu JWT
+function getJwtSecret(): string {
+  const secret = process.env.SESSION_SECRET;
+  
+  // W środowisku produkcyjnym wymagamy silnego sekretu
+  if (process.env.NODE_ENV === 'production') {
+    if (!secret || secret.length < 32) {
+      console.error('OSTRZEŻENIE: SESSION_SECRET powinien być ustawiony w produkcji i mieć co najmniej 32 znaki');
+    }
+  }
+  
+  // W środowisku deweloperskim ostrzegamy, ale pozwalamy na użycie domyślnego sekretu
+  if (!secret) {
+    console.warn('\x1b[33m%s\x1b[0m', 'OSTRZEŻENIE: Używanie domyślnego sekretu JWT. To jest niebezpieczne w produkcji!');
+    return 'dev-secret';
+  }
+  
+  return secret;
+}
+
+const SESSION_SECRET = getJwtSecret();
 
 export function createSession(payload: object = {}): string {
   const token = jwt.sign({ ...payload }, SESSION_SECRET, { expiresIn: SESSION_TIMEOUT });

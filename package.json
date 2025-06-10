@@ -15,6 +15,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "axe-core": "^4.10.3",
     "crypto": "^1.0.1",
+    "express-rate-limit": "^7.5.0",
     "framer-motion": "^12.15.0",
     "jsonwebtoken": "^9.0.2",
     "next": "15.3.2",
