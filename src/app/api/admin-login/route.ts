@@ -7,7 +7,6 @@ export async function POST(req: NextRequest) {
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (login === adminLogin && password === adminPassword) {
-    // Tworzymy bezpieczną sesję
     const sessionId = await createSession();
     const response = NextResponse.json({ success: true });
     response.cookies.set(SESSION_COOKIE_NAME, sessionId, {

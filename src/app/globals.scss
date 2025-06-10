@@ -4,6 +4,7 @@
   --border: #b0b0b0;
   --accent: #A985FF;
   --black: #000000;
+  --vanilla: #F3E5AB;
   --font-size-factor: 1; 
 
   --font-weight-thin: 100;
@@ -22,7 +23,8 @@ html[data-theme="dark"] {
   --foreground: #f0f6fc;
   --border: #6e7681;
   --accent: #bf9fff;
-  --black: #ffffff;
+  --black: #000000;
+  --vanilla: vanilla;
 }
 
 /* * {

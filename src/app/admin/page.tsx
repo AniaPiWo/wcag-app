@@ -20,30 +20,8 @@ export default function AdminPage() {
       alert('Błąd sieci przy usuwaniu rekordu.');
     }
   }
-  const [login, setLogin] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    try {
-      const res = await fetch('/api/admin-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ login, password })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setIsLoggedIn(true);
-      } else {
-        setError(data.error || 'Nieprawidłowy login lub hasło');
-      }
-    } catch (error) {
-      setError('Błąd połączenia z serwerem');
-   }
-  };
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [audits, setAudits] = useState<any[]>([]);
   const [auditsLoaded, setAuditsLoaded] = useState(false);
@@ -56,10 +34,19 @@ export default function AdminPage() {
     fetch('/api/admin-session')
       .then(res => res.json())
       .then(data => {
-        if (!ignore && data.valid) setIsLoggedIn(true);
+        if (!ignore && data.valid) {
+          setIsLoggedIn(true);
+        } else if (!ignore) {
+          // Redirect to login page if not authenticated
+          window.location.href = '/admin/login';
+        }
         setCheckingSession(false);
       })
-      .catch(() => setCheckingSession(false));
+      .catch(() => {
+        setCheckingSession(false);
+        // Redirect to login page on error
+        window.location.href = '/admin/login';
+      });
     return () => { ignore = true; };
   }, []);
 
@@ -215,34 +202,10 @@ export default function AdminPage() {
 
   return (
     <div className={styles.page}>
-      <form className={styles.adminForm} onSubmit={handleSubmit} autoComplete="off">
-        <h2 className={styles.title}>Panel administratora</h2>
-        <div className={styles.fieldGroup}>
-          <input
-            id="login"
-            type="text"
-            placeholder="Login"
-            className={styles.input}
-            value={login}
-            onChange={e => setLogin(e.target.value)}
-            autoFocus
-            autoComplete="username"
-          />
-        </div>
-        <div className={styles.fieldGroup}>
-          <input
-            id="password"
-            type="password"
-            placeholder="Password"
-            className={styles.input}
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            autoComplete="current-password"
-          />
-        </div>
-        {error && <div className={styles.error}>{error}</div>}
-        <Button type="submit" className={styles.button}>Zaloguj się</Button>
-      </form>
+      <div className={styles.notAuthenticated}>
+        <Loader />
+        <p>Przekierowywanie do strony logowania...</p>
+      </div>
     </div>
   );
 };

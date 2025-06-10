@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import styles from './Header.module.scss'
 import { Logo } from '../Logo/Logo'
 import Link from 'next/link'
+import { Button } from '../atoms/Button/Button'
 
 export const AdminHeader = () => {
   const router = useRouter()
@@ -41,12 +42,12 @@ export const AdminHeader = () => {
             </ul>
           </nav>
           <div className={styles.accessibilityControls}>
-            <button 
+            <Button 
               onClick={handleLogout} 
               className={styles.logoutButton}
             >
               Wyloguj
-            </button>
+            </Button>
           </div>
         </div>
 
