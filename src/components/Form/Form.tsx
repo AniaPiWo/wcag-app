@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './Form.module.scss';
@@ -197,7 +198,7 @@ export const Form = () => {
         
         if (!response.ok) {
 
-          console.error('Błąd z serwera:', responseData.error);
+          //console.error('Błąd z serwera:', responseData.error);
           setIsSuccess(false);
           setIsSubmitted(true);
 
@@ -230,7 +231,7 @@ export const Form = () => {
         
         // Ogólna obsługa błędów połączenia
         if (fetchError instanceof Error) {
-          console.error('Błąd podczas wykonywania żądania:', fetchError);
+          //console.error('Błąd podczas wykonywania żądania:', fetchError);
           setIsSuccess(false);
           setIsSubmitted(true);
     
@@ -248,7 +249,7 @@ export const Form = () => {
             (fetchError.message.includes('URL') || 
              fetchError.message.includes('adres') || 
              fetchError.message.includes('nieprawidłowy'))) {
-          console.error('Błąd adresu URL:', fetchError);
+          //console.error('Błąd adresu URL:', fetchError);
           setIsSuccess(false);
           setIsSubmitted(true);
           setStatusMessage('Podany adres strony jest nieprawidłowy lub strona nie istnieje. Sprawdź poprawność adresu i spróbuj ponownie.');
@@ -258,7 +259,7 @@ export const Form = () => {
         }
         
         if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
-          console.error('Przekroczono czas oczekiwania:', fetchError);
+          //console.error('Przekroczono czas oczekiwania:', fetchError);
           setIsSuccess(false);
           setIsSubmitted(true);
           setStatusMessage('Przekroczono czas oczekiwania na odpowiedź serwera. Spróbuj ponownie później.');
@@ -268,15 +269,16 @@ export const Form = () => {
         }
         
 
-        console.error('Nieobsłużony błąd:', fetchError);
+        //console.error('Nieobsłużony błąd:', fetchError);
         setIsSuccess(false);
         setIsSubmitted(true);
         setStatusMessage('Wystąpił nieoczekiwany błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
         reset();
         setIsSubmitting(false);
       }
+
     } catch (error) {
-      console.error('Błąd podczas przeprowadzania audytu:', error);
+      //console.error('Błąd podczas przeprowadzania audytu:', error);
       
       setIsSuccess(false);
       setIsSubmitted(true);

@@ -30,7 +30,7 @@ export const GoToForm = () => {
             Sprawdź dostępność swojej strony
           </h2>
           <p className={styles.desc}>
-            Wykonaj audyt zgodności z WCAG 2.2 i dowiedz się, czy Twoja strona jest dostępna dla wszystkich użytkowników.
+            Wykonaj bezpłatny audyt zgodności z WCAG 2.2 i sprawdź, czy Twoja strona jest dostępna dla wszystkich użytkowników.
           </p>
           <div className={styles.buttonWrapper}>
             <Button 
@@ -38,7 +38,7 @@ export const GoToForm = () => {
               aria-label="Przejdź do formularza audytu"
               variant="primary"
             >
-              Zamów audyt
+              Sprawdź dostępność
             </Button>
           </div>
         </div>

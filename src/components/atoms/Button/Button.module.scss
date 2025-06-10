@@ -31,12 +31,12 @@
 }
 
 .primary {
-  background: #A985FF; /* Fixed accent color */
+  background: var(--accent); /* Fixed accent color */
   color: #000000;
 }
 
 .secondary {
-  background: #F3E5AB; /* Fixed gold color */
+  background: var(--vanilla); /* Fixed gold color */
   color: #000000;
 }
 

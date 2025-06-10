@@ -6,27 +6,63 @@ import { OfferCard } from '../atoms/OfferCard/OfferCard';
 export const offers = [
   {
     id: '1',
-    image: '/pug.jpg',
     title: 'Manualny audyt dostępności',
-    alt: 'Ikona symbolizująca audyt dostępności',
+    subtitle: 'Dla firm z istniejącą stroną internetową',
     description:
-      'Szczegółowa analiza Twojej strony pod kątem zgodności z WCAG 2.2. Otrzymasz ode mnie praktyczny raport z rekomendacjami dotyczącymi naprawy problemów zgodności.',
+      'Szczegółowa analiza Twojej strony pod kątem zgodności z WCAG 2.2.',
+    price: {
+      amount: '99',
+      currency: 'zł',
+      period: 'jednorazowo',
+    },
+    features: [
+      'Manualny audyt dostępności',
+      'Raport z wykrytymi problemami',
+      'Rekomendacje naprawy',
+      'Konsultacja online',
+      'Do 5 podstron'
+    ],
+    buttonText: 'Zamów audyt'
   },
   {
     id: '2',
-    image: '/pug.jpg',
     title: 'Dostosowanie do WCAG 2.2',
-    alt: 'Ikona symbolizująca dostosowanie strony',
+    subtitle: 'Dla firm z istniejącą stroną internetową',
     description:
-      'Dostosuję Twoją stronę lub aplikację do standardów WCAG 2.2, poprawiając jej dostępność i użyteczność dla wszystkich użytkowników.',
+      'Dostosuję Twoją stronę lub aplikację do standardów WCAG 2.2.',
+    price: {
+      amount: 'od 500',
+      currency: 'zł',
+      period: 'projekt'
+    },
+    features: [
+      'Analiza obecnego stanu',
+      'Implementacja poprawek',
+      'Testy z użytkownikami',
+      'Dokumentacja techniczna',
+      'Wsparcie po wdrożeniu'
+    ],
+    buttonText: 'Zapytaj o wycenę'
   },
   {
     id: '3',
-    image: '/pug.jpg',
     title: 'Tworzę dostępne rozwiązania',    
-    alt: 'Ikona symbolizująca projektowanie dostępnych rozwiązań',
+    subtitle: 'Dla firm potrzebujących nowej strony',
     description:
-      'Tworzę dostępne serwisy i aplikacje od podstaw – zgodne z WCAG 2.2, przyjazne dla użytkownika i zaprojektowane zgodnie z zasadami dobrego UX.',
+      'Tworzę dostępne serwisy i aplikacje od podstaw – zgodne z WCAG 2.2.',
+    price: {
+      amount: 'od 1000',
+      currency: 'zł',
+      period: 'projekt'
+    },
+    features: [
+      'Projekt UX/UI',
+      'Implementacja frontend i backend',
+      'Pełna zgodność z WCAG 2.2',
+      'Testy z użytkownikami',
+      'Wsparcie techniczne'
+    ],
+    buttonText: 'Zapytaj o wycenę'
   },
 ];
 
@@ -47,11 +83,12 @@ export const Offer = () => {
         {offers.map((card) => (
           <OfferCard
             key={card.id}
-            id={card.id}
-            image={card.image}
-            alt={card.alt}
             title={card.title}
+            subtitle={card.subtitle}
             description={card.description}
+            price={card.price}
+            features={card.features}
+            buttonText={card.buttonText}
           />
         ))}
       </div>
@@ -61,11 +98,12 @@ export const Offer = () => {
         {offers.map((card) => (
           <div key={card.id} className={styles.cardItem}>
             <OfferCard
-              id={card.id}
-              image={card.image}
-              alt={card.alt}
               title={card.title}
+              subtitle={card.subtitle}
               description={card.description}
+              price={card.price}
+              features={card.features}
+              buttonText={card.buttonText}
             />
           </div>
         ))}
