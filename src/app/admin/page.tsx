@@ -188,7 +188,7 @@ export default function AdminPage() {
                       className={styles.deleteBtn}
                       onClick={e => { e.stopPropagation(); handleDelete(audit.id); }}
                       aria-label={`Usuń audyt ${audit.email}`}
-                    >🗑️</button>
+                    >❌</button>
                   </td>
                 </tr>
               ))}
