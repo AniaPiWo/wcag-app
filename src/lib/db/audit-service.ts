@@ -156,8 +156,8 @@ export const auditService = {
       if (auditRequest && auditRequest.email) {
         try {
           const emailSubject = `Wyniki audytu dostępności dla strony ${summary.url}`;
-          
-          // Przygotowanie treści emaila
+          //⏰ Data i czas audytu: ${summary.timestamp}
+   
           const emailContent = `
             Witaj ${auditRequest.name || 'Użytkowniku'},
 
@@ -171,15 +171,12 @@ export const auditService = {
             ⚡ Drobne: ${summary.minorCount}
             ✅ Liczba zaliczonych reguł: ${summary.passedRules}
             ❌ Wymaga audytu manualnego: ${summary.incompleteRules}
-            ⏰ Data i czas audytu: ${summary.timestamp}
 
            ${aiAnalysis}   
   
             Dziękujemy za skorzystanie z naszego narzędzia!
           `.trim().replace(/^ +/gm, '');
           
-
-
           // Tworzymy transporter
           const transporter = nodemailer.createTransport({
             host: 'ssl0.ovh.net',
