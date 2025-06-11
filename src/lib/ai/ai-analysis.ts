@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { openai } from '../openai';
 
 export const defaultModelParams = {
@@ -62,40 +63,21 @@ export async function analyzeAccessibilityResults(
 ) {
   //console.log(violations);
   
-
     const prompt = `
 Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej i przygotuj raport w całości jedynie w JĘZYKU POLSKIM.
-
-Podsumowanie audytu:
-- Adres URL: ${summary.url}
-- Liczba wszystkich problemów: ${summary.totalIssuesCount}
-- Krytyczne: ${summary.criticalCount}
-- Poważne: ${summary.seriousCount}
-- Umiarkowane: ${summary.moderateCount}
-- Drobne: ${summary.minorCount}
-- Liczba zaliczonych reguł: ${summary.passedRules}
-- Wymaga audytu manualnego: ${summary.incompleteRules}
-- Data i czas audytu: ${summary.timestamp}
 
 Jeśli nie wykryto żadnych naruszeń:
 - Wyświetl komunikat: „Automatyczna analiza nie wykryła błędów na stronie – wygląda na to, że wszystko jest gotowe na nadchodzące zmiany w prawie!
 Warto jednak pamiętać, że automat też może coś przeoczyć. Jeśli chcesz mieć pełną pewność, mogę przeprowadzić manualny test z wykorzystaniem profesjonalnych narzędzi.”
 
-Jeśli wykryto naruszenia, napisz raport w całości jedynie w JĘZYKU POLSKIM:
-- Wypisz je jako wypunktowaną listę (bez numerowania).
-- użyj emotek podkreślenia wagi naruszenia (krytyczny-‼️, poważny-❗, umiarkowany-⚠️,  drobne - 🔸, zaliczony-✅), po emotce daj spacje.
-- zacznij od najważniejszych i kończ najmniej ważnymi.
-- Dla każdego naruszenia zastosuj format:
-  Błąd waga – krótkie streszczenie problemu PO POLSKU
-  Opis problemu: krótki opis PO POLSKU
-  Łączna liczba wystąpień tego błędu: liczba
-- dla zaliczonych wymień co było w porządku
-
-Nie dodawaj żadnych oznaczeń takich jak ** oraz nie podawaj żadnego kodu źródłowego, nie dawaj tytułu (Raport z automatycznego audytu dostępności strony internetowej itp)
-
-
+Jeśli wykryto naruszenia:
 Użyj poniższych danych jako danych wejściowych:
-${JSON.stringify(summary, null, 2)}
+${JSON.stringify(violations.slice(0, 10), null, 2)}
+ - nie dawaj tytułu (Raport z automatycznego audytu dostępności strony internetowej itp), tytuł jest już w treści maila przed twoim tekstem
+ - użyj emotek podkreślenia wagi naruszenia (krytyczny-‼️, poważny-❗, umiarkowany-⚠️,  drobne - ⚡, zaliczony-✅), po emotce daj spacje.
+ - opisz krótko PO POLSKU wykryte błedy i jakie są za nie kary, nie pokazuj kodu z błędami
+ - nienachalnie zachęć do zakupu dokładniejszego testu manualnego.
+
 
 `;
     
