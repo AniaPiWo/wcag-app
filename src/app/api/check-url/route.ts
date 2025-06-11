@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
+import { chromium } from 'playwright'; // NIE używamy `@playwright/test`, tylko `playwright`
 
 export async function POST(request: Request) {
   try {
@@ -25,16 +26,18 @@ export async function POST(request: Request) {
 
     for (const tryUrl of urlsToTry) {
       try {
-        const browser = await puppeteer.launch({
+        const browser = await chromium.launch({
           headless: true,
           args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
-        const page = await browser.newPage();
+        const context = await browser.newContext();
+        const page = await context.newPage();
 
-        // Próbujemy otworzyć stronę
-        await page.goto(tryUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
+        const response = await page.goto(tryUrl, {
+          waitUntil: 'domcontentloaded',
+          timeout: 15000
+        });
 
-        // Dodatkowa weryfikacja — czy dokument HTML się załadował
         const htmlTagName = await page.evaluate(() => document.documentElement.tagName);
         const title = await page.title();
 
@@ -44,12 +47,11 @@ export async function POST(request: Request) {
           return NextResponse.json({ exists: true, title });
         }
 
-        // Jeśli dokument się nie wczytał poprawnie
         return NextResponse.json({ exists: false, error: 'Niepoprawny dokument HTML' }, { status: 422 });
 
       } catch (err: unknown) {
-        console.warn(`Puppeteer error for ${tryUrl}:`, err);
-        if (err instanceof Error && err.message.includes('Navigation timeout')) {
+        console.warn(`Playwright error for ${tryUrl}:`, err);
+        if (err instanceof Error && err.message.includes('Timeout')) {
           return NextResponse.json({ exists: false, error: 'Timeout strony' }, { status: 408 });
         }
       }
