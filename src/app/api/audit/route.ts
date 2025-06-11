@@ -778,7 +778,7 @@ async function autoScroll(page: Page): Promise<void> {
     }).catch(() => true); // W razie błędu zakładamy, że strona jest scrollowalna
     
     if (!hasScrollableContent) {
-      console.log('Strona nie wymaga przewijania - brak scrollowalnej zawartości');
+      //console.log('Strona nie wymaga przewijania - brak scrollowalnej zawartości');
       return;
     }
     
@@ -793,7 +793,7 @@ async function autoScroll(page: Page): Promise<void> {
         const scrollInterval = setInterval(() => {
           // Sprawdź, czy czas przewijania nie przekroczył limitu
           if (Date.now() - startTime > maxScrollTime) {
-            console.log('Osiągnięto limit czasu przewijania');
+            //console.log('Osiągnięto limit czasu przewijania');
             clearInterval(scrollInterval);
             resolve();
             return;
@@ -815,7 +815,7 @@ async function autoScroll(page: Page): Promise<void> {
           if (Math.abs(currentScrollTop - lastScrollTop) < 10) {
             scrollStuckCount++;
             if (scrollStuckCount >= maxScrollStuck) {
-              console.log('Przewijanie utknęło w tym samym miejscu');
+              //console.log('Przewijanie utknęło w tym samym miejscu');
               clearInterval(scrollInterval);
               resolve();
               return;

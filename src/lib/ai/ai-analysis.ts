@@ -83,7 +83,7 @@ Warto jednak pamiętać, że automat też może coś przeoczyć. Jeśli chcesz m
 
 Jeśli wykryto naruszenia, napisz raport w całości jedynie w JĘZYKU POLSKIM:
 - Wypisz je jako wypunktowaną listę (bez numerowania).
-- użyj emotek podkreślenia wagi naruszenia (krytyczny-‼️, poważny-❗, umiarkowany-⚠️, zaliczony-✅), po emotce daj spacje.
+- użyj emotek podkreślenia wagi naruszenia (krytyczny-‼️, poważny-❗, umiarkowany-⚠️,  drobne - 🔸, zaliczony-✅), po emotce daj spacje.
 - zacznij od najważniejszych i kończ najmniej ważnymi.
 - Dla każdego naruszenia zastosuj format:
   Błąd waga – krótkie streszczenie problemu PO POLSKU
@@ -92,7 +92,7 @@ Jeśli wykryto naruszenia, napisz raport w całości jedynie w JĘZYKU POLSKIM:
 
 - dla zaliczonych wymień co było w porządku
 
-Nie dodawaj żadnych oznaczeń takich jak ** oraz nie podawaj żadnego kodu źródłowego.
+Nie dodawaj żadnych oznaczeń takich jak ** oraz nie podawaj żadnego kodu źródłowego, nie dawaj tytułu (Raport z automatycznego audytu dostępności strony internetowej itp)
 
 
 Użyj poniższych danych jako danych wejściowych:

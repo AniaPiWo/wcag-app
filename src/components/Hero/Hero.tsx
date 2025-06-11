@@ -59,7 +59,7 @@ export const Hero = () => {
           dostępna dla wszystkich użytkowników, niezależnie od ich możliwości czy ograniczeń.
         </p>
         <div className={styles.buttonContainer}>
-          <Button variant="primary" onClick={handleAuditClick}>Darmowy audyt</Button>
+          <Button variant="primary" onClick={handleAuditClick}>Bezpłatny audyt strony</Button>
           <Button 
             variant="secondary" 
             onClick={handleContactClick}

@@ -8,14 +8,12 @@ export const GoToForm = () => {
   const scrollToForm = () => {
     const formElement = document.getElementById('form');
     if (formElement) {
-      // Obliczanie pozycji, aby formularz był na środku ekranu
       const elementRect = formElement.getBoundingClientRect();
       const absoluteElementTop = elementRect.top + window.pageYOffset;
-      const middle = absoluteElementTop - (window.innerHeight / 2) + (elementRect.height / 2);
-      
-      // Przewijanie do obliczonej pozycji
+  
+      const offset = 50; // np. wysokość nagłówka lub bufor
       window.scrollTo({
-        top: middle,
+        top: absoluteElementTop - offset,
         behavior: 'smooth'
       });
     }

@@ -7,46 +7,44 @@ import { Container } from '../atoms/Container/Container';
 export const projects = [
   {
     id: '1',
-    image: '/pug.jpg',
-    title: 'Sklep internetowy z modą',
-    description: 'Audyt dostępności i implementacja poprawek dla sklepu internetowego z branży modowej.',
-    technologies: ['WCAG 2.2', 'Audyt', 'Implementacja']
+    image: '/images/bruxa.png',
+    imageAlt: 'Strona główna sklepu bruxa.co z minimalistycznym designem i elegancką typografią',
+    title: 'bruxa.co',
+    description: 'Strona została przygotowana zgodnie z dostarczonym projektem, z dużą dbałością o każdy szczegół wizualny i funkcjonalny. Implementacja złożonych animacji była wymagającym, ale satysfakcjonującym etapem pracy. Efektem końcowym jest szybki, nowoczesny i w pełni dostępny serwis, który wiernie oddaje założenia projektu i zapewnia komfort użytkowania niezależnie od urządzenia czy ograniczeń użytkownika.',
+    technologies: ['WCAG 2.2', 'NextJS', 'TypeScript', 'React', 'SEO'],
+    url: 'https://bruxa.co',
+    isLink: true
   },
   {
     id: '2',
-    image: '/pug.jpg',
-    title: 'Portal informacyjny',
-    description: 'Kompleksowy audyt WCAG 2.1 dla dużego portalu informacyjnego z wdrożeniem poprawek.',
-    technologies: ['WCAG 2.1', 'Audyt', 'Konsultacje']
+    image: '/images/devhunting.png',
+    imageAlt: 'Strona główna portalu devhunting.co z nowoczesnym designem i czytelną nawigacją',
+    title: 'devhunting.co',
+    description: 'Projekt został zrealizowany w zespole, którego pracami miałam przyjemność kierować, jednocześnie aktywnie uczestnicząc w tworzeniu wybranych elementów interfejsu. Przygotowałam m.in. nagłówek, stopkę, sekcję opinii oraz FAQ. Zadbałam o zgodność z wytycznymi dostępności oraz dobre praktyki SEO, dzięki czemu strona jest nie tylko estetyczna i funkcjonalna, ale też w pełni przyjazna dla wszystkich użytkowników.',
+    technologies: ['WCAG 2.2', 'NextJS', 'TypeScript', 'React', 'SEO'],
+    url: 'https://devhunting.co',
+    isLink: true
   },
   {
     id: '3',
-    image: '/pug.jpg',
-    title: 'Aplikacja bankowa',
-    description: 'Konsultacje dostępności i testy z użytkownikami dla aplikacji bankowej.',
-    technologies: ['Testy', 'UX', 'Konsultacje']
+    image: '/images/akg.png',
+    title: 'akg-sosnowiec.pl',
+    description: 'Punktem wyjścia była klarowna wizja klienta, którą z przyjemnością przełożyłam na działającą stronę – w pełni oddając jej założenia i nadając jej życie w formie nowoczesnej wizytówki online. Wykorzystując klasyczny stack HTML, CSS i JavaScript, stworzyłam lekką, estetyczną i funkcjonalną stronę. Projekt jest zgodny ze standardami dostępności (WCAG 2.2) i zoptymalizowany pod kątem SEO, co gwarantuje komfort użytkowania i dobrą widoczność w sieci.',
+    technologies: ['WCAG 2.2', 'HTML', 'CSS', 'JavaScript', 'SEO'],
+    url: 'https://akg-sosnowiec.pl',
+    isLink: true
   },
   {
     id: '4',
-    image: '/pug.jpg',
-    title: 'Platforma edukacyjna',
-    description: 'Projektowanie i wdrożenie dostępnej platformy edukacyjnej zgodnej z WCAG 2.2.',
-    technologies: ['WCAG 2.2', 'Projektowanie', 'Wdrożenie']
+    image: '/images/wcag.png',
+    title: 'wcag.co',
+    imageAlt: 'Strona główna portalu wcag.co z nowoczesnym designem i czytelną nawigacją',
+    description: 'To ta strona – mój najnowszy projekt 🙂 Przejrzysta, estetyczna i w pełni dostępna strona główna, pod którą kryje się narzędzie do automatycznego wykrywania niezgodności z wytycznymi dostępności cyfrowej. Umożliwia przetestowanie dowolnej domeny i otrzymanie szczegółowego raportu na wskazany adres e-mail. Wyniki audytu są interpretowane przez podłączoną AI, która przekształca je w zrozumiały i praktyczny raport wysyłany bezpośrednio do użytkownika.',
+    technologies: ['WCAG 2.2', 'NextJS', 'TypeScript', 'SEO', "AI"],
+    url: 'https://wcag.co',
+    isLink: true
   },
-  {
-    id: '5',
-    image: '/pug.jpg',
-    title: 'Platforma edukacyjna',
-    description: 'Projektowanie i wdrożenie dostępnej platformy edukacyjnej zgodnej z WCAG 2.2.',
-    technologies: ['WCAG 2.2', 'Projektowanie', 'Wdrożenie']
-  },
-  {
-    id: '6',
-    image: '/pug.jpg',
-    title: 'Platforma edukacyjna',
-    description: 'Projektowanie i wdrożenie dostępnej platformy edukacyjnej zgodnej z WCAG 2.2.',
-    technologies: ['WCAG 2.2', 'Projektowanie', 'Wdrożenie']
-  },
+
 ];
 
 export const MyProjects = () => {
@@ -54,10 +52,9 @@ export const MyProjects = () => {
     <section id="projects" className={styles.wrapper}>
       <Container>
         <div className={styles.top}>
-          <h2 className={styles.title}>Moje projekty</h2>
+          <h2 className={styles.title}>Moje ostatnie projekty</h2>
           <p className={styles.desc}>
-            Poznaj wybrane projekty, przy których miałam przyjemność pracować. Każdy z nich to unikalne wyzwanie
-            i możliwość zwiększenia dostępności cyfrowej dla wszystkich użytkowników.
+          Pracując nad tymi projektami, zadbałam o każdy szczegół — od zgodności z wytycznymi dostępności (WCAG), przez optymalizację wydajności, aż po dopracowane SEO. To realizacje, w których liczy się nie tylko wygląd, ale przede wszystkim funkcjonalność, szybkość działania i komfort użytkownika – niezależnie od jego urządzenia czy możliwości.
           </p>
         </div>
         
@@ -70,6 +67,9 @@ export const MyProjects = () => {
               title={project.title}
               description={project.description}
               technologies={project.technologies}
+              url={project.url}
+              isLink={project.isLink}
+              imageAlt={project.imageAlt}
             />
           ))}
         </div>

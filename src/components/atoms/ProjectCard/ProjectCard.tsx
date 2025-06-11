@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from './ProjectCard.module.scss';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface ProjectCardProps {
   id: string;
@@ -8,6 +9,9 @@ interface ProjectCardProps {
   title: string;
   description: string;
   technologies?: string[];
+  url?: string;
+  isLink?: boolean;
+  imageAlt?: string;
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
@@ -16,14 +20,20 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   title,
   description,
   technologies = [],
+  url,
+  isLink = false,
+  imageAlt,
 }) => {
-  return (
-    <div className={styles.card}>
+  // Jeśli nie podano URL, a isLink jest true, generujemy URL na podstawie tytułu
+  const finalUrl = url || (isLink ? `/${title.toLowerCase().replace(/\s+/g, '-')}` : undefined);
+  
+  // Zawartość karty projektu
+  const cardContent = (
+    <>
       <div className={styles.imageContainer}>
         <Image
           src={image}
-          alt=""
-          aria-hidden="true"
+          alt={imageAlt || `Zdjęcie projektu ${title}`}
           fill
           sizes="(max-width: 768px) 100vw, 300px"
           style={{ objectFit: 'cover' }}
@@ -43,6 +53,18 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </>
   );
+
+  // Jeśli to ma być link, opakowujemy zawartość w komponent Link
+  if (finalUrl) {
+    return (
+      <Link href={finalUrl} className={styles.card}>
+        {cardContent}
+      </Link>
+    );
+  }
+  
+  // W przeciwnym razie zwracamy zwykły div
+  return <div className={styles.card}>{cardContent}</div>;
 };
