@@ -74,7 +74,7 @@ Podsumowanie audytu:
 - Umiarkowane: ${summary.moderateCount}
 - Drobne: ${summary.minorCount}
 - Liczba zaliczonych reguł: ${summary.passedRules}
-- Liczba niepełnych reguł (incomplete): ${summary.incompleteRules}
+- Wymaga audytu manualnego: ${summary.incompleteRules}
 - Data i czas audytu: ${summary.timestamp}
 
 Jeśli nie wykryto żadnych naruszeń:
@@ -89,7 +89,6 @@ Jeśli wykryto naruszenia, napisz raport w całości jedynie w JĘZYKU POLSKIM:
   Błąd waga – krótkie streszczenie problemu PO POLSKU
   Opis problemu: krótki opis PO POLSKU
   Łączna liczba wystąpień tego błędu: liczba
-
 - dla zaliczonych wymień co było w porządku
 
 Nie dodawaj żadnych oznaczeń takich jak ** oraz nie podawaj żadnego kodu źródłowego, nie dawaj tytułu (Raport z automatycznego audytu dostępności strony internetowej itp)

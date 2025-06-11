@@ -181,7 +181,7 @@ export const Form = () => {
       const timeoutId = setTimeout(() => controller.abort(), 600000); // timeout
       
       try {
-        console.log('Adres OK – zaczynam audyt dla:', data.website);
+        //console.log('Adres OK – zaczynam audyt dla:', data.website);
         const response = await fetch('/api/audit', {
           method: 'POST',
           headers: {
@@ -214,7 +214,7 @@ export const Form = () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const result = responseData as AuditResponse;
         
-        //console.log('Wyniki audytu:', result); // debug
+        console.log('Wyniki audytu:', result); // debug
         
         setIsSuccess(true);
         setIsSubmitted(true);
@@ -351,7 +351,7 @@ export const Form = () => {
               <p className={styles.desc}>
                 {isSuccess 
                   ? 'Raport zostanie wysłany na podany adres e-mail w ciągu kilku minut.' 
-                  : 'Nie udało się przeprowadzić audytu. Być może strona, którą chcesz sprawdzić, ma zabezpieczenia, które blokują nasz automatyczny audyt.'}
+                  : 'Nie udało się przeprowadzić audytu. Być może strona, którą chcesz sprawdzić, ma zabezpieczenia blokujące nasz automatyczny audyt.'}
               </p>
               <p className={styles.desc}>
                 {isSuccess 

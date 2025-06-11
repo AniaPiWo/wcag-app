@@ -113,6 +113,7 @@ export async function POST(request: NextRequest) {
     let body;
     try {
       body = await request.json();
+      //console.log("Odebrano body:", body);
     } catch (parseError) {
       console.error('Błąd parsowania JSON:', parseError);
       return NextResponse.json(
@@ -159,14 +160,23 @@ export async function POST(request: NextRequest) {
       clearTimeout(timeoutId);
       
       const statusCode = urlCheckResponse.status;
-      const isSuccess = statusCode >= 200 && statusCode < 500 && statusCode !== 404 && statusCode !== 403;
-      
+
+ /*      const isSuccess = statusCode >= 200 && statusCode < 500 && statusCode !== 404 && statusCode !== 403;  
       if (!isSuccess) {
         return NextResponse.json(
           { error: `Podany URL nie jest dostępny. Kod odpowiedzi: ${statusCode}` },
           { status: 400, headers }
         );
-      }
+      } */
+
+        const isAccessible = statusCode < 500; 
+        if (!isAccessible) {
+          return NextResponse.json(
+            { error: `Podany URL nie jest dostępny. Kod odpowiedzi: ${statusCode}` },
+            { status: 400, headers }
+          );
+        }
+
     } catch (urlError) {
       console.error('Błąd podczas sprawdzania URL:', urlError);
       const errorMessage = urlError instanceof Error && urlError.name === 'AbortError' 
@@ -482,33 +492,27 @@ async function runAccessibilityAudit(url: string): Promise<{
         '--single-process',
         '--disable-gpu'
       ],
-      // Wyłączenie zapisywania plików tymczasowych
       downloadsPath: '/tmp',
-      // Zmniejszenie zużycia pamięci
       chromiumSandbox: false
     });
     
-    // Create a new context and page
+
     const context = await browser.newContext({
       viewport: { width: 1920, height: 1080 },
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     });
     const page = await context.newPage();
     
-    // Navigate to the URL
     try {
-      // Bardziej elastyczne ustawienia ładowania strony
       const response = await page.goto(url, { 
-        waitUntil: 'domcontentloaded', // Zmiana z 'networkidle' na 'domcontentloaded' dla szybszego ładowania
+        waitUntil: 'domcontentloaded', 
         timeout: PLAYWRIGHT_TIMEOUT 
       });
       
-      // Sprawdzamy status odpowiedzi, ale akceptujemy szerszy zakres kodów
       if (response) {
         const status = response.status();
         console.log(`\x1b[34m%s\x1b[0m`, `Status odpowiedzi strony: ${status}`);
         
-        // Akceptujemy kody 2xx, 3xx i niektóre 4xx (np. 404 dla części zasobów nie powinien przerywać audytu)
         const isServerError = status >= 500 || status === 404 || status === 403;
         
         if (isServerError) {
@@ -518,7 +522,6 @@ async function runAccessibilityAudit(url: string): Promise<{
         console.warn('\x1b[33m%s\x1b[0m', 'Brak obiektu odpowiedzi, ale kontynuujemy audyt');
       }
       
-      // Dodatkowe oczekiwanie na załadowanie strony
       await page.waitForLoadState('load', { timeout: PLAYWRIGHT_TIMEOUT / 2 }).catch(err => {
         console.warn('\x1b[33m%s\x1b[0m', 'Timeout podczas oczekiwania na pełne załadowanie strony, ale kontynuujemy:', err.message);
       });
@@ -528,11 +531,9 @@ async function runAccessibilityAudit(url: string): Promise<{
       throw new Error(`Nie udało się załadować strony: ${error instanceof Error ? error.message : String(error)}`);
     }
     
-    // Przewijamy stronę dla elementów lazy-loaded
     await autoScroll(page);
     
     try {
-      // Wczytujemy axe-core z node_modules
       const axeCorePath = path.resolve(process.cwd(), 'node_modules', 'axe-core', 'axe.min.js');
       let axeScript;
       
@@ -752,7 +753,7 @@ async function runAccessibilityAudit(url: string): Promise<{
     console.error('Error running accessibility audit:', error);
     throw error;
   } finally {
-    // Close the browser
+
     if (browser) {
       try {
         await browser.close();

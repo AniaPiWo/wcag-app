@@ -1,37 +1,19 @@
 import { NextResponse } from 'next/server';
+import puppeteer from 'puppeteer';
 
 export async function POST(request: Request) {
   try {
     const { url } = await request.json();
 
     if (!url) {
-      return NextResponse.json(
-        { error: 'Brak adresu URL' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Brak adresu URL' }, { status: 400 });
     }
 
-    // Upewnij się, że URL ma prawidłowy format
     let formattedUrl = url;
     if (!/^https?:\/\//.test(formattedUrl)) {
       formattedUrl = 'https://' + formattedUrl;
     }
 
-    // Helper do fetch z timeoutem
-    async function fetchWithTimeout(resource: string, options = {}, timeout = 10000) {
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), timeout);
-      try {
-        const response = await fetch(resource, { ...options, signal: controller.signal });
-        clearTimeout(id);
-        return response;
-      } catch (err) {
-        clearTimeout(id);
-        throw err;
-      }
-    }
-
-    // Próbuj najpierw oryginalny adres, potem z www jeśli nie działa
     const urlsToTry = [formattedUrl];
     try {
       const urlObj = new URL(formattedUrl);
@@ -43,47 +25,38 @@ export async function POST(request: Request) {
 
     for (const tryUrl of urlsToTry) {
       try {
-        let response = await fetchWithTimeout(tryUrl, {
-          method: 'HEAD',
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-          },
-          redirect: 'follow',
+        const browser = await puppeteer.launch({
+          headless: true,
+          args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
+        const page = await browser.newPage();
 
-        // Jeśli serwer zwróci 449 lub 405, spróbuj GET
-        if (response.status === 449 || response.status === 405) {
-          response = await fetchWithTimeout(tryUrl, {
-            method: 'GET',
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            },
-            redirect: 'follow',
-          });
+        // Próbujemy otworzyć stronę
+        await page.goto(tryUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
+
+        // Dodatkowa weryfikacja — czy dokument HTML się załadował
+        const htmlTagName = await page.evaluate(() => document.documentElement.tagName);
+        const title = await page.title();
+
+        await browser.close();
+
+        if (htmlTagName === 'HTML') {
+          return NextResponse.json({ exists: true, title });
         }
 
-        if (response.ok) {
-          return NextResponse.json({ exists: true });
-        }
-        // Jeśli 404 lub 449, próbuj kolejny wariant (np. z www)
+        // Jeśli dokument się nie wczytał poprawnie
+        return NextResponse.json({ exists: false, error: 'Niepoprawny dokument HTML' }, { status: 422 });
+
       } catch (err: unknown) {
-        if (err instanceof Error && err.name === 'AbortError') {
-          // Timeout
-          return NextResponse.json(
-            { exists: false, error: 'Przekroczono czas oczekiwania na odpowiedź z serwera.' },
-            { status: 408 }
-          );
+        console.warn(`Puppeteer error for ${tryUrl}:`, err);
+        if (err instanceof Error && err.message.includes('Navigation timeout')) {
+          return NextResponse.json({ exists: false, error: 'Timeout strony' }, { status: 408 });
         }
-        // Próbuj kolejny wariant
       }
     }
 
-    // Jeśli żaden wariant nie zadziałał
     return NextResponse.json(
-      {
-        exists: false,
-        error: 'Nie udało się połączyć ze stroną. Spróbuj z www.nazwadomeny.pl lub sprawdź poprawność adresu.'
-      },
+      { exists: false, error: 'Nie udało się połączyć ze stroną' },
       { status: 404 }
     );
   } catch (error) {

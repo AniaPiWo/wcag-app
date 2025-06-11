@@ -167,17 +167,19 @@ export const auditService = {
             ‼️Krytyczne: ${summary.criticalCount}
             ❗Poważne: ${summary.seriousCount}
             ⚠️Umiarkowane: ${summary.moderateCount}
-            🔸 Drobne: ${summary.minorCount}
+             Drobne: ${summary.minorCount}
             ✅ Liczba zaliczonych reguł: ${summary.passedRules}
             ❌ Liczba niepełnych reguł: ${summary.incompleteRules}
             ⏰ Data i czas audytu: ${summary.timestamp}
 
-            Szczegółowy raport:
-            ${aiAnalysis}
-
+ 
+  
             Dziękujemy za skorzystanie z naszego narzędzia!
           `.trim().replace(/^ +/gm, '');
           
+          //${aiAnalysis}   
+          
+
           // Tworzymy transporter
           const transporter = nodemailer.createTransport({
             host: 'ssl0.ovh.net',
