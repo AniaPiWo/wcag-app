@@ -39,6 +39,9 @@ export const AdminHeader = () => {
               <li className={styles.navItem}>
                 <Link href="/admin" className={styles.navLink}>Panel administratora</Link>
               </li>
+              <li className={styles.navItem}>
+                <Link href="/admin/sitemap" className={styles.navLink}>Sitemap</Link>
+              </li>
             </ul>
           </nav>
           <div className={styles.accessibilityControls}>
@@ -57,6 +60,9 @@ export const AdminHeader = () => {
               <ul className={styles.mobileNavList}>
                 <li className={styles.mobileNavItem}>
                   <Link href="/admin" className={styles.mobileNavLink}>Panel administratora</Link>
+                </li>
+                <li className={styles.mobileNavItem}>
+                  <Link href="/admin/sitemap" className={styles.mobileNavLink}>Sitemap</Link>
                 </li>
               </ul>
             </nav>
