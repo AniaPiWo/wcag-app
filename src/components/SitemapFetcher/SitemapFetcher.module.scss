@@ -110,10 +110,7 @@
   text-decoration: none;
   word-break: break-all;
   
-  &:hover {
-    text-decoration: underline;
-    color: #0a58ca;
-  }
+
 }
 
 // Select container
@@ -126,20 +123,6 @@
     font-size: 1.4rem;
   }
   
-  .linkItem {
-    button.link {
-      background: none;
-      border: none;
-      padding: 0;
-      font: inherit;
-      cursor: pointer;
-      text-align: left;
-    }
-  }
+
 }
 
-// Loading state
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
