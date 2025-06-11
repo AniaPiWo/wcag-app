@@ -42,12 +42,15 @@
     background-color: var(--foreground);
     border-radius: 50%;
     transition: transform 0.5s ease, background-color 0.5s ease;
+    z-index: 2;
   }
 }
 
 /* Dla ciemnego motywu przesuwamy przełącznik */
-html[data-theme="dark"] .switchKnob {
-  transform: translateX(1.625rem); /* 26px */
+html[data-theme="dark"] {
+  .switchKnob {
+    transform: translateX(1.625rem); /* 26px */
+  }
 }
 
 /* Dodaję obsługę preferencji redukcji ruchu dla dostępności */

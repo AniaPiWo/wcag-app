@@ -2,9 +2,7 @@
   width: 100%;
   padding: 1rem 0; /* 16px 0 */
   background-color: var(--background);
-  border-top: 1px solid var(--border);
   color: var(--foreground);
-  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
 }
 
 .container {

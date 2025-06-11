@@ -283,7 +283,7 @@ export const SitemapFetcher = () => {
                 required
               />
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Wyszukiwanie...' : 'Znajdź mapę witryny'}
+                {isLoading ? 'Wyszukiwanie...' : 'Pokaż mapę'}
               </Button>
             </form>
             

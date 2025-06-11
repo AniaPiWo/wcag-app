@@ -396,13 +396,13 @@ export const Form = () => {
           <>
           <div className={styles.text}>
           <h2 className={styles.title}>
-            Zamów bezpłatny audyt dostępności
+            Wykonaj bezpłatny audyt dostępności Twojej strony
           </h2>
           <p className={styles.desc}>
             Sprawdź, czy Twoja strona jest zgodna z standardami dostępności WCAG 2.2. <br/>
             Audyt jest automatyczny i w ciągu kilku minut otrzymasz raport na podany adres e-mail.
-            Audyt może chwilkę potrwać, nie odświeżaj strony.
           </p>
+          <p>   Audyt może chwilkę potrwać, nie odświeżaj strony.</p>
         </div>
         
           <form
@@ -511,7 +511,7 @@ export const Form = () => {
                 loadingText="Audytuję..."
                 aria-busy={isSubmitting}
               >
-                Zamów audyt
+                Wykonaj audyt
               </Button>
             </div>
 

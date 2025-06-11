@@ -1,0 +1,145 @@
+// Main container styles
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  h2 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+  }
+
+  p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+.form {
+  display: flex;
+  height: 40px;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+
+  @media (min-width: 768px) {
+    flex-wrap: nowrap;
+  }
+}
+
+// Input field
+.input {
+  flex: 1;
+  min-width: 200px;
+  padding-inline: 0.5rem;
+  font-size: 1rem;
+  border: 2px solid #ced4da;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+
+  &::placeholder {
+    color: #adb5bd;
+  }
+}
+
+// Error message
+.errorMessage {
+  padding: 1rem;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  
+  p {
+    color: #721c24;
+    margin: 0;
+    font-weight: 500;
+  }
+}
+
+// Results container
+.resultsContainer {
+  margin-top: 2rem;
+  
+  h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+  }
+}
+
+// Links list
+.linksList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+}
+
+// Link item
+.linkItem {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: #f1f3f5;
+  }
+
+  span {
+    color: #6c757d;
+    font-size: 0.875rem;
+  }
+}
+
+// Link
+.link {
+  color: #0d6efd;
+  text-decoration: none;
+  word-break: break-all;
+  
+  &:hover {
+    text-decoration: underline;
+    color: #0a58ca;
+  }
+}
+
+// Select container
+.selectContainer {
+  margin-top: 1.5rem;
+  
+  h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+  }
+  
+  .linkItem {
+    button.link {
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      cursor: pointer;
+      text-align: left;
+    }
+  }
+}
+
+// Loading state
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}

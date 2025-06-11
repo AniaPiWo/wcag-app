@@ -36,7 +36,7 @@ export const offers = [
       period: 'projekt'
     },
     features: [
-      'Analiza obecnego stanu',
+      'Manualny audyt dostępności',
       'Implementacja poprawek',
       'Testy z użytkownikami',
       'Dokumentacja techniczna',

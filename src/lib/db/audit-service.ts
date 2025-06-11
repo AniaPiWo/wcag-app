@@ -1,6 +1,7 @@
 import { prisma } from '../prisma';
 import type { AuditSummary, AxeViolation } from '@/app/api/audit/types';
 import { analyzeAccessibilityResults, AccessibilityViolation } from '../ai/ai-analysis';
+import nodemailer from 'nodemailer';
 
 export const auditService = {
 
@@ -121,10 +122,17 @@ export const auditService = {
     });
   },
 
-  // uruchamia analizę AI w tle i zapisuje wyniki do bazy danych
+  // uruchamia analizę AI w tle, zapisuje wyniki do bazy danych i wysyła email z wynikami
   async runAiAnalysisInBackground(requestId: string, violations: AxeViolation[], summary: AuditSummary) {
     try {
       console.log('\x1b[36m%s\x1b[0m', `⚙️ Rozpoczynam analizę AI dla audytu ${requestId}...`);
+      
+      // Pobieramy dane audytu, aby uzyskać adres email
+      const auditRequest = await this.getAuditRequest(requestId);
+      if (!auditRequest || !auditRequest.email) {
+        console.log('\x1b[33m%s\x1b[0m', `⚠️ Brak adresu email dla audytu ${requestId}, nie będzie możliwe wysłanie wyników`);
+      }
+      
       // Konwertujemy violations na typ AccessibilityViolation
       const accessibilityViolations = violations as unknown as AccessibilityViolation[];
       const aiAnalysisPromise = analyzeAccessibilityResults(accessibilityViolations, summary);
@@ -133,15 +141,67 @@ export const auditService = {
       });
       const aiAnalysis = await Promise.race([aiAnalysisPromise, timeoutPromise]);
       console.log('\x1b[32m%s\x1b[0m', `✅ Analiza AI dla audytu ${requestId} zakończona`);
-      console.log(aiAnalysis);
-
+      
       // Zapisujemy analizę AI do bazy danych za pomocą bezpośredniego zapytania SQL
       try {
         await prisma.$executeRaw`UPDATE "AuditRequest" SET "aiAnalysis" = ${aiAnalysis} WHERE id = ${requestId}`;
         console.log('\x1b[32m%s\x1b[0m', `✅ Zapisano analizę AI do bazy danych dla audytu ${requestId}`);
       } catch (dbError) {
         console.error('\x1b[31m%s\x1b[0m', `❌ Błąd podczas zapisywania analizy AI do bazy danych:`, dbError);
-        // Kontynuujemy mimo błędu zapisu do bazy - analiza została już wygenerowana
+ 
+      }
+      
+      // Wysyłamy wyniki audytu na email, jeśli adres email jest dostępny
+      if (auditRequest && auditRequest.email) {
+        try {
+          const emailSubject = `Wyniki audytu dostępności dla strony ${summary.url}`;
+          
+          // Przygotowanie treści emaila
+          const emailContent = `
+            Witaj ${auditRequest.name || 'Użytkowniku'},
+
+            Poniżej znajdują się wyniki audytu dostępności dla strony ${summary.url}:
+
+            Podsumowanie audytu:
+            Liczba wszystkich problemów: ${summary.totalIssuesCount}
+            ‼️Krytyczne: ${summary.criticalCount}
+            ❗Poważne: ${summary.seriousCount}
+            ⚠️Umiarkowane: ${summary.moderateCount}
+            🔸 Drobne: ${summary.minorCount}
+            ✅ Liczba zaliczonych reguł: ${summary.passedRules}
+            ❌ Liczba niepełnych reguł: ${summary.incompleteRules}
+            ⏰ Data i czas audytu: ${summary.timestamp}
+
+            Szczegółowy raport:
+            ${aiAnalysis}
+
+            Dziękujemy za skorzystanie z naszego narzędzia!
+          `.trim().replace(/^ +/gm, '');
+          
+          // Tworzymy transporter
+          const transporter = nodemailer.createTransport({
+            host: 'ssl0.ovh.net',
+            port: 465,
+            secure: true,
+            auth: {
+              user: process.env.OVH_EMAIL,
+              pass: process.env.OVH_PASSWORD,
+            },
+          });
+          
+          // Wysyłamy email bezpośrednio
+          await transporter.sendMail({
+            from: `"Audyt Dostępności" <${process.env.OVH_EMAIL}>`,
+            to: auditRequest.email,
+            subject: emailSubject,
+            text: emailContent,
+          });
+          
+          console.log('\x1b[32m%s\x1b[0m', `✅ Wysłano wyniki audytu na adres ${auditRequest.email}`);
+        } catch (emailError) {
+          console.error('\x1b[31m%s\x1b[0m', `❌ Błąd podczas wysyłania wyników audytu na email:`, emailError);
+          // Kontynuujemy mimo błędu wysyłania emaila - analiza została już wygenerowana i zapisana w bazie
+        }
       }
 
       return aiAnalysis;
