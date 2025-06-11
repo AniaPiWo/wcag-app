@@ -46,6 +46,20 @@
   }
 }
 
+.switchKnob {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  color: var(--background);
+  background-color: var(--foreground);
+}
+
+.icon {
+  width: 0.875rem; /* 14px */
+  height: 0.875rem;
+}
+
 /* Dla ciemnego motywu przesuwamy przełącznik */
 html[data-theme="dark"] {
   .switchKnob {

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import styles from './ThemeSwitcher.module.scss'
+import { IoSunnyOutline, IoMoon } from "react-icons/io5";
 
 type ThemeSwitcherProps = {
   showLabels?: boolean;
@@ -22,8 +23,7 @@ export const ThemeSwitcher = ({ }: ThemeSwitcherProps) => {
 
   return (
     <div className={styles.themeSwitchContainer}>
-
-      <button 
+      <button
         className={styles.themeSwitch}
         onClick={toggleTheme}
         aria-label={theme === 'light' ? 'Przełącz na tryb ciemny' : 'Przełącz na tryb jasny'}
@@ -31,10 +31,15 @@ export const ThemeSwitcher = ({ }: ThemeSwitcherProps) => {
         aria-checked={theme === 'dark'}
       >
         <span className={styles.slider}>
-          <span className={styles.switchKnob}></span>
+          <span className={styles.switchKnob}>
+            {theme === 'light' ? (
+              <IoSunnyOutline className={styles.icon} />
+            ) : (
+              <IoMoon className={styles.icon} />
+            )}
+          </span>
         </span>
       </button>
-
     </div>
   )
 }

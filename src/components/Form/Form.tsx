@@ -211,10 +211,8 @@ export const Form = () => {
           return; 
         }
         
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const result = responseData as AuditResponse;
-        
-        console.log('Wyniki audytu:', result); // debug
+        //const result = responseData as AuditResponse;
+        //console.log('Wyniki audytu:', result); // debug
         
         setIsSuccess(true);
         setIsSubmitted(true);
