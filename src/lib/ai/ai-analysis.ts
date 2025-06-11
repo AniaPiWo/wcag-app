@@ -61,8 +61,15 @@ export async function analyzeAccessibilityResults(
   violations: AccessibilityViolation[],
   summary: AuditSummary
 ) {
-  //console.log(violations);
+
+
+  const compactViolations = violations.map(v => ({
+    description: v.description,
+    occurrences: v.nodes?.length || 0
+  }));
   
+  console.log(compactViolations);
+
     const prompt = `
 Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej i przygotuj raport w całości jedynie w JĘZYKU POLSKIM.
 
@@ -72,10 +79,11 @@ Warto jednak pamiętać, że automat też może coś przeoczyć. Jeśli chcesz m
 
 Jeśli wykryto naruszenia:
 Użyj poniższych danych jako danych wejściowych:
-${JSON.stringify(violations.slice(0, 10), null, 2)}
+${JSON.stringify(compactViolations, null, 2)}
  - nie dawaj tytułu (Raport z automatycznego audytu dostępności strony internetowej itp), tytuł jest już w treści maila przed twoim tekstem
  - użyj emotek podkreślenia wagi naruszenia (krytyczny-‼️, poważny-❗, umiarkowany-⚠️,  drobne - ⚡, zaliczony-✅), po emotce daj spacje.
  - opisz krótko PO POLSKU wykryte błedy i jakie są za nie kary, nie pokazuj kodu z błędami
+ - nie używaj ozdobników **
  - nienachalnie zachęć do zakupu dokładniejszego testu manualnego.
 
 
