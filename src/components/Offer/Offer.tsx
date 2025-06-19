@@ -11,7 +11,7 @@ export const offers = [
     description:
       'Szczegółowa analiza Twojej strony pod kątem zgodności z WCAG 2.2.',
     price: {
-      amount: '99',
+      amount: '199',
       currency: 'zł',
       period: 'jednorazowo',
     },
