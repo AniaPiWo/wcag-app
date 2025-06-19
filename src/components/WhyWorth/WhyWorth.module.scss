@@ -1,0 +1,92 @@
+.wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+justify-content: center;
+gap: 40px;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-right: 20px;
+  width: 50%;
+}
+
+.title {
+  font-weight: var(--font-weight-semibold);
+  font-size: 44px;
+  line-height: 100%;
+  letter-spacing: -4%;
+  margin: 0;
+}
+
+.top .desc {
+  font-size: 16px;
+  line-height: 26px;
+  margin: 0;
+}
+
+.benefits {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.benefits:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.benefit {
+  border-top: 1px solid var(--border);
+  padding-block: 3rem;
+  padding-inline: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+
+
+.index {
+  width: 4rem;    
+  height: 4rem;
+  min-width: 4rem;
+  min-height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-semibold);
+  margin-right: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background-color: var(--vanilla);
+  flex-shrink: 0; 
+}
+
+
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+.headline {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-semibold);
+  //text-transform: uppercase;
+  line-height: 100%;
+  letter-spacing: -4%;
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  line-height: 1.6;
+}
+
+

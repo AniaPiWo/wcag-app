@@ -30,11 +30,11 @@ export const FAQ = () => {
   };
 
   const faqItems: FAQItem[] = [
-    {
+/*     {
       "id": "faq-1",
       "question": "Jakie są korzyści z wdrożenia standardu WCAG na stronie internetowej?",
       "answer": "Wdrożenie WCAG to nie tylko obowiązek, ale realne korzyści. Dzięki dostępności docierasz do szerszego grona odbiorców – w Polsce to nawet 5 milionów osób z niepełnosprawnościami. Dodatkowo, strony zgodne ze standardem WCAG są lepiej pozycjonowane w Google, bardziej intuicyjne i łatwiejsze w obsłudze. To wszystko przekłada się na lepsze doświadczenia użytkowników i wyższe wskaźniki konwersji. A do tego budujesz wizerunek marki odpowiedzialnej społecznie."
-    },
+    }, */
     {
       "id": "faq-2",
       "question": "Z jakimi technologiami internetowymi pracujesz?",

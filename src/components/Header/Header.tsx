@@ -60,13 +60,13 @@ export const Header = () => {
           <nav className={styles.navigation}>
             <ul className={styles.navList}>
               <li className={styles.navItem}>
-                <a href="#form" className={styles.navLink} onClick={(e) => scrollToSection(e, 'form')}>Audyt</a>
-              </li>
-              <li className={styles.navItem}>
-                <a href="#aboutMe" className={styles.navLink} onClick={(e) => scrollToSection(e, 'aboutMe')}>O mnie</a>
+                <a href="#form" className={styles.navLink} onClick={(e) => scrollToSection(e, 'form')}>Bezpłatny audyt</a>
               </li>
               <li className={styles.navItem}>
                 <a href="#Offer" className={styles.navLink} onClick={(e) => scrollToSection(e, 'Offer')}>Oferta</a>
+              </li>     
+              <li className={styles.navItem}>
+                <a href="#AboutMe" className={styles.navLink} onClick={(e) => scrollToSection(e, 'AboutMe')}>O mnie</a>
               </li>
               <li className={styles.navItem}>
                 <a href="#faq" className={styles.navLink} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>
@@ -90,13 +90,13 @@ export const Header = () => {
             <nav className={styles.mobileNavigation}>
               <ul className={styles.mobileNavList}>
                 <li className={styles.mobileNavItem}>
-                  <a href="#form" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'form')}>Audyt</a>
-                </li>
-                <li className={styles.mobileNavItem}>
-                  <a href="#aboutMe" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'aboutMe')}>O mnie</a>
+                  <a href="#form" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'form')}>Bezpłatny audyt</a>
                 </li>
                 <li className={styles.mobileNavItem}>
                   <a href="#Offer" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'Offer')}>Oferta</a>
+                </li>
+                <li className={styles.mobileNavItem}>
+                  <a href="#AboutMe" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'AboutMe')}>O mnie</a>
                 </li>
                 <li className={styles.mobileNavItem}>
                   <a href="#faq" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>

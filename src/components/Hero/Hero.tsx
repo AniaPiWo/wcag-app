@@ -45,19 +45,22 @@ export const Hero = () => {
             src="/pug.jpg"
             alt="Mops jako symbol dostępności"
             fill
-            priority
+            fetchPriority="high"
+            loading="eager"
             className={styles.image}
             sizes="(max-width: 768px) 100vw, 50vw"
           />
         </div>
       </div>
       <div className={styles.top}>
-        <h1 className={styles.title}>Audyt i wdrożenie dostępności cyfrowej WCAG 2.2</h1>
-        <p className={styles.desc}>
-          Specjalizuję się w adaptacji istniejących stron internetowych do standardów dostępności WCAG 2.2.
-          Tworzę również nowe, w pełni dostępne strony od podstaw. Sprawię, że Twoja witryna będzie 
-          dostępna dla wszystkich użytkowników, niezależnie od ich możliwości czy ograniczeń.
-        </p>
+
+<h1 className={styles.title}>Popraw dostępność, zwiększ sprzedaż i widoczność – dzięki WCAG 2.2</h1>
+<p>
+  Zadbam o to, by Twoja strona była naprawdę dostępna – dla wszystkich klientów i dla wyszukiwarek. 
+  Przeprowadzę audyt, wdrożę poprawki i pomogę Ci stworzyć miejsce, które działa lepiej, sprzedaje więcej i nie wyklucza nikogo.
+</p>
+
+
         <div className={styles.buttonContainer}>
           <Button variant="primary" onClick={handleAuditClick}>Bezpłatny audyt strony</Button>
           <Button 
