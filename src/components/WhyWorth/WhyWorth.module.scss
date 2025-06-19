@@ -3,9 +3,10 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 40px;
-  padding-bottom: 0;
+justify-content: center;
+gap: 40px;
 }
+
 .top {
   display: flex;
   flex-direction: column;
@@ -22,8 +23,7 @@
   line-height: 100%;
   letter-spacing: -4%;
   margin: 0;
-  }
-
+}
 
 .top .desc {
   font-size: 16px;
@@ -31,66 +31,62 @@
   margin: 0;
 }
 
-.cardsDesktop {
+.benefits {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 20px;
+  flex-direction: column;
   width: 100%;
 }
 
-.cardsMobile {
-  display: none;
+.benefits:last-child {
+  border-bottom: 1px solid var(--border);
 }
 
-@media (max-width: 768px) {
-  .wrapper {
-    gap: 32px;
-  }
-  .top {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding-right: 20px;
-    width: 100%;
-  }
-
-  .top .title {
-    font-size: 32px;
-    letter-spacing: -1.28px;
-  }
-
-  .top .desc {
-    font-size: 16px;
-    line-height: 26px; /* 162.5% */
-  }
-
-  .cardsDesktop {
-    display: none;
-  }
-
-  .cardsMobile {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding-inline: 0;
-    gap: 16px;
-  }
-
-  .cardsMobile::-webkit-scrollbar {
-    display: none;
-  }
-
-  .cardItem {
-    scroll-snap-align: start;
-  }
+.benefit {
+  border-top: 1px solid var(--border);
+  padding-block: 3rem;
+  padding-inline: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-start;
 }
+
+
+
+.index {
+  width: 4rem;    
+  height: 4rem;
+  min-width: 4rem;
+  min-height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-semibold);
+  margin-right: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background-color: var(--vanilla);
+  flex-shrink: 0; 
+}
+
+
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+.headline {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-semibold);
+  //text-transform: uppercase;
+  line-height: 100%;
+  letter-spacing: -4%;
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  line-height: 1.6;
+}
+
 

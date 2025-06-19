@@ -54,7 +54,7 @@ export const Hero = () => {
       </div>
       <div className={styles.top}>
 
-<h1>Popraw dostępność, zwiększ sprzedaż i widoczność – dzięki WCAG 2.2</h1>
+<h1 className={styles.title}>Popraw dostępność, zwiększ sprzedaż i widoczność – dzięki WCAG 2.2</h1>
 <p>
   Zadbam o to, by Twoja strona była naprawdę dostępna – dla wszystkich klientów i dla wyszukiwarek. 
   Przeprowadzę audyt, wdrożę poprawki i pomogę Ci stworzyć miejsce, które działa lepiej, sprzedaje więcej i nie wyklucza nikogo.

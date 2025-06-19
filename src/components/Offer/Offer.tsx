@@ -39,7 +39,7 @@ export const offers = [
       'Manualny audyt dostępności',
       'Implementacja poprawek',
       'Testy z użytkownikami',
-      'Dokumentacja techniczna',
+      'Deklaracja dostępności',
       'Wsparcie po wdrożeniu'
     ],
     buttonText: 'Zapytaj o wycenę'
@@ -59,7 +59,7 @@ export const offers = [
       'Projekt UX/UI',
       'Implementacja frontend i backend',
       'Pełna zgodność z WCAG 2.2',
-      'Testy z użytkownikami',
+      'Deklaracja dostępności',
       'Wsparcie techniczne'
     ],
     buttonText: 'Zapytaj o wycenę'
