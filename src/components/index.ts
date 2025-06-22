@@ -15,3 +15,4 @@ export { NotFound } from './NotFound/NotFound';
 export { MyProjects } from './MyProjects/MyProjects';
 export { SitemapFetcher } from './SitemapFetcher/SitemapFetcher';
 export { WhyWorth } from './WhyWorth/WhyWorth';
+export { AuditForm } from './AuditForm/AuditForm';

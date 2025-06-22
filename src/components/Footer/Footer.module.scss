@@ -1,12 +1,15 @@
 .footer {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
+  align-items: space-between;
   background-color: var(--background);
   color: var(--foreground);
   max-width: 77.5rem; /* 1240px */
   padding: 2rem 2.5rem; 
   margin: 0 auto;
+  gap: 2rem;
+  border-top: 1px solid var(--border);
 }
 
 .footerContent {
@@ -15,8 +18,7 @@
   align-items: center;
   max-width: 77.5rem; /* 1240px */
   margin: 0 auto;
-  padding: 0 1.5rem;
-  position: relative;
+  width: 100%;
 
   @media (max-width: 48rem) {
     padding: 0 0.75rem;

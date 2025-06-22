@@ -50,11 +50,15 @@ export const Header = () => {
     }
   }
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
 
       <header className={styles.wrapper}>
       <div className={styles.container}>
-        <Logo href="/" className={styles.logoLink} />
+        <Logo ariaLabel="WCAG by Ania - strona główna" className={styles.logoLink} onClick={scrollToTop} />
 
         <div id="menu_glowne" className={styles.menuDesktop}>
           <nav className={styles.navigation}>
@@ -66,7 +70,7 @@ export const Header = () => {
                 <a href="#Offer" className={styles.navLink} onClick={(e) => scrollToSection(e, 'Offer')}>Oferta</a>
               </li>     
               <li className={styles.navItem}>
-                <a href="#AboutMe" className={styles.navLink} onClick={(e) => scrollToSection(e, 'AboutMe')}>O mnie</a>
+                <a href="#aboutMe" className={styles.navLink} onClick={(e) => scrollToSection(e, 'aboutMe')}>O mnie</a>
               </li>
               <li className={styles.navItem}>
                 <a href="#faq" className={styles.navLink} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>
@@ -96,7 +100,7 @@ export const Header = () => {
                   <a href="#Offer" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'Offer')}>Oferta</a>
                 </li>
                 <li className={styles.mobileNavItem}>
-                  <a href="#AboutMe" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'AboutMe')}>O mnie</a>
+                  <a href="#aboutMe" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'aboutMe')}>O mnie</a>
                 </li>
                 <li className={styles.mobileNavItem}>
                   <a href="#faq" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>

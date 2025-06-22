@@ -90,3 +90,30 @@ gap: 40px;
 }
 
 
+
+@media (max-width: 768px) {
+  .wrapper {
+    gap: 32px;
+  }
+  .top {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-right: 20px;
+    width: 100%;
+  }
+
+  .top .title {
+    font-size: 32px;
+    letter-spacing: -1.28px;
+  }
+
+  .top .desc {
+    font-size: 16px;
+    line-height: 26px; /* 162.5% */
+  }
+
+
+}

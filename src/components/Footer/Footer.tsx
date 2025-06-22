@@ -3,6 +3,7 @@
 import styles from './Footer.module.scss'
 import {  CookiesConsent } from "@/components";
 import { useState } from 'react';
+import { Logo } from '../Logo/Logo';
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear()
@@ -16,7 +17,6 @@ export const Footer = () => {
   const modifyCookies = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     try {
-      // Odczytaj aktualne ustawienia ciasteczek
       const cookiesData = localStorage.getItem('wcagCookies');
       
       if (cookiesData) {
@@ -29,7 +29,6 @@ export const Footer = () => {
           });
         }
       } else {
-        // Jeśli nie ma zapisanych ustawień, ustaw domyślne
         setCurrentCookieStates({
           necessary: true,
           analytics: false,
@@ -37,7 +36,6 @@ export const Footer = () => {
         });
       }
       
-      // Pokaż baner bez odświeżania strony
       setShowCookiesBanner(true);
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
@@ -45,16 +43,21 @@ export const Footer = () => {
       }
     }
   };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   
 
   return (
     <footer className={styles.footer}>
-
+        <Logo ariaLabel="Logo WCAG by Ania - powrót na górę strony" className={styles.logoLink} onClick={scrollToTop} />
+        <div className={styles.footerContent}>
         <p className={styles.copyright}>
           &copy; {currentYear} Seahorse. All rights reserved.
         </p>
         <button className={styles.cookieSettings} onClick={modifyCookies}>Zarządzaj ustawieniami cookies</button>
-      
+        </div>
         {showCookiesBanner && (
         <div className={styles.cookiesBannerWrapper}>
           <CookiesConsent 

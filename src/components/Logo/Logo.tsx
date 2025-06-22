@@ -1,31 +1,29 @@
 'use client';
 import React from 'react';
-import Link from 'next/link';
 import styles from './Logo.module.scss';
 
 interface LogoProps {
-  href?: string;
   onClick?: () => void;
   className?: string;
+  ariaLabel?: string;
 }
 
 export const Logo: React.FC<LogoProps> = ({ 
-  href = '/', 
   onClick,
-  className = ''
+  className = '',
+  ariaLabel = 'Strona główna'
 }) => {
   return (
-    <Link 
-      href={href} 
-      className={`${styles.logoContainer} ${className}`}
+    <button 
+      type="button"
       onClick={onClick}
-      aria-label="WCAG Audyty - strona główna"
-
+      className={`${styles.logoContainer} ${className}`}
+      aria-label={ariaLabel}
     >
       <div className={styles.logoText}>
         WCAG
       </div>
       <p className={styles.logoIcon}>by Ania</p>
-    </Link>
+    </button>
   );
 };

@@ -40,10 +40,17 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  padding-top: 12rem;
+  padding-top: 5rem;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (max-width: 48rem) { /* 768px / 16 */
+  body {
+      padding-top: 5rem; /* 70px / 16 */
+
+  }
 }
 
 * {
