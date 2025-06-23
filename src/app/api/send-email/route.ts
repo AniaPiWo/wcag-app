@@ -23,14 +23,8 @@ export async function POST(req: NextRequest) {
         pass: process.env.OVH_PASSWORD ? '******' : undefined,
       },
     });
-/*     console.log('📧 [send-email] Dane uwierzytelniające:', { 
-      host: 'ssl0.ovh.net', 
-      hasEmail: !!process.env.OVH_EMAIL,
-      hasPassword: !!process.env.OVH_PASSWORD,
-      emailFirstChars: process.env.OVH_EMAIL ? process.env.OVH_EMAIL.substring(0, 3) + '...' : undefined
-    }); */
 
-    console.log('📧 [send-email] Próba wysłania e-maila');
+
     const info = await transporter.sendMail({
       from: `"Nazwa Nadawcy" <${process.env.OVH_EMAIL}>`,
       to,
@@ -41,14 +35,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: 'Email sent', messageId: info.messageId }, { status: 200 });
   } catch (error) {
-    //console.error('📧 [send-email] Błąd wysyłania e-maila:', error);
-    // Dodajemy więcej szczegółów o błędzie
+    console.error('📧 [send-email] Błąd wysyłania e-maila:', error);
+
     const errorDetails = {
       message: error instanceof Error ? error.message : 'Unknown error',
       name: error instanceof Error ? error.name : 'Unknown',
       stack: error instanceof Error ? error.stack?.substring(0, 200) : undefined
     };
-    //console.error('📧 [send-email] Szczegóły błędu:', errorDetails);
+
     
     return NextResponse.json({ 
       message: 'Error sending email', 

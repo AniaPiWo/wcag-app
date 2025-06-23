@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 import { chromium, Page } from 'playwright';
 import { z } from 'zod';
@@ -7,10 +8,7 @@ import fs from 'fs';
 import path from 'path';
 
 const MAX_PLAYWRIGHT_RETRIES = 3;
-
 const PLAYWRIGHT_TIMEOUT = 300000;
-
-
 const BASIC_ACCESSIBILITY_CHECKS = [
   { name: 'alt-text', description: 'Obrazy powinny mieć tekst alternatywny', wcag: 'WCAG 1.1.1' },
   { name: 'heading-order', description: 'Nagłówki powinny być w odpowiedniej kolejności', wcag: 'WCAG 1.3.1, 2.4.6' },
@@ -20,8 +18,6 @@ const BASIC_ACCESSIBILITY_CHECKS = [
   { name: 'aria-attributes', description: 'Atrybuty ARIA powinny być poprawnie użyte', wcag: 'WCAG 4.1.2' },
   { name: 'document-structure', description: 'Dokument powinien mieć poprawną strukturę', wcag: 'WCAG 1.3.1, 2.4.1' }
 ];
-
-
 
 const auditRequestSchema = z.object({
   url: z.string().url('Niepoprawny adres URL'),
@@ -113,7 +109,6 @@ export async function POST(request: NextRequest) {
     let body;
     try {
       body = await request.json();
-      //console.log("Odebrano body:", body);
     } catch (parseError) {
       console.error('Błąd parsowania JSON:', parseError);
       return NextResponse.json(
@@ -139,7 +134,7 @@ export async function POST(request: NextRequest) {
         email,
         name
       });
-      console.log('Utworzono żądanie audytu:', auditRequest.id);
+      console.log('Utworzono żądanie audytu:', auditRequest.id, auditRequest.url);
     } catch (dbError) {
       console.error('Błąd podczas tworzenia żądania audytu w bazie danych:', dbError);
     }
@@ -161,17 +156,9 @@ export async function POST(request: NextRequest) {
       
       const statusCode = urlCheckResponse.status;
 
- /*      const isSuccess = statusCode >= 200 && statusCode < 500 && statusCode !== 404 && statusCode !== 403;  
-      if (!isSuccess) {
+      const isAccessible = statusCode < 500; 
+      if (!isAccessible) {
         return NextResponse.json(
-          { error: `Podany URL nie jest dostępny. Kod odpowiedzi: ${statusCode}` },
-          { status: 400, headers }
-        );
-      } */
-
-        const isAccessible = statusCode < 500; 
-        if (!isAccessible) {
-          return NextResponse.json(
             { error: `Podany URL nie jest dostępny. Kod odpowiedzi: ${statusCode}` },
             { status: 400, headers }
           );
@@ -478,10 +465,10 @@ async function runAccessibilityAudit(url: string): Promise<{
 }> {
   let browser;
   try {
-    // Launch Playwright z dodatkowymi opcjami dla środowiska Next.js API Routes
+    // playwright z dodatkowymi opcjami dla środowiska Next.js API Routes
     browser = await chromium.launch({
       headless: true,
-      // Argumenty dla lepszej kompatybilności z środowiskiem serverless
+      //dla lepszej kompatybilności z środowiskiem serverless
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -574,10 +561,10 @@ async function runAccessibilityAudit(url: string): Promise<{
         }
       }
       
-      // Wstrzykiwanie axe-core (3 metody)
+      // wstrzykiwanie axe-core (3 metody)
       let axeLoaded = false;
       
-      // Metoda 1: document.createElement
+      // metoda 1: document.createElement
       try {
         await page.evaluate((axeScriptContent) => {
           try {
@@ -663,7 +650,7 @@ async function runAccessibilityAudit(url: string): Promise<{
       throw new Error(`Nie udało się wstrzyknąć biblioteki axe-core: ${error instanceof Error ? error.message : String(error)}`);
     }
     
-    // Uruchomienie audytu z timeoutem
+    // uruchomienie audytu z timeoutem
     const results = await Promise.race([
       page.evaluate(() => {
         return new Promise<AxeResults | { error: string }>((resolve) => {
@@ -702,7 +689,6 @@ async function runAccessibilityAudit(url: string): Promise<{
       })
     ]);
     
-    // Process the results
     let totalIssuesCount = 0;
     let criticalCount = 0;
     let seriousCount = 0;
@@ -732,7 +718,6 @@ async function runAccessibilityAudit(url: string): Promise<{
       });
     }
     
-    // Create the audit summary
     const summary: AuditSummary = {
       url,
       totalIssuesCount,
@@ -764,43 +749,33 @@ async function runAccessibilityAudit(url: string): Promise<{
   }
 }
 
-/**
- * Helper function to scroll through the page to ensure all lazy-loaded elements are visible
- * Z optymalizacją i obsługą błędów
- */
+/* Helper function to scroll through the page to ensure all lazy-loaded elements are visible */
 async function autoScroll(page: Page): Promise<void> {
   try {
-    // Limit czasu przewijania (10 sekund)
     const scrollTimeoutMs = 10000;
     
-    // Sprawdzenie, czy strona ma scrollowalny content
     const hasScrollableContent = await page.evaluate(() => {
       return document.body.scrollHeight > window.innerHeight;
-    }).catch(() => true); // W razie błędu zakładamy, że strona jest scrollowalna
+    }).catch(() => true); 
     
     if (!hasScrollableContent) {
-      //console.log('Strona nie wymaga przewijania - brak scrollowalnej zawartości');
       return;
     }
     
-    // Bardziej zaawansowane przewijanie z obsługą różnych przypadków
     await page.evaluate(async (maxScrollTime) => {
       return new Promise<void>((resolve) => {
         const startTime = Date.now();
         let lastScrollTop = 0;
         let scrollStuckCount = 0;
-        const maxScrollStuck = 5; // Ile razy możemy "utknąć" w tym samym miejscu
+        const maxScrollStuck = 5; 
         
         const scrollInterval = setInterval(() => {
-          // Sprawdź, czy czas przewijania nie przekroczył limitu
           if (Date.now() - startTime > maxScrollTime) {
-            //console.log('Osiągnięto limit czasu przewijania');
             clearInterval(scrollInterval);
             resolve();
             return;
           }
           
-          // Pobierz aktualną pozycję przewijania
           const currentScrollTop = document.documentElement.scrollTop || document.body.scrollTop;
           const scrollHeight = Math.max(
             document.body.scrollHeight,
@@ -809,31 +784,23 @@ async function autoScroll(page: Page): Promise<void> {
             document.documentElement.offsetHeight
           );
           
-          // Sprawdź, czy jesteśmy na dole strony
           const isAtBottom = currentScrollTop + window.innerHeight >= scrollHeight - 50;
           
-          // Sprawdź, czy przewijanie "utknęło" w tym samym miejscu
           if (Math.abs(currentScrollTop - lastScrollTop) < 10) {
             scrollStuckCount++;
             if (scrollStuckCount >= maxScrollStuck) {
-              //console.log('Przewijanie utknęło w tym samym miejscu');
               clearInterval(scrollInterval);
               resolve();
               return;
             }
           } else {
-            scrollStuckCount = 0; // Resetuj licznik, jeśli przewijanie postępuje
+            scrollStuckCount = 0; 
           }
-          
-          // Zapisz ostatnią pozycję przewijania
+        
           lastScrollTop = currentScrollTop;
-          
-          // Przewiń dalej
           window.scrollBy(0, 300);
           
-          // Jeśli jesteśmy na dole strony, zakończ
           if (isAtBottom) {
-            console.log('Osiągnięto koniec strony');
             clearInterval(scrollInterval);
             resolve();
           }
@@ -850,7 +817,7 @@ async function autoScroll(page: Page): Promise<void> {
     }).catch(e => console.warn('Nie udało się przewinąć na górę strony:', e));
     
   } catch (error) {
-    console.error('Błąd podczas przewijania strony:', error);
+    //console.error('Błąd podczas przewijania strony:', error);
     // Nie rzucamy wyjątku, pozwalamy kontynuować audyt
   }
 }

@@ -10,6 +10,7 @@
   padding-bottom: 80px;
   padding-top: 1.875rem;
   color: var(--landing-white);
+  margin-top: 4rem;
 }
 
 .introduction {
@@ -108,29 +109,7 @@ letter-spacing: -4%;
 margin: 0;
 }
 
-/* .title {
-  font-size: 44px;
-  font-weight: var(--font-weight-bold);
-  line-height: 100%;
-  letter-spacing: -0.04em;
-  margin: 0 0 1rem 0;
-  padding: 0.75rem 1.25rem;
-  background-color: var(--accent);
-  color: var(--black);
-  display: inline-block;
-  transform: rotate(-1deg);
-  box-shadow: 5px 5px 0 var(--black);
-  text-transform: uppercase;
-  position: relative;
-  z-index: 1;
-  border: 3px solid var(--black);
-  
-  @media (max-width: 768px) {
-    font-size: 32px;
-    transform: rotate(-0.5deg);
-    padding: 0.5rem 1rem;
-  }
-} */
+
 .desc {
   font-size: 16px;
   font-weight: var(--font-weight-regular);

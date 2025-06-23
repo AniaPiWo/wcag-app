@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-/**
- * API route that acts as a proxy for fetching external resources
- * Helps avoid CORS issues when fetching sitemaps from other domains
- */
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get('url');
   
