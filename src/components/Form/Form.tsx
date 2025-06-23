@@ -227,12 +227,10 @@ export const Form = () => {
       } catch (fetchError) {
         clearTimeout(timeoutId);
         
-        // Ogólna obsługa błędów połączenia
+        // ogolna obsluga bledow
         if (fetchError instanceof Error) {
-          //console.error('Błąd podczas wykonywania żądania:', fetchError);
           setIsSuccess(false);
           setIsSubmitted(true);
-    
           setStatusMessage('');
           setTimeout(() => {
             setStatusMessage('Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
@@ -242,12 +240,11 @@ export const Form = () => {
           return;
         }
         
-
+        // blad adresu URL
         if (fetchError instanceof Error && 
             (fetchError.message.includes('URL') || 
              fetchError.message.includes('adres') || 
              fetchError.message.includes('nieprawidłowy'))) {
-          //console.error('Błąd adresu URL:', fetchError);
           setIsSuccess(false);
           setIsSubmitted(true);
           setStatusMessage('Podany adres strony jest nieprawidłowy lub strona nie istnieje. Sprawdź poprawność adresu i spróbuj ponownie.');
@@ -256,8 +253,8 @@ export const Form = () => {
           return;   
         }
         
+        // blad timeout
         if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
-          //console.error('Przekroczono czas oczekiwania:', fetchError);
           setIsSuccess(false);
           setIsSubmitted(true);
           setStatusMessage('Przekroczono czas oczekiwania na odpowiedź serwera. Spróbuj ponownie później.');
@@ -266,8 +263,7 @@ export const Form = () => {
           return;   
         }
         
-
-        //console.error('Nieobsłużony błąd:', fetchError);
+        // blad nieoczekiwany
         setIsSuccess(false);
         setIsSubmitted(true);
         setStatusMessage('Wystąpił nieoczekiwany błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
@@ -276,8 +272,6 @@ export const Form = () => {
       }
 
     } catch (error) {
-      //console.error('Błąd podczas przeprowadzania audytu:', error);
-      
       setIsSuccess(false);
       setIsSubmitted(true);
       setStatusMessage('Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');

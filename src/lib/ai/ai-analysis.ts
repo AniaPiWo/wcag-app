@@ -66,9 +66,9 @@ export async function analyzeAccessibilityResults(
   const compactViolations = violations.map(v => ({
     description: v.description,
     occurrences: v.nodes?.length || 0
-  }));
+  }))
   
-  console.log(compactViolations);
+  //console.log("\x1b[33m%s\x1b[0m", "compactViolations ====>", compactViolations);
 
     const prompt = `
 Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej i przygotuj raport w całości jedynie w JĘZYKU POLSKIM.
@@ -84,6 +84,7 @@ ${JSON.stringify(compactViolations, null, 2)}
  - użyj emotek podkreślenia wagi naruszenia (krytyczny-‼️, poważny-❗, umiarkowany-⚠️,  drobne - ⚡, zaliczony-✅), po emotce daj spacje.
  - opisz krótko PO POLSKU wykryte błedy i jakie są za nie kary, nie pokazuj kodu z błędami
  - nie używaj ozdobników **
+ - jeśli wykryto 
  - nienachalnie zachęć do zakupu dokładniejszego testu manualnego.
 
 

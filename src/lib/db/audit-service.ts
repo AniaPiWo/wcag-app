@@ -140,7 +140,7 @@ export const auditService = {
         setTimeout(() => reject(new Error('Timeout analizy AI')), 30000);
       });
       const aiAnalysis = await Promise.race([aiAnalysisPromise, timeoutPromise]);
-      console.log(aiAnalysis);
+      //console.log(aiAnalysis);
       console.log('\x1b[32m%s\x1b[0m', `✅ Analiza AI dla audytu ${requestId} zakończona`);
       
       // Zapisujemy analizę AI do bazy danych za pomocą bezpośredniego zapytania SQL
