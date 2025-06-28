@@ -13,13 +13,13 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [checkingSession, setCheckingSession] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [csrfToken, setCsrfToken] = useState('');
 
   // Check if already logged in and fetch CSRF token
   useEffect(() => {
     let ignore = false;
-    setCheckingSession(true);
+    setIsInitializing(true);
     
     // Sprawdź sesję
     fetch('/api/admin-session')
@@ -29,9 +29,9 @@ export default function AdminLoginPage() {
           // Already logged in, redirect to admin panel
           router.replace('/admin');
         }
-        setCheckingSession(false);
+        setIsInitializing(false);
       })
-      .catch(() => setCheckingSession(false));
+      .catch(() => setIsInitializing(false));
     
     // Pobierz token CSRF
     fetch('/api/csrf-token')
@@ -80,7 +80,7 @@ export default function AdminLoginPage() {
     }
   };
 
-  if (checkingSession) {
+  if (isInitializing) {
     return <Loader />;
   }
 

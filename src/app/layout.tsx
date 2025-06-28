@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Footer, Header, CookiesConsent } from "@/components";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import "./globals.scss";
 
 
@@ -45,6 +47,7 @@ export default function RootLayout({
      <body className={geistSans.className}>
         <CookiesConsent />
         <Header />
+        <ToastContainer position="top-right" autoClose={5000} />
         {children}
         <Footer />
       </body>

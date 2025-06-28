@@ -15,8 +15,9 @@ model AuditRequest {
   email           String   @default("")
   status          String   @default("pending") // pending, in-progress, completed, failed
   completedAt     DateTime?
+  auditType       String   @default("automated") // automated, manual
   
-  // podsumowanie audytu
+  // podsumowanie audytu automatycznego
   totalIssuesCount Int?     @default(0)
   criticalCount   Int?     @default(0)
   seriousCount    Int?     @default(0)
@@ -26,8 +27,15 @@ model AuditRequest {
   incompleteRules Int?     @default(0)
   timestamp       String?
   
+  // podsumowanie audytu
   violations      String?  @db.String // JSON z naruszeniami
   aiAnalysis      String?  @db.String // Analiza AI wyników audytu
+  
+  // dane dla manualnego audytu
+  basicAudit      String?  @db.String // JSON z odpowiedziami dla podstawowego poziomu
+  intermediateAudit String? @db.String // JSON z odpowiedziami dla średniego poziomu
+  advancedAudit   String?  @db.String // JSON z odpowiedziami dla zaawansowanego poziomu
+  selectedLevels  String?  @db.String // JSON z wybranymi poziomami audytu
   
   // pola systemowe
   createdAt       DateTime @default(now())

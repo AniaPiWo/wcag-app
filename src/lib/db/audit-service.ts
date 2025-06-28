@@ -90,10 +90,11 @@ export const auditService = {
   },
 
   // filtruje audyty
-  async getAuditRequests(filter?: { status?: string; email?: string }) {
+  async getAuditRequests(filter?: { status?: string; email?: string; auditType?: string }) {
     const where: {
       status?: string;
       email?: string;
+      auditType?: string;
     } = {};
     
     if (filter?.status) {
@@ -102,6 +103,10 @@ export const auditService = {
     
     if (filter?.email) {
       where.email = filter.email;
+    }
+    
+    if (filter?.auditType) {
+      where.auditType = filter.auditType;
     }
     
     return prisma.auditRequest.findMany({

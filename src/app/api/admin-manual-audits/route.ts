@@ -6,12 +6,12 @@ import { auditService } from '@/lib/db/audit-service';
 
 export async function GET() {
   try {
-    const audits = await auditService.getAuditRequests({ auditType: 'automated' });
+    const audits = await auditService.getAuditRequests({ auditType: 'manual' });
     return NextResponse.json(audits);
   } catch (error) {
-    console.error('Błąd podczas pobierania audytów automatycznych:', error);
+    console.error('Błąd podczas pobierania audytów manualnych:', error);
     return NextResponse.json(
-      { error: 'Wystąpił błąd podczas pobierania audytów automatycznych' },
+      { error: 'Wystąpił błąd podczas pobierania audytów manualnych' },
       { status: 500 }
     );
   }

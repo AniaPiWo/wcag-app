@@ -16,3 +16,4 @@ export { MyProjects } from './MyProjects/MyProjects';
 export { SitemapFetcher } from './SitemapFetcher/SitemapFetcher';
 export { WhyWorth } from './WhyWorth/WhyWorth';
 export { AuditForm } from './AuditForm/AuditForm';
+export type { AuditItem, AuditResponse } from './AuditForm/AuditForm';

@@ -1,8 +1,7 @@
 'use client'
 
 import { AdminHeader } from '@/components/Header/AdminHeader'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+
 import styles from './admin.module.scss'
 
 export default function AdminLayout({
@@ -10,31 +9,7 @@ export default function AdminLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const router = useRouter()
-
-  useEffect(() => {
-    // Sprawdzenie sesji administratora po stronie klienta
-    const checkSession = async () => {
-      try {
-        const response = await fetch('/api/admin/session', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-
-        if (!response.ok) {
-          // Jeśli nie ma ważnej sesji, przekieruj do strony logowania
-          router.push('/admin/login')
-        }
-      } catch (error) {
-        console.error('Błąd sprawdzania sesji:', error)
-        router.push('/admin/login')
-      }
-    }
-
-    checkSession()
-  }, [router])
+  // Usunięto sprawdzanie sesji, ponieważ jest już obsługiwane przez middleware
 
   return (
     <div className={styles.adminLayout}>
