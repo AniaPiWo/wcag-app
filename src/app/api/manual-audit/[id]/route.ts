@@ -69,7 +69,7 @@ export async function PUT(
         basicAudit,
         intermediateAudit,
         advancedAudit,
-        selectedLevels: JSON.stringify(selectedLevels),
+        selectedLevels, // Używamy wartości bez ponownego stringyfikowania
         updatedAt: new Date(),
       },
     });
