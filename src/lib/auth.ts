@@ -1,7 +1,31 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
+
+// Extend the built-in session types
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      role: string;
+    };
+  }
+
+  interface User {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    role: string;
+  }
+}
+
+// Hardcoded admin credentials for development
+// In a production environment, these should be stored securely
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '$2b$10$Oc9vB7OUO1wfP.aEbJJVj.eQlJXKnfZpA5W9.QGBwNPC9ZXbIJTdK'; // hash for 'admin123'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,31 +40,24 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-        });
+        // Check if the provided credentials match the admin credentials
+        if (credentials.email === ADMIN_EMAIL) {
+          const passwordMatch = await bcrypt.compare(
+            credentials.password,
+            ADMIN_PASSWORD_HASH
+          );
 
-        if (!user) {
-          return null;
+          if (passwordMatch) {
+            return {
+              id: '1',
+              email: ADMIN_EMAIL,
+              name: 'Administrator',
+              role: 'admin',
+            };
+          }
         }
 
-        const passwordMatch = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
-
-        if (!passwordMatch) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
+        return null;
       },
     }),
   ],

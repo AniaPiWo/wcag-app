@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './Form.module.scss';
-import { Button } from '../atoms/Button/Button';
+import { Button } from '@/components/atoms/Button/Button';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, SubmitHandler, FieldErrors } from 'react-hook-form';
@@ -33,7 +32,7 @@ async function checkUrlExists(url: string): Promise<{ exists: boolean; error?: s
 }
 
 
-interface AuditViolation {
+/* interface AuditViolation {
   id: string;
   impact: string;
   tags: string[];
@@ -52,20 +51,20 @@ interface AuditSummary {
   passedRules: number;
   incompleteRules: number;
   timestamp: string;
-}
+} */
 
-interface AuditResults {
+/* interface AuditResults {
   summary: AuditSummary;
   violations: AuditViolation[];
 }
-
-interface AuditResponse {
+ */
+/* interface AuditResponse {
   success: boolean;
   url: string;
   email: string;
   name: string;
   results: AuditResults;
-}
+} */
 
 // walidacja url, akceptuje www i bez www
 const websiteSchema = z.string()
@@ -271,6 +270,7 @@ export const Form = () => {
         setIsSubmitting(false);
       }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setIsSuccess(false);
       setIsSubmitted(true);

@@ -1,9 +1,23 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 import React, { useState, useEffect } from 'react';
 import styles from './page.module.scss';
 import { Button } from '@/components/atoms/Button/Button';
 import Loader from '@/components/Loader/Loader';
 import Link from 'next/link';
+
+// Interfejs dla poziomu audytu
+interface AuditLevel {
+  id: string;
+  label: string;
+}
+
+// Interfejs dla odpowiedzi na element audytu
+interface AuditItemResponse {
+  itemId: number;
+  evaluation?: 'positive' | 'negative' | 'notApplicable' | string;
+  notes?: string;
+}
 
 export default function ManualAuditsPage() {
   interface Audit {
@@ -139,41 +153,71 @@ export default function ManualAuditsPage() {
                     <td className={styles.auditCell} onClick={() => window.location.href = `/admin/${audit.id}`}>
                       {audit.selectedLevels ? (
                         <div className={styles.levelsList}>
-                          {JSON.parse(audit.selectedLevels).map((level: string) => {
-                            // Determine completion status for this level
-                            let completionStatus = 'notStarted';
-                            const levelKey = level === 'podstawowy' ? 'basicAudit' : level === 'średni' ? 'intermediateAudit' : 'advancedAudit';
-                            
-                            if (audit[levelKey] && typeof audit[levelKey] === 'string') {
-                              try {
-                                const responses = JSON.parse(audit[levelKey] as string);
-                                if (responses && responses.length > 0) {
-                                  // Check if all questions have responses
+                          {(() => {
+                            try {
+                              const parsed = JSON.parse(audit.selectedLevels);
+                              if (Array.isArray(parsed)) {
+                                return parsed.map((level: string | AuditLevel, index: number) => {
+                                  // Determine completion status for this level
+                                  let completionStatus = 'notStarted';
                                   
-                                  // If there are any responses, it's at least partially completed
-                                  completionStatus = 'partiallyCompleted';
+                                  // Pobierz wartość poziomu (string lub obiekt z polem label)
+                                  const levelValue = typeof level === 'object' && level !== null && level.label ? level.label : String(level);
                                   
-                                  // If all questions have responses, it's fully completed
-                                  // This is an approximation since we don't have direct access to the audit items count here
-                                  if (responses.length >= 10) { // Assuming each level has at least 10 questions
-                                    completionStatus = 'completed';
+                                  // Określ klucz na podstawie wartości poziomu
+                                  let levelKey: string | undefined;
+                                  if (levelValue === 'podstawowy') levelKey = 'basicAudit';
+                                  else if (levelValue === 'średni') levelKey = 'intermediateAudit';
+                                  else if (levelValue === 'zaawansowany') levelKey = 'advancedAudit';
+                                  
+                                  console.log('Level debug:', { level, levelValue, levelKey, auditData: levelKey ? audit[levelKey] : null });
+                                  
+                                  if (levelKey && audit[levelKey] && typeof audit[levelKey] === 'string') {
+                                    try {
+                                      const responses = JSON.parse(audit[levelKey] as string);
+                                      if (responses && responses.length > 0) {
+                                        // Jeśli są jakiekolwiek odpowiedzi, to poziom jest przynajmniej częściowo ukończony
+                                        completionStatus = 'partiallyCompleted';
+                                        
+                                        // Sprawdź, czy wszystkie elementy mają ocenę (evaluation)
+                                        const allHaveEvaluation = responses.every((item: AuditItemResponse) => 
+                                          item && item.evaluation && 
+                                          ['positive', 'negative', 'notApplicable'].includes(item.evaluation)
+                                        );
+                                        
+                                        // Jeśli wszystkie elementy mają ocenę, to poziom jest ukończony
+                                        if (allHaveEvaluation) {
+                                          completionStatus = 'completed';
+                                        }
+                                      }
+                                    } catch (e) {
+                                      console.error(`Error parsing ${levelKey}:`, e);
+                                    }
                                   }
-                                }
-                              } catch (e) {
-                                console.error(`Error parsing ${levelKey}:`, e);
+                                  
+                                  // Apply appropriate class based on completion status
+                                  const statusClass = 
+                                    completionStatus === 'completed' ? styles.levelCompleted :
+                                    completionStatus === 'partiallyCompleted' ? styles.levelPartial :
+                                    styles.levelNotStarted;
+                                    
+                                  console.log('Status debug:', { completionStatus, statusClass, levelKey });
+                                  
+                                  // Użyj indeksu jako klucza i wyświetl odpowiednią wartość
+                                  const displayText = typeof level === 'object' && level !== null && level.label ? level.label : String(level);
+                                  return (
+                                    <span key={`level-${index}`} className={`${styles.levelBadge} ${statusClass}`}>{displayText}</span>
+                                  );
+                                });
+                              } else {
+                                // Jeśli parsed nie jest tablicą, wyświetl jako string
+                                return <span className={styles.levelBadge}>{String(parsed)}</span>;
                               }
+                            } catch (e) {
+                              // W przypadku błędu parsowania, wyświetl oryginalny string
+                              return <span className={styles.levelBadge}>{String(audit.selectedLevels)}</span>;
                             }
-                            
-                            // Apply appropriate class based on completion status
-                            const statusClass = 
-                              completionStatus === 'completed' ? styles.levelCompleted :
-                              completionStatus === 'partiallyCompleted' ? styles.levelPartial :
-                              styles.levelNotStarted;
-                            
-                            return (
-                              <span key={level} className={`${styles.levelBadge} ${statusClass}`}>{level}</span>
-                            );
-                          })}
+                          })()}
                         </div>
                       ) : (
                         <span className={styles.noData}>Brak danych</span>

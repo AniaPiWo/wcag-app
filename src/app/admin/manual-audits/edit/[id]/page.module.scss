@@ -23,16 +23,12 @@
   margin-bottom: 1rem;
   padding: 1rem;
   background-color: #f9f9f9;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
 }
 
@@ -54,7 +50,7 @@
 
 .th {
   padding: 0.75rem 1rem;
-  text-align: left;
+  text-align: center;
   font-weight: 600;
   color: #333;
 }
@@ -124,6 +120,8 @@
   height: 18px;
   cursor: pointer;
   accent-color: var(--accent);
+  margin: 0 auto;
+  display: block;
 }
 
 .checkboxCell {
@@ -131,23 +129,36 @@
   vertical-align: middle;
 }
 
-.saveButton {
-  margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  background-color: #0070f3;
-  color: white;
-  border: none;
-  border-radius: 0.25rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  
-  &:hover {
-    background-color: #0060df;
-  }
-  
-  &:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
+.saveSection {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.saveMessage {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.success {
+  background-color: #e6f7e6;
+  color: #2e7d32;
+}
+
+.error {
+  background-color: #fdeded;
+  color: #d32f2f;
+}
+
+.saveSection {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  position: fixed;
+  top: 6rem;
+  right: 1rem;
 }

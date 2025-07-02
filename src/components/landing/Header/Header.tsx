@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import styles from './Header.module.scss'
-import { ThemeSwitcher } from '../atoms/ThemeSwitcher/ThemeSwitcher'
-import { Logo } from '../Logo/Logo'
+import { ThemeSwitcher } from '@/components/atoms/ThemeSwitcher/ThemeSwitcher'
+import { Logo } from '@/components/Logo/Logo'
 
 export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)

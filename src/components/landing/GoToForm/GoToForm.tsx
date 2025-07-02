@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import styles from './GoToForm.module.scss';
-import { Button } from '../atoms/Button/Button';
+import { Button } from '@/components/atoms/Button/Button';
 
 export const GoToForm = () => {
   // Funkcja do przewijania do formularza
