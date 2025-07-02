@@ -1,6 +1,6 @@
 'use client'
 
-import { AdminHeader } from '@/components/Header/AdminHeader'
+import { AdminHeader } from '@/components'
 
 import styles from './admin.module.scss'
 

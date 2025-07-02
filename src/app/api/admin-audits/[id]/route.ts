@@ -4,9 +4,9 @@ import { validateSession } from '@/lib/auth/admin-session';
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const { id } = params;
   if (!id) {
     return NextResponse.json({ error: 'Brak ID audytu' }, { status: 400 });
   }
@@ -19,7 +19,7 @@ export async function GET(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   // Sprawdź sesję administratora
   const isAdmin = await validateSession();
@@ -27,7 +27,7 @@ export async function DELETE(
     return NextResponse.json({ error: 'Nieautoryzowany dostęp' }, { status: 401 });
   }
 
-  const { id } = await params;
+  const { id } = params;
   if (!id) {
     return NextResponse.json({ error: 'Brak ID audytu' }, { status: 400 });
   }

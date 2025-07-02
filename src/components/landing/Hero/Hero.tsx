@@ -1,7 +1,7 @@
 'use client'
 import Image from 'next/image';
 import styles from './Hero.module.scss';
-import { Button } from '../atoms/Button/Button';
+import { Button } from '@/components/atoms/Button/Button';
 import { useCallback, useState } from 'react';
 
 export const Hero = () => {

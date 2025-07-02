@@ -3,7 +3,7 @@
 import styles from './Footer.module.scss'
 import {  CookiesConsent } from "@/components";
 import { useState } from 'react';
-import { Logo } from '../Logo/Logo';
+import { Logo } from '@/components/Logo/Logo';
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear()

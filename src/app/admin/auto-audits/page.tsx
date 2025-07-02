@@ -127,13 +127,13 @@ export default function AdminPage() {
                   key={audit.id}
                   className={styles.auditRow}
                 >
-                  <td className={styles.auditCell} onClick={() => window.location.href = `/admin/${audit.id}`}>{audit.email}</td>
-                  <td className={styles.auditCell} onClick={() => window.location.href = `/admin/${audit.id}`}>
+                  <td className={styles.auditCell} onClick={() => window.location.href = `/admin/auto-audits/${audit.id}`}>{audit.email}</td>
+                  <td className={styles.auditCell} onClick={() => window.location.href = `/admin/auto-audits/${audit.id}`}>
                     <a href={audit.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className={styles.urlLink}>
                       {audit.url}
                     </a>
                   </td>
-                  <td className={styles.auditCell} onClick={() => window.location.href = `/admin/${audit.id}`}>
+                  <td className={styles.auditCell} onClick={() => window.location.href = `/admin/auto-audits/${audit.id}`}>
                     {audit.status === 'failed' ? (
                       <span className={styles.errorMessage}>
                         Błąd audytu
@@ -146,7 +146,7 @@ export default function AdminPage() {
                       <span className={styles.noData}>Brak danych</span>
                     )}
                   </td>
-                  <td className={`${styles.auditCell} ${styles.auditStatus} ${styles[audit.status]}`} onClick={() => window.location.href = `/admin/${audit.id}`}>
+                  <td className={`${styles.auditCell} ${styles.auditStatus} ${styles[audit.status]}`} onClick={() => window.location.href = `/admin/auto-audits/${audit.id}`}>
                     {
                     audit.status === 'completed' ? '✅' :
                     audit.status === 'failed' ? '⛔' :
@@ -154,7 +154,7 @@ export default function AdminPage() {
                     audit.status === 'in-progress' ? '🔄' :
                     audit.status
                   }</td>
-                  <td className={styles.auditCell} onClick={() => window.location.href = `/admin/${audit.id}`}>{audit.createdAt ? new Date(audit.createdAt).toLocaleString() : ''}</td>
+                  <td className={styles.auditCell} onClick={() => window.location.href = `/admin/auto-audits/${audit.id}`}>{audit.createdAt ? new Date(audit.createdAt).toLocaleString() : ''}</td>
                   <td className={styles.auditCell + ' ' + styles.deleteCell}>
                     <button
                       type="button"

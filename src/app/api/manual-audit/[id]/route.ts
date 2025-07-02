@@ -4,11 +4,10 @@ import { prisma } from '@/lib/prisma';
 // GET /api/manual-audit/[id] - Pobieranie pojedynczego audytu manualnego
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-
-    const { id } = params;
+    const { id } = await params;
     if (!id) {
       return NextResponse.json({ error: 'Brak ID audytu' }, { status: 400 });
     }
@@ -35,11 +34,10 @@ export async function GET(
 // PUT /api/manual-audit/[id] - Aktualizacja audytu manualnego
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-
-    const { id } = params;
+    const { id } = await params;
     if (!id) {
       return NextResponse.json({ error: 'Brak ID audytu' }, { status: 400 });
     }

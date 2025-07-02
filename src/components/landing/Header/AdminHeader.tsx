@@ -1,9 +1,9 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import styles from './Header.module.scss'
-import { Logo } from '../Logo/Logo'
+import { Logo } from '@/components/Logo/Logo'
 import Link from 'next/link'
-import { Button } from '../atoms/Button/Button'
+import { Button } from '@/components/atoms/Button/Button'
 
 export const AdminHeader = () => {
   const router = useRouter()
