@@ -3,8 +3,9 @@
 'use client'
 import React, { useState } from 'react';
 import styles from './page.module.scss';
-import { Button } from '@/components/atoms/Button/Button';
 import Loader from '@/components/Loader/Loader';
+import Link from 'next/link';
+import { GoBackBtn } from '@/components/GoBackBtn/GoBackBtn';
 
 export default function AdminPage() {
 
@@ -89,6 +90,7 @@ export default function AdminPage() {
   if (auditsLoaded) {
     return (
       <div className={styles.page}>
+     <GoBackBtn href="/admin" text="Powrót" />
         <h1 className={styles.title}>Audyty Automatyczne</h1>
         <div className={styles.searchBar}>
           <input

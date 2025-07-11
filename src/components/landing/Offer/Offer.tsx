@@ -13,7 +13,7 @@ export const offers = [
       'Szczegółowa analiza Twojej strony pod kątem zgodności z WCAG 2.2.',
     price: {
       amount: '399',
-      currency: 'zł',
+      currency: 'zł netto',
       period: 'jednorazowo',
     },
     features: [
@@ -34,7 +34,7 @@ export const offers = [
       'Dostosuję Twoją stronę lub aplikację do standardów WCAG 2.2.',
     price: {
       amount: 'od 500',
-      currency: 'zł',
+      currency: 'zł netto',
       period: 'projekt'
     },
     features: [
@@ -56,7 +56,7 @@ export const offers = [
       'Tworzę dostępne serwisy i aplikacje od podstaw – zgodne z WCAG 2.2.',
     price: {
       amount: 'od 1000',
-      currency: 'zł',
+      currency: 'zł netto',
       period: 'projekt'
     },
     features: [

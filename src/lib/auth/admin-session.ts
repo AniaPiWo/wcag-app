@@ -11,13 +11,13 @@ function getJwtSecret(): string {
   // W środowisku produkcyjnym wymagamy silnego sekretu
   if (process.env.NODE_ENV === 'production') {
     if (!secret || secret.length < 32) {
-      console.error('OSTRZEŻENIE: SESSION_SECRET powinien być ustawiony w produkcji i mieć co najmniej 32 znaki');
+      console.error('\x1b[31m⚠️ [Security Warning] SESSION_SECRET powinien być ustawiony w produkcji i mieć co najmniej 32 znaki\x1b[0m');
     }
   }
   
   // W środowisku deweloperskim ostrzegamy, ale pozwalamy na użycie domyślnego sekretu
   if (!secret) {
-    console.warn('\x1b[33m%s\x1b[0m', 'OSTRZEŻENIE: Używanie domyślnego sekretu JWT. To jest niebezpieczne w produkcji!');
+    console.warn('\x1b[33m⚠️ [Security Warning] Używanie domyślnego sekretu JWT. To jest niebezpieczne w produkcji!\x1b[0m');
     return 'dev-secret';
   }
   
@@ -27,6 +27,7 @@ function getJwtSecret(): string {
 const SESSION_SECRET = getJwtSecret();
 
 export function createSession(payload: object = {}): string {
+  console.log('\x1b[32m🔑 [Session] Tworzenie nowej sesji administratora\x1b[0m');
   const token = jwt.sign({ ...payload }, SESSION_SECRET, { expiresIn: SESSION_TIMEOUT });
   return token;
 }

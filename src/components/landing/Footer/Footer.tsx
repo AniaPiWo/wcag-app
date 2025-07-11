@@ -51,12 +51,15 @@ export const Footer = () => {
 
   return (
     <footer className={styles.footer}>
-        <Logo ariaLabel="Logo WCAG by Ania - powrót na górę strony" className={styles.logoLink} onClick={scrollToTop} />
+ 
         <div className={styles.footerContent}>
+        <Logo ariaLabel="Logo WCAG by Ania - powrót na górę strony" className={styles.logoLink} onClick={scrollToTop} />
+        <div className={styles.footerText}>
         <p className={styles.copyright}>
           &copy; {currentYear} Seahorse. All rights reserved.
         </p>
         <button className={styles.cookieSettings} onClick={modifyCookies}>Zarządzaj ustawieniami cookies</button>
+        </div>
         </div>
         {showCookiesBanner && (
         <div className={styles.cookiesBannerWrapper}>

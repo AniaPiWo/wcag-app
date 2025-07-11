@@ -246,7 +246,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
                     </td>
                     <td className={styles.cell}>
                       <input 
-                        type="checkbox" 
+                        type="radio" 
                         className={styles.checkbox}
                         checked={auditItem?.evaluation === 'positive'} 
                         onChange={() => updateAuditItem('basic', item.id, 'evaluation', 'positive')}
@@ -254,7 +254,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
                     </td>
                     <td className={styles.cell}>
                       <input 
-                        type="checkbox" 
+                        type="radio" 
                         className={styles.checkbox}
                         checked={auditItem?.evaluation === 'negative'} 
                         onChange={() => updateAuditItem('basic', item.id, 'evaluation', 'negative')}
@@ -262,7 +262,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
                     </td>
                     <td className={styles.cell}>
                       <input 
-                        type="checkbox" 
+                        type="radio" 
                         className={styles.checkbox}
                         checked={auditItem?.evaluation === 'notApplicable'} 
                         onChange={() => updateAuditItem('basic', item.id, 'evaluation', 'notApplicable')}
@@ -295,7 +295,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
                     </td>
                     <td className={styles.cell}>
                       <input 
-                        type="checkbox" 
+                        type="radio" 
                         className={styles.checkbox}
                         checked={auditItem?.evaluation === 'positive'} 
                         onChange={() => updateAuditItem('intermediate', item.id, 'evaluation', 'positive')}
@@ -303,7 +303,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
                     </td>
                     <td className={styles.cell}>
                       <input 
-                        type="checkbox" 
+                      type="radio" 
                         className={styles.checkbox}
                         checked={auditItem?.evaluation === 'negative'} 
                         onChange={() => updateAuditItem('intermediate', item.id, 'evaluation', 'negative')}
@@ -311,7 +311,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
                     </td>
                     <td className={styles.cell}>
                       <input 
-                        type="checkbox" 
+                         type="radio" 
                         className={styles.checkbox}
                         checked={auditItem?.evaluation === 'notApplicable'} 
                         onChange={() => updateAuditItem('intermediate', item.id, 'evaluation', 'notApplicable')}
@@ -344,7 +344,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
                     </td>
                     <td className={`${styles.cell} ${styles.checkboxCell}`}>
                       <input 
-                        type="checkbox" 
+                        type="radio" 
                         className={styles.checkbox}
                         checked={auditItem?.evaluation === 'positive'} 
                         onChange={() => updateAuditItem('advanced', item.id, 'evaluation', 'positive')}
@@ -352,7 +352,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
                     </td>
                     <td className={`${styles.cell} ${styles.checkboxCell}`}>
                       <input 
-                        type="checkbox" 
+                      type="radio" 
                         className={styles.checkbox}
                         checked={auditItem?.evaluation === 'negative'} 
                         onChange={() => updateAuditItem('advanced', item.id, 'evaluation', 'negative')}
@@ -360,7 +360,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
                     </td>
                     <td className={`${styles.cell} ${styles.checkboxCell}`}>
                       <input 
-                        type="checkbox" 
+                         type="radio" 
                         className={styles.checkbox}
                         checked={auditItem?.evaluation === 'notApplicable'} 
                         onChange={() => updateAuditItem('advanced', item.id, 'evaluation', 'notApplicable')}

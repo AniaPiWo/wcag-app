@@ -38,15 +38,25 @@ export async function POST(req: NextRequest) {
       // Resetuj licznik prób dla tego IP
       loginAttempts.delete(ip);
       
+      console.log('\x1b[32m✅ [Login Success] Pomyślne logowanie administratora\x1b[0m');
+      
       // Ustaw cookie sesji
       const response = NextResponse.json({ success: true });
+      
+      // Dodaj szczegółowe debugowanie cookie
+      console.log(`\x1b[35m📝 [Cookie Debug] Ustawianie cookie ${SESSION_COOKIE_NAME} z wartością: ${sessionId.substring(0, 10)}...\x1b[0m`);
+      
       response.cookies.set(SESSION_COOKIE_NAME, sessionId, {
         httpOnly: true,
-        secure: true,
+        secure: process.env.NODE_ENV === 'production', // Tylko w produkcji wymagaj HTTPS
         sameSite: 'strict',
         path: '/',
         maxAge: 60 * 60 * 2, // 2h
       });
+      
+      // Sprawdź czy cookie zostało ustawione
+      const setCookieHeader = response.headers.get('Set-Cookie');
+      console.log(`\x1b[35m📝 [Cookie Debug] Nagłówek Set-Cookie: ${setCookieHeader ? 'ustawiony' : 'brak'}\x1b[0m`);
       
       // Dodaj nagłówki informujące o limitach
       response.headers.set('X-RateLimit-Limit', '10');
@@ -56,6 +66,8 @@ export async function POST(req: NextRequest) {
     } else {
       // Zwiększ licznik nieudanych prób
       loginAttempts.set(ip, currentAttempts + 1);
+      
+      console.log(`\x1b[31m❌ [Login Failed] Nieudana próba logowania (${currentAttempts + 1}/10)\x1b[0m`);
       
       // Ustaw timer do usunięcia blokady po 15 minutach
       if (currentAttempts + 1 >= 10) {
@@ -70,7 +82,7 @@ export async function POST(req: NextRequest) {
       );
     }
   } catch (error) {
-    console.error('Błąd logowania:', error);
+    console.error(`\x1b[31m⚠️ [Login Error] ${error}\x1b[0m`);
     return NextResponse.json(
       { success: false, error: 'Błąd serwera' },
       { status: 500 }

@@ -1,10 +1,13 @@
 import React from 'react';
 import styles from './page.module.scss';
+import { GoBackBtn } from '@/components/GoBackBtn/GoBackBtn';
 
 const TermsOfUse = () => {
   return (
     <main className={`${styles.container} reduced-motion`}>
+
       <div className={styles.termsArticle}>
+      <GoBackBtn href="/" text="Powrót" />
         <h1 className={styles.mainTitle}>Warunki korzystania ze strony internetowej wcag.co</h1>
         
         <section className={styles.section} aria-labelledby="general-info">
@@ -53,7 +56,7 @@ const TermsOfUse = () => {
           <h2 id="data-processing" className={styles.sectionTitle}>4. Przetwarzanie danych osobowych</h2>
           <p className={styles.paragraph}>
             Administratorem danych osobowych jest Anna Piotrowiak-Wołosiuk, kontakt: 
-            <a href="mailto:biuro@wcag.co" className={styles.link}>biuro@wcag.co</a>.
+            <a href="mailto:biuro@wcag.co" className={styles.link}> biuro@wcag.co</a>.
           </p>
           <p className={styles.paragraph}>
             Dane są przetwarzane zgodnie z art. 6 ust. 1 lit. b i f RODO – w celu realizacji 
@@ -75,7 +78,7 @@ const TermsOfUse = () => {
           </ul>
           <p className={styles.paragraph}>
             W celu realizacji tych praw można skontaktować się pod adresem 
-            <a href="mailto:biuro@wcag.co" className={styles.link}>biuro@wcag.co</a>.
+            <a href="mailto:biuro@wcag.co" className={styles.link}> biuro@wcag.co</a>.
           </p>
         </section>
 
