@@ -33,11 +33,11 @@ export const AboutMe = () => {
               
               <div className={styles.columnsContainer}>
                 <div className={styles.column}>
-                  <p className={styles.desc}>
-                   Jestem <strong>certyfikowanym specjalistą dostępności cyfrowej</strong> z ponad 15-letnim doświadczeniem w branży e-commerce i tworzeniu stron internetowych. Pomagam budować skuteczne, 
-                    nowoczesne i dostępne serwisy, które działają szybko, wyglądają profesjonalnie i są zgodne 
-                    z aktualnymi standardami. Dbam zarówno o <strong>dostępność WCAG</strong>, jak i optymalizację SEO.
-                  </p>
+                <p className={styles.desc}>
+  Jestem <strong>certyfikowanym specjalistą dostępności cyfrowej</strong> z ponad 15-letnim doświadczeniem w branży e-commerce oraz projektowaniu i tworzeniu stron internetowych.  
+  Ukończyłam <strong>certyfikowane szkolenia z zakresu dostępności cyfrowej prowadzone przez Ministerstwo Cyfryzacji</strong>, co potwierdza moje kompetencje w zakresie zgodności z wymaganiami WCAG.  
+  Pomagam tworzyć nowoczesne, szybkie i profesjonalnie wyglądające serwisy, które są dostępne dla wszystkich użytkowników oraz zgodne z aktualnymi standardami. Dbam zarówno o <strong>pełną dostępność WCAG</strong>, jak i <strong>optymalizację SEO</strong>.
+</p>
                   <p className={styles.desc}>
                     Specjalizuję się w <strong>adaptacji istniejących stron</strong> do standardów dostępności <strong>WCAG 2.2</strong>. 
                     Tworzę również nowe, w pełni dostępne strony od podstaw. Sprawiam, że witryny są dostępne dla 

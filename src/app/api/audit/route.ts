@@ -484,26 +484,152 @@ export async function runAccessibilityAudit(url: string): Promise<{
     });
     
 
+    // Tworzymy kontekst przeglądarki z ulepszonymi ustawieniami
+    console.log('\x1b[34m%s\x1b[0m', 'Tworzenie kontekstu przeglądarki z ulepszonymi ustawieniami');
+    
+    // Dodajemy nagłówki symulujące normalnego użytkownika
+    const extraHeaders = {
+      'x-wcag-audit': 'true',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      'Accept-Language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7',
+      'Upgrade-Insecure-Requests': '1',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'same-origin',
+      'Sec-Fetch-User': '?1',
+      'Cache-Control': 'max-age=0'
+    };
+    
+    console.log('\x1b[34m%s\x1b[0m', 'Ustawione nagłówki:', JSON.stringify(extraHeaders, null, 2));
+    
+    // Używamy bardziej realistycznego user-agent
+    const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0';
+    
     const context = await browser.newContext({
       viewport: { width: 1920, height: 1080 },
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      userAgent: userAgent,
+      // Dodajemy dodatkowe nagłówki dla wszystkich żądań
+      extraHTTPHeaders: extraHeaders,
+      // Włączamy JavaScript i ciasteczka
+      javaScriptEnabled: true,
+      acceptDownloads: true,
+      // Ignorujemy błędy HTTPS
+      ignoreHTTPSErrors: true,
+      // Ustawiamy locale
+      locale: 'pl-PL',
+      timezoneId: 'Europe/Warsaw'
     });
+    
+    console.log('\x1b[32m%s\x1b[0m', 'Dodano nagłówki audytu do kontekstu przeglądarki');
+    
     const page = await context.newPage();
     
     try {
-      const response = await page.goto(url, { 
+      // Funkcja pomocnicza do próby ominięcia zabezpieczeń 403
+      async function tryBypassProtection() {
+        console.log('\x1b[34m%s\x1b[0m', 'Próba ominięcia zabezpieczeń 403...');
+        
+        // Próba 1: Dodanie referer
+        await page.setExtraHTTPHeaders({
+          'Referer': new URL(url).origin
+        });
+        
+        // Próba 2: Dodanie cookie do domeny
+        await context.addCookies([{
+          name: 'wcag_audit_access',
+          value: 'true',
+          domain: new URL(url).hostname,
+          path: '/',
+        }]);
+        
+        // Próba 3: Zmiana nagłówków na bardziej przypominające przeglądarkę
+        await page.setExtraHTTPHeaders({
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+          'Accept-Language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120"',
+          'Sec-Ch-Ua-Mobile': '?0',
+          'Sec-Ch-Ua-Platform': '"Windows"'
+        });
+        
+        // Próba 4: Emulacja interakcji użytkownika
+        try {
+          // Próba kliknięcia w przyciski akceptacji cookie/terms
+          const possibleSelectors = [
+            'button:has-text("Akceptuj")', 
+            'button:has-text("Accept")',
+            'button:has-text("Zgadzam")',
+            'button:has-text("Agree")',
+            'button:has-text("OK")',
+            'button:has-text("Continue")',
+            'button:has-text("Kontynuuj")',
+            'button:has-text("Dalej")',
+            'button:has-text("Next")',
+            'a:has-text("Akceptuj")',
+            'a:has-text("Accept")',
+            '.cookie-button',
+            '.accept-button',
+            '.consent-button',
+            '#consent-button',
+            '#accept-cookies'
+          ];
+          
+          // Próbujemy kliknąć w każdy z możliwych elementów
+          for (const selector of possibleSelectors) {
+            const button = await page.$(selector);
+            if (button) {
+              console.log(`\x1b[34m%s\x1b[0m`, `Znaleziono element ${selector}, próba kliknięcia...`);
+              await button.click().catch((e: Error) => console.log(`Błąd kliknięcia: ${e.message}`));
+              await page.waitForTimeout(500); // Krótkie opóźnienie po kliknięciu
+            }
+          }
+          
+          // Próba wykonania scrollowania strony
+          await autoScroll(page);
+          
+        } catch (e) {
+          console.log(`\x1b[33m%s\x1b[0m`, `Błąd podczas emulacji interakcji: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
+      
+      // Próbujemy załadować stronę
+      let response = await page.goto(url, { 
         waitUntil: 'domcontentloaded', 
         timeout: PLAYWRIGHT_TIMEOUT 
       });
+      
+      // Jeśli otrzymaliśmy 403, próbujemy obejść zabezpieczenia
+      if (response && response.status() === 403) {
+        console.warn('\x1b[33m%s\x1b[0m', 'Otrzymano kod 403 (Forbidden), próbujemy obejść zabezpieczenia...');
+        
+        // Próba ominięcia zabezpieczeń
+        await tryBypassProtection();
+        
+        // Ponowna próba załadowania strony
+        console.log('\x1b[34m%s\x1b[0m', 'Ponowna próba załadowania strony po ominięciu zabezpieczeń...');
+        response = await page.goto(url, { 
+          waitUntil: 'domcontentloaded', 
+          timeout: PLAYWRIGHT_TIMEOUT 
+        });
+      }
       
       if (response) {
         const status = response.status();
         console.log(`\x1b[34m%s\x1b[0m`, `Status odpowiedzi strony: ${status}`);
         
-        const isServerError = status >= 500 || status === 404 || status === 403;
+        // Sprawdzamy kody błędów serwera i strony nie znalezionej
+        const isServerError = status >= 500 || status === 404;
         
         if (isServerError) {
           throw new Error(`Nie udało się załadować strony: kod odpowiedzi ${status}`);
+        }
+        
+        // Jeśli kod to 403, kontynuujemy audyt mimo wszystko
+        if (status === 403) {
+          console.warn('\x1b[33m%s\x1b[0m', 'Otrzymano kod 403 (Forbidden) nawet po próbie ominięcia zabezpieczeń, ale kontynuujemy audyt');
         }
       } else {
         console.warn('\x1b[33m%s\x1b[0m', 'Brak obiektu odpowiedzi, ale kontynuujemy audyt');

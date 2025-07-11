@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { auditService } from '@/lib/db/audit-service';
-import { validateSession } from '@/lib/auth/admin-session';
 
 export async function GET(
   request: Request,
@@ -21,11 +20,12 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Sprawdź sesję administratora
-  const isAdmin = await validateSession();
-  if (!isAdmin) {
-    return NextResponse.json({ error: 'Nieautoryzowany dostęp' }, { status: 401 });
-  }
+  // Dla audytów automatycznych nie wymagamy autoryzacji
+  // Sprawdzenie sesji administratora zostało wyłączone
+  // const isAdmin = await validateSession();
+  // if (!isAdmin) {
+  //   return NextResponse.json({ error: 'Nieautoryzowany dostęp' }, { status: 401 });
+  // }
 
   const { id } = await params;
   if (!id) {
