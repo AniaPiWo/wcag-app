@@ -7,15 +7,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, SubmitHandler, FieldErrors } from 'react-hook-form';
 
 
-async function checkUrlExists(url: string): Promise<{ exists: boolean; error?: string }> {
+async function verifyUrl(url: string): Promise<{ success: boolean; url?: string; title?: string; error?: string }> {
   try {
-
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = 'https://' + url;
     }
     
-
-    const response = await fetch('/api/check-url', {
+    const response = await fetch('/api/verify-url', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -24,10 +22,18 @@ async function checkUrlExists(url: string): Promise<{ exists: boolean; error?: s
     });
     
     const data = await response.json();
-    return { exists: response.ok, error: data.error };
+    return { 
+      success: response.ok && data.success, 
+      url: data.url,
+      title: data.title,
+      error: data.error 
+    };
   } catch (error) {
-    console.error('Błąd podczas sprawdzania URL:', error);
-    return { exists: false, error: 'Wystąpił błąd podczas sprawdzania adresu URL' };
+    console.error('Błąd podczas weryfikacji URL:', error);
+    return { 
+      success: false, 
+      error: 'Wystąpił błąd podczas weryfikacji adresu URL' 
+    };
   }
 }
 
@@ -146,126 +152,76 @@ export const Form = () => {
       setErrorField(null);
       setErrorMessage(null);
       
-
-      const urlCheckResult = await checkUrlExists(data.website);
+      // Krok 1: Weryfikacja URL z Playwright
+      setStatusMessage('Trwa weryfikacja strony...');
+      
+      const verifyResult = await verifyUrl(data.website);
     
-      if (!urlCheckResult.exists) {
-
+      if (!verifyResult.success) {
         const websiteInput = document.getElementById('website');
         if (websiteInput) {
           websiteInput.focus();
         }
         
         setErrorField('website');
-        setErrorMessage(urlCheckResult.error || 'Podany adres strony jest nieprawidłowy lub strona nie istnieje. Sprawdź poprawność adresu.');
+        setErrorMessage(verifyResult.error || 'Podany adres strony jest nieprawidłowy lub strona nie może być zaudytowana');
         setIsSubmitting(false);
         return;
       }
       
-
-      setStatusMessage('');
-      setTimeout(() => {
-        setStatusMessage('Trwa wysyłanie formularza, proszę czekać...');
-      }, 50);
-      
-      //console.log('Wysyłanie danych do audytu:', data); // debug
+      // Krok 2: Dodanie do kolejki audytów
+      setStatusMessage('Strona zweryfikowana. Dodawanie do kolejki audytów...');
       
       const payload = {
-        url: data.website,
+        url: verifyResult.url || data.website, // Używamy znormalizowanego URL z weryfikacji
         email: data.email,
         name: data.name
       };
       
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 600000); // timeout
-      
       try {
-        //console.log('Adres OK – zaczynam audyt dla:', data.website);
-        const response = await fetch('/api/audit', {
+        const queueResponse = await fetch('/api/queue-audit', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-cache'
           },
-          body: JSON.stringify(payload),
-          signal: controller.signal
+          body: JSON.stringify(payload)
         });
         
-        clearTimeout(timeoutId);
+        const queueResult = await queueResponse.json();
         
-        const responseData = await response.json();
-        
-        if (!response.ok) {
-
-          //console.error('Błąd z serwera:', responseData.error);
+        if (!queueResponse.ok || !queueResult.success) {
           setIsSuccess(false);
           setIsSubmitted(true);
-
-          setStatusMessage('');
-          setTimeout(() => {
-            setStatusMessage(responseData.error || 'Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
-          }, 50);
+          setStatusMessage(queueResult.error || 'Wystąpił błąd podczas dodawania audytu do kolejki. Spróbuj ponownie lub skontaktuj się z nami.');
           reset();
           setIsSubmitting(false);
           return; 
         }
         
-        //const result = responseData as AuditResponse;
-        //console.log('Wyniki audytu:', result); // debug
-        
+        // Krok 3: Wyświetlenie komunikatu o sukcesie
         setIsSuccess(true);
         setIsSubmitted(true);
-
-        setStatusMessage('');
-        setTimeout(() => {
-          setStatusMessage('Formularz został wysłany.');
-        }, 50);
+        setStatusMessage('Twój audyt został dodany do kolejki. Wyniki otrzymasz na podany adres email.');
         reset();
+        setIsSubmitting(false);
         
-
       } catch (fetchError) {
-        clearTimeout(timeoutId);
-        
         // ogolna obsluga bledow
-        if (fetchError instanceof Error) {
-          setIsSuccess(false);
-          setIsSubmitted(true);
-          setStatusMessage('');
-          setTimeout(() => {
-            setStatusMessage('Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
-          }, 50);
-          reset();
-          setIsSubmitting(false);
-          return;
-        }
+        setIsSuccess(false);
+        setIsSubmitted(true);
         
-        // blad adresu URL
         if (fetchError instanceof Error && 
             (fetchError.message.includes('URL') || 
              fetchError.message.includes('adres') || 
              fetchError.message.includes('nieprawidłowy'))) {
-          setIsSuccess(false);
-          setIsSubmitted(true);
           setStatusMessage('Podany adres strony jest nieprawidłowy lub strona nie istnieje. Sprawdź poprawność adresu i spróbuj ponownie.');
-          reset();
-          setIsSubmitting(false);
-          return;   
-        }
-        
-        // blad timeout
-        if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
-          setIsSuccess(false);
-          setIsSubmitted(true);
+        } else if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
           setStatusMessage('Przekroczono czas oczekiwania na odpowiedź serwera. Spróbuj ponownie później.');
-          reset();
-          setIsSubmitting(false);
-          return;   
+        } else {
+          setStatusMessage('Wystąpił błąd podczas dodawania audytu do kolejki. Spróbuj ponownie lub skontaktuj się z nami.');
         }
         
-        // blad nieoczekiwany
-        setIsSuccess(false);
-        setIsSubmitted(true);
-        setStatusMessage('Wystąpił nieoczekiwany błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
         reset();
         setIsSubmitting(false);
       }
@@ -274,7 +230,7 @@ export const Form = () => {
     } catch (error) {
       setIsSuccess(false);
       setIsSubmitted(true);
-      setStatusMessage('Wystąpił błąd podczas przeprowadzania audytu. Spróbuj ponownie lub skontaktuj się z nami.');
+      setStatusMessage('Wystąpił błąd podczas przetwarzania formularza. Spróbuj ponownie lub skontaktuj się z nami.');
       reset();
       setIsSubmitting(false);
     }

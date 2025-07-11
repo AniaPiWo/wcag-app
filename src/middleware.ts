@@ -42,35 +42,23 @@ async function validateSessionInMiddleware(req: NextRequest): Promise<boolean> {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   
-  console.log(`Middleware przetwarzanie ścieżki: ${pathname}`);
-  
   // Protect /admin root and all subpages except /admin/login
   if ((pathname === '/admin' || (pathname.startsWith('/admin/') && pathname !== '/admin/login'))) {
-    console.log('Sprawdzanie sesji dla ścieżki administracyjnej');
     const isValid = await validateSessionInMiddleware(req);
-    
     if (!isValid) {
-      console.log('Sesja nieprawidłowa, przekierowanie do logowania');
       // Redirect to login page
       const loginUrl = new URL('/admin/login', req.url);
       return NextResponse.redirect(loginUrl);
     }
-    
-    console.log('Sesja prawidłowa, kontynuacja');
   }
   
   // If user is already authenticated and tries to access /admin/login, redirect to /admin
   if (pathname === '/admin/login') {
-    console.log('Sprawdzanie sesji dla strony logowania');
     const isValid = await validateSessionInMiddleware(req);
-    
     if (isValid) {
-      console.log('Sesja prawidłowa, przekierowanie do panelu admina');
       const adminUrl = new URL('/admin', req.url);
       return NextResponse.redirect(adminUrl);
     }
-    
-    console.log('Sesja nieprawidłowa, pozostanie na stronie logowania');
   }
   
   // Dodaj nagłówki bezpieczeństwa
@@ -118,6 +106,6 @@ export const config = {
      * - /admin/* (wszystkie podstrony panelu)
      */
     '/admin',
-    '/admin/:path*',
+    '/admin/(.*)',
   ],
 };

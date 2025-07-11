@@ -459,7 +459,7 @@ async function runBasicAccessibilityAudit(page: Page, url: string): Promise<{
 }
 
 // axe full audit
-async function runAccessibilityAudit(url: string): Promise<{
+export async function runAccessibilityAudit(url: string): Promise<{
   summary: AuditSummary;
   violations: AxeViolation[];
 }> {
