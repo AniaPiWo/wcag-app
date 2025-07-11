@@ -22,7 +22,7 @@
     "jsonwebtoken": "^9.0.2",
     "next": "15.3.2",
     "next-auth": "^4.24.11",
-    "nodemailer": "^7.0.3",
+    "nodemailer": "^6.9.9",
     "openai": "^5.0.1",
     "playwright": "^1.52.0",
     "prisma": "^6.8.2",
