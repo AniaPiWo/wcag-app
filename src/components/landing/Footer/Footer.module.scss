@@ -1,11 +1,8 @@
 .footer {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-items: space-between;
   background-color: var(--background);
   color: var(--foreground);
-  max-width: 77.5rem; /* 1240px */
   padding: 2rem 2.5rem; 
   margin: 0 auto;
   gap: 2rem;
@@ -14,8 +11,9 @@
 
 .footerContent {
   display: flex;
+  gap: 2rem;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
   max-width: 77.5rem; /* 1240px */
   margin: 0 auto;
   width: 100%;
@@ -26,6 +24,11 @@
     gap: 1rem;
     text-align: center;
   }
+}
+
+.footerText {
+  display: flex;
+  justify-content: space-between;
 }
 
 .copyright {

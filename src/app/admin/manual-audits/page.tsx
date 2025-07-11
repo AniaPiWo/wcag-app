@@ -5,6 +5,7 @@ import styles from './page.module.scss';
 import { Button } from '@/components/atoms/Button/Button';
 import Loader from '@/components/Loader/Loader';
 import Link from 'next/link';
+import { GoBackBtn } from '@/components/GoBackBtn/GoBackBtn';
 
 // Interfejs dla poziomu audytu
 interface AuditLevel {
@@ -106,6 +107,7 @@ export default function ManualAuditsPage() {
   if (auditsLoaded) {
     return (
       <div className={styles.page}>
+        <GoBackBtn href="/admin" text="Powrót" />
         <h1 className={styles.title}>Audyty Manualne</h1>
         <div className={styles.actionsContainer}>
           <div className={styles.searchBar}>
@@ -142,15 +144,15 @@ export default function ManualAuditsPage() {
                     key={audit.id}
                     className={styles.auditRow}
                   >
-                    <td className={styles.auditCell} onClick={() => window.location.href = `/admin/${audit.id}`}>
+                    <td className={styles.auditCell} onClick={() => window.location.href = `/admin/manual-audits/edit/${audit.id}`}>
                       <a href={audit.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className={styles.urlLink}>
                         {audit.url}
                       </a>
                     </td>
-                    <td className={styles.auditCell} onClick={() => window.location.href = `/admin/${audit.id}`}>
+                    <td className={styles.auditCell} onClick={() => window.location.href = `/admin/manual-audits/edit/${audit.id}`}>
                       {audit.createdAt ? new Date(audit.createdAt).toLocaleString() : ''}
                     </td>
-                    <td className={styles.auditCell} onClick={() => window.location.href = `/admin/${audit.id}`}>
+                    <td className={styles.auditCell} onClick={() => window.location.href = `/admin/manual-audits/edit/${audit.id}`}>
                       {audit.selectedLevels ? (
                         <div className={styles.levelsList}>
                           {(() => {

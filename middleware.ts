@@ -1,40 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 
-// Import session constants
-const SESSION_COOKIE_NAME = 'admin_session';
+// Import session constants from admin-session module
+import { SESSION_COOKIE_NAME } from '@/lib/auth/admin-session';
 
-// Funkcja do pobierania i walidacji sekretu JWT
-function getJwtSecret(): string {
-  const secret = process.env.SESSION_SECRET;
-  
-  // W środowisku produkcyjnym wymagamy silnego sekretu
-  if (process.env.NODE_ENV === 'production') {
-    if (!secret || secret.length < 32) {
-      console.error('OSTRZEŻENIE: SESSION_SECRET powinien być ustawiony w produkcji i mieć co najmniej 32 znaki');
-    }
-  }
-  
-  // W środowisku deweloperskim ostrzegamy, ale pozwalamy na użycie domyślnego sekretu
-  if (!secret) {
-    console.warn('\x1b[33m%s\x1b[0m', 'OSTRZEŻENIE: Używanie domyślnego sekretu JWT. To jest niebezpieczne w produkcji!');
-    return 'dev-secret';
-  }
-  
-  return secret;
-}
-
-const SESSION_SECRET = getJwtSecret();
+// Pobierz sekret JWT bezpośrednio z zmiennych środowiskowych
+const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-secret';
 
 // Validate session directly in middleware to avoid import issues
 async function validateSessionInMiddleware(req: NextRequest): Promise<boolean> {
   const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
-  if (!token) return false;
+  
+  // Dodaj szczegółowe debugowanie cookie
+  console.log(`\x1b[35m📝 [Cookie Debug] Sprawdzanie cookie ${SESSION_COOKIE_NAME}: ${token ? token.substring(0, 10) + '...' : 'brak'}\x1b[0m`);
+  
+  // Wyświetl wszystkie cookies dla debugowania
+  console.log('\x1b[35m📝 [Cookie Debug] Wszystkie cookies:\x1b[0m');
+  req.cookies.getAll().forEach(cookie => {
+    console.log(`\x1b[35m📝 [Cookie Debug] - ${cookie.name}: ${cookie.value.substring(0, 10)}...\x1b[0m`);
+  });
+  
+  if (!token) {
+    console.log('\x1b[31m❌ [Auth Debug] Brak tokenu w cookie\x1b[0m');
+    return false;
+  }
   
   try {
-    jwt.verify(token, SESSION_SECRET);
+    const decoded = jwt.verify(token, SESSION_SECRET);
+    console.log(`\x1b[32m✅ [Auth Debug] Token zweryfikowany pomyślnie: ${JSON.stringify(decoded)}\x1b[0m`);
     return true;
-  } catch {
+  } catch (error) {
+    console.log(`\x1b[31m❌ [Auth Debug] Błąd weryfikacji tokenu: ${error}\x1b[0m`);
     return false;
   }
 }
@@ -42,35 +38,35 @@ async function validateSessionInMiddleware(req: NextRequest): Promise<boolean> {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   
-  console.log(`Middleware przetwarzanie ścieżki: ${pathname}`);
+  console.log(`\x1b[35m🔄 [Middleware] Przetwarzanie ścieżki: ${pathname}\x1b[0m`);
   
   // Protect /admin root and all subpages except /admin/login
   if ((pathname === '/admin' || (pathname.startsWith('/admin/') && pathname !== '/admin/login'))) {
-    console.log('Sprawdzanie sesji dla ścieżki administracyjnej');
+    console.log('\x1b[33m🔍 [Auth Check] Sprawdzanie sesji dla ścieżki administracyjnej\x1b[0m');
     const isValid = await validateSessionInMiddleware(req);
     
     if (!isValid) {
-      console.log('Sesja nieprawidłowa, przekierowanie do logowania');
+      console.log('\x1b[31m❌ [Auth Fail] Sesja nieprawidłowa, przekierowanie do logowania\x1b[0m');
       // Redirect to login page
       const loginUrl = new URL('/admin/login', req.url);
       return NextResponse.redirect(loginUrl);
     }
     
-    console.log('Sesja prawidłowa, kontynuacja');
+    console.log('\x1b[32m✅ [Auth Success] Sesja prawidłowa, kontynuacja\x1b[0m');
   }
   
   // If user is already authenticated and tries to access /admin/login, redirect to /admin
   if (pathname === '/admin/login') {
-    console.log('Sprawdzanie sesji dla strony logowania');
+    console.log('\x1b[33m🔍 [Auth Check] Sprawdzanie sesji dla strony logowania\x1b[0m');
     const isValid = await validateSessionInMiddleware(req);
     
     if (isValid) {
-      console.log('Sesja prawidłowa, przekierowanie do panelu admina');
+      console.log('\x1b[32m✅ [Auth Success] Sesja prawidłowa, przekierowanie do panelu admina\x1b[0m');
       const adminUrl = new URL('/admin', req.url);
       return NextResponse.redirect(adminUrl);
     }
     
-    console.log('Sesja nieprawidłowa, pozostanie na stronie logowania');
+    console.log('\x1b[33mℹ️ [Auth Info] Sesja nieprawidłowa, pozostanie na stronie logowania\x1b[0m');
   }
   
   // Dodaj nagłówki bezpieczeństwa
