@@ -268,7 +268,7 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookie
             </Button>
           </div>
           <div className={styles.privacyLinkContainer}>
-            <p>Możesz przeczytać więcej w <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className={styles.privacyLink}>Polityce prywatności</a>.</p>
+            <p>Możesz przeczytać więcej w <a href="/terms-of-use" target="_blank" rel="noopener noreferrer" className={styles.privacyLink}>Regulaminie</a>.</p>
           </div>
         </div>
       </div>

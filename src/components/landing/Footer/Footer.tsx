@@ -4,6 +4,7 @@ import styles from './Footer.module.scss'
 import {  CookiesConsent } from "@/components";
 import { useState } from 'react';
 import { Logo } from '@/components/Logo/Logo';
+import Link from 'next/link';
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear()
@@ -54,7 +55,9 @@ export const Footer = () => {
  
         <div className={styles.footerContent}>
         <Logo ariaLabel="Logo WCAG by Ania - powrót na górę strony" className={styles.logoLink} onClick={scrollToTop} />
+
         <div className={styles.footerText}>
+
         <p className={styles.copyright}>
           &copy; {currentYear} Seahorse. All rights reserved.
         </p>
