@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
-import Image from 'next/image';
+//import Image from 'next/image';
 import styles from './Hero.module.scss';
 import { Button } from '@/components/atoms/Button/Button';
 import { useCallback, useState } from 'react';
+import clsx from 'clsx';
+import { LuBraces, LuBrain, LuEye, LuEar   } from "react-icons/lu";
 
 export const Hero = () => {
   const [isContactLoading, setIsContactLoading] = useState(false);
@@ -39,7 +42,7 @@ export const Hero = () => {
   
   return (
     <section id="hero" className={styles.wrapper}>
-       <div className={styles.bottom}>
+      {/* <div className={styles.bottom}>
         <div className={styles.imageContainer}>
           <Image
             src="/pug.jpg"
@@ -51,15 +54,16 @@ export const Hero = () => {
             sizes="(max-width: 768px) 100vw, 50vw"
           />
         </div>
-      </div>
+      </div> */}
       <div className={styles.top}>
 
 <h1 className={styles.title}>Popraw dostępność, zwiększ sprzedaż i widoczność – dzięki WCAG 2.2</h1>
-<p>
-  Zadbam o to, by Twoja strona była naprawdę dostępna – dla wszystkich klientów i dla wyszukiwarek. 
-  Przeprowadzę audyt, wdrożę poprawki i pomogę Ci stworzyć miejsce, które działa lepiej, sprzedaje więcej i nie wyklucza nikogo.
+<p className={styles.desc}>
+  Zadbam o to, by Twoja strona była naprawdę dostępna – pomogę Ci stworzyć miejsce, które działa lepiej, sprzedaje więcej i nie wyklucza nikogo.
 </p>
-
+<div className={clsx(styles.badge, styles.braces)}><LuEar /></div>
+<div className={clsx(styles.badge, styles.brain)}><LuBrain /></div>
+<div className={clsx(styles.badge, styles.eye)}><LuEye /></div>
 
         <div className={styles.buttonContainer}>
           <Button variant="primary" onClick={handleAuditClick}>Bezpłatny audyt strony</Button>
