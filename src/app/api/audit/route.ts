@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
-import { chromium, Page } from 'playwright';
+import { chromium, Page, Browser, BrowserContext } from 'playwright';
 import { z } from 'zod';
 import { queueAudit } from './queue';
 import { auditService } from '@/lib/db/audit-service';
@@ -463,71 +463,255 @@ export async function runAccessibilityAudit(url: string): Promise<{
   summary: AuditSummary;
   violations: AxeViolation[];
 }> {
-  let browser;
-  try {
-    // playwright z dodatkowymi opcjami dla środowiska Next.js API Routes
-    browser = await chromium.launch({
-      headless: true,
-      //dla lepszej kompatybilności z środowiskiem serverless
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process',
-        '--disable-gpu'
-      ],
-      downloadsPath: '/tmp',
-      chromiumSandbox: false
-    });
-    
+  // Deklarujemy zmienne na poziomie funkcji i inicjalizujemy je jako null
+  // aby zapewnić prawidłowy dostęp w bloku finally
+  let browser: Browser | null = null;
+  let context: BrowserContext | null = null;
+  let page: Page | null = null;
+  
+  // Dodajemy flagę do śledzenia, czy zasoby są gotowe do użycia
+  // i czy nie zostały już zamknięte
+  let resourcesInitialized = false;
 
-    // Tworzymy kontekst przeglądarki z ulepszonymi ustawieniami
-    console.log('\x1b[34m%s\x1b[0m', 'Tworzenie kontekstu przeglądarki z ulepszonymi ustawieniami');
+  try {
+    console.log('\x1b[33m%s\x1b[0m', `Rozpoczynam audyt dla URL: ${url}`);
+
+    // Generujemy unikalny identyfikator dla tego audytu
+    const auditId = `audit-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    console.log(`\x1b[34m%s\x1b[0m`, `ID audytu: ${auditId} dla URL: ${url}`);
+
+    // Tworzenie nowej instancji przeglądarki dla każdego audytu
+    // z pełną izolacją zasobu
+    try {
+      console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Uruchamianie nowej instancji przeglądarki...`);
+      
+      browser = await chromium.launch({
+        headless: true,
+        chromiumSandbox: false, // w środowisku serverless może być potrzebne
+        args: [
+          '--disable-setuid-sandbox',
+          '--no-sandbox', // dla containerów
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote', 
+          '--single-process', // ważne dla stabilności
+          '--disable-gpu',
+          '--disable-extensions', // wyłączenie rozszerzeń
+          '--disable-background-networking', // ograniczenie połączeń sieciowych w tle
+          '--disable-default-apps', // wyłączenie aplikacji domyślnych
+          '--disable-sync', // wyłączenie synchronizacji
+          '--disable-translate', // wyłączenie tłumaczeń
+          '--metrics-recording-only', // tylko podstawowe metryki
+          '--mute-audio' // wyciszenie dźwięku
+        ],
+        // Dodajemy timeout przy uruchamianiu przeglądarki
+        timeout: 60000, // zwiększamy timeout dla uruchomienia przeglądarki
+        handleSIGINT: false, // wyłączenie obsługi SIGINT, aby uniknąć zamykania przeglądarki przez inne procesy
+        handleSIGTERM: false, // wyłączenie obsługi SIGTERM z tego samego powodu
+        handleSIGHUP: false // wyłączenie obsługi SIGHUP z tego samego powodu
+      });
+      
+      if (!browser) {
+        throw new Error('Przeglądarka nie została utworzona');
+      }
+    } catch (error) {
+      console.error(`\x1b[31m%s\x1b[0m`, `[${auditId}] Błąd podczas uruchamiania przeglądarki:`, error);
+      throw new Error(`Nie udało się uruchomić przeglądarki: ${error instanceof Error ? error.message : String(error)}`);
+    }
     
-    // Dodajemy nagłówki symulujące normalnego użytkownika
-    const extraHeaders = {
-      'x-wcag-audit': 'true',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-      'Accept-Language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7',
-      'Upgrade-Insecure-Requests': '1',
-      'Sec-Fetch-Dest': 'document',
-      'Sec-Fetch-Mode': 'navigate',
-      'Sec-Fetch-Site': 'same-origin',
-      'Sec-Fetch-User': '?1',
-      'Cache-Control': 'max-age=0'
-    };
-    
-    console.log('\x1b[34m%s\x1b[0m', 'Ustawione nagłówki:', JSON.stringify(extraHeaders, null, 2));
+    console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Przeglądarka uruchomiona pomyślnie`);
     
     // Używamy bardziej realistycznego user-agent
     const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0';
     
-    const context = await browser.newContext({
-      viewport: { width: 1920, height: 1080 },
-      userAgent: userAgent,
-      // Dodajemy dodatkowe nagłówki dla wszystkich żądań
-      extraHTTPHeaders: extraHeaders,
-      // Włączamy JavaScript i ciasteczka
-      javaScriptEnabled: true,
-      acceptDownloads: true,
-      // Ignorujemy błędy HTTPS
-      ignoreHTTPSErrors: true,
-      // Ustawiamy locale
-      locale: 'pl-PL',
-      timezoneId: 'Europe/Warsaw'
-    });
+    try {
+      // Sprawdzamy czy przeglądarka jest wciąż dostępna przed utworzeniem kontekstu
+      if (!browser || browser.isConnected() === false) {
+        throw new Error('Przeglądarka nie jest już dostępna, nie można utworzyć kontekstu');
+      }
+      
+      console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Tworzenie nowego kontekstu przeglądarki...`);
+      
+      // Tworzenie kontekstu z określonymi parametrami - izolowanego dla tego audytu
+      context = await browser.newContext({
+        viewport: { width: 1920, height: 1080 },
+        userAgent: userAgent,
+        // Dodajemy dodatkowe nagłówki dla wszystkich żądań
+        extraHTTPHeaders: {
+          'Accept-Language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'x-wcag-audit': 'true', // własny nagłówek dla identyfikacji że to nasz audyt
+          'x-audit-id': auditId, // dodajemy unikalny identyfikator audytu
+        },
+        // Włączamy JavaScript i ciasteczka
+        javaScriptEnabled: true,
+        // Ignorujemy błędy HTTPS
+        ignoreHTTPSErrors: true,
+        // Ustawiamy locale
+        locale: 'pl-PL',
+        timezoneId: 'Europe/Warsaw',
+        // Dodajemy dodatkowe parametry dla lepszej izolacji i stabilności
+        bypassCSP: true, // pomijamy politykę CSP, która może blokować wstrzykiwanie skryptów
+        permissions: ['clipboard-read', 'clipboard-write'], // ustawienia uprawnień
+        colorScheme: 'light', // ustawienie jasnego motywu
+        deviceScaleFactor: 1, // domyślne skalowanie urządzenia
+        acceptDownloads: false, // wyłączamy pobieranie plików
+        hasTouch: false, // wyłączamy funkcję dotykową
+        isMobile: false, // nie emulujemy urządzenia mobilnego
+        offline: false, // nie jesteśmy offline
+        forcedColors: 'none', // bez wymuszania kolorów
+        reducedMotion: 'no-preference', // bez ograniczania animacji
+        screen: { width: 1920, height: 1080 } // ustawienia ekranu
+      });
+      
+      if (!context) {
+        throw new Error('Kontekst przeglądarki nie został utworzony');
+      }
+      
+    } catch (error) {
+      console.error(`\x1b[31m%s\x1b[0m`, `[${auditId}] Błąd podczas tworzenia kontekstu przeglądarki:`, error);
+      throw new Error(`Nie udało się utworzyć kontekstu przeglądarki: ${error instanceof Error ? error.message : String(error)}`);
+    }
     
-    console.log('\x1b[32m%s\x1b[0m', 'Dodano nagłówki audytu do kontekstu przeglądarki');
-    
-    const page = await context.newPage();
+    console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Dodano nagłówki audytu do kontekstu przeglądarki`);
+
+    // Ustawienie obsługi zdarzeń kontekstu dla lepszego debugowania
+    try {
+      if (context) {
+        context.on('close', () => {
+          console.log(`\x1b[35m%s\x1b[0m`, `[${auditId}] Kontekst został zamknięty przez zewnętrzne źródło`);
+        });
+      }
+    } catch (e) {
+      // Ignorujemy błędy przy rejestrowaniu event handlera
+      console.warn(`\x1b[33m%s\x1b[0m`, `[${auditId}] Nie można dodać obsługi zdarzeń kontekstu:`, e);
+    }
     
     try {
+      // Tworzenie nowej strony z obsługą błędów
+      if (!context) {
+        throw new Error('Kontekst przeglądarki nie został utworzony');
+      }
+      
+      // Sprawdzamy czy kontekst nie został zamknięty
+      try {
+        // Test czy kontekst jest wciąż aktywny przez próbę dostania się do jego właściwości
+        try {
+          // Sprawdzamy czy możemy pobrać listę stron
+          await context.pages();
+        } catch (pageError) {
+          throw new Error('Kontekst przeglądarki został zamknięty');
+        }
+      } catch (e) {
+        throw new Error(`Kontekst przeglądarki nie jest już dostępny: ${e instanceof Error ? e.message : String(e)}`);
+      }
+
+      console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Tworzenie nowej strony...`);
+      page = await context.newPage().catch((e) => {
+        throw new Error(`Nie można utworzyć strony: ${e instanceof Error ? e.message : String(e)}`);
+      });
+      
+      if (!page) {
+        throw new Error('Nie utworzono obiektu strony');
+      }
+
+      // Dodajemy obsługę zdarzeń dla strony
+      try {
+        page.on('crash', () => {
+          console.error(`\x1b[31m%s\x1b[0m`, `[${auditId}] Strona uległa awarii`);
+        });
+        
+        page.on('close', () => {
+          console.log(`\x1b[35m%s\x1b[0m`, `[${auditId}] Strona została zamknięta`);
+        });
+      } catch (e) {
+        // Ignorujemy błędy przy rejestrowaniu event handlerów
+      }
+      
+      resourcesInitialized = true;
+      console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Utworzono nową stronę przeglądarki`);
+    } catch (error) {
+      console.error(`\x1b[31m%s\x1b[0m`, `[${auditId}] Błąd podczas tworzenia strony:`, error);
+      throw new Error(`Nie udało się utworzyć strony: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    
+    try {
+      // Funkcja pomocnicza do weryfikacji czy strona, kontekst i przeglądarka są wciąż dostępne
+      async function verifyResourcesAvailable() {
+        // Weryfikacja przeglądarki
+        if (!browser) {
+          throw new Error('Brak inicjalizacji przeglądarki');
+        }
+        
+        try {
+          // Sprawdzamy czy przeglądarka jest wciąż połączona
+          if (browser.isConnected() === false) {
+            throw new Error('Przeglądarka nie jest już połączona');
+          }
+        } catch (e) {
+          throw new Error(`Przeglądarka nie jest dostępna: ${e instanceof Error ? e.message : String(e)}`);
+        }
+        
+        // Weryfikacja kontekstu
+        if (!context) {
+          throw new Error('Brak inicjalizacji kontekstu przeglądarki');
+        }
+        
+        try {
+          // Próba dostępu do właściwości kontekstu
+          await context.pages();
+        } catch (e) {
+          throw new Error(`Kontekst przeglądarki nie jest już dostępny: ${e instanceof Error ? e.message : String(e)}`);
+        }
+        
+        // Weryfikacja strony
+        if (!page) {
+          throw new Error('Brak inicjalizacji strony przeglądarki');
+        }
+        
+        try {
+          // Próba dostępu do właściwości strony (w sposób, który nie wpłynie na stan strony)
+          // Najpierw sprawdzamy czy strona istnieje
+          if (!page) {
+            throw new Error('Strona nie jest zainicjalizowana');
+          }
+          
+          // Bezpieczne pobranie URL z obsługą błędów
+          try {
+            const currentUrl = page.url();
+            if (!currentUrl) {
+              throw new Error('Nie można pobrać URL strony');
+            }
+          } catch (urlError) {
+            throw new Error('Strona nie jest już dostępna');
+          }
+        } catch (e) {
+          throw new Error(`Strona nie jest już dostępna: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
+      
       // Funkcja pomocnicza do próby ominięcia zabezpieczeń 403
       async function tryBypassProtection() {
-        console.log('\x1b[34m%s\x1b[0m', 'Próba ominięcia zabezpieczeń 403...');
+        console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Próba ominięcia zabezpieczeń 403...`);
+        
+        // Sprawdzamy najpierw czy zasoby są dostępne
+        await verifyResourcesAvailable();
+        
+        // Sprawdzanie czy page i context są dostępne
+        if (!page) {
+          throw new Error('Strona nie jest zainicjalizowana');
+        }
+
+        if (!context) {
+          throw new Error('Kontekst przeglądarki nie jest zainicjalizowany');
+        }
         
         // Próba 1: Dodanie referer
         await page.setExtraHTTPHeaders({
@@ -557,6 +741,11 @@ export async function runAccessibilityAudit(url: string): Promise<{
         
         // Próba 4: Emulacja interakcji użytkownika
         try {
+          // Sprawdzamy ponownie czy strona jest dostępna
+          if (!page) {
+            throw new Error('Strona nie jest dostępna podczas emulacji interakcji');
+          }
+          
           // Próba kliknięcia w przyciski akceptacji cookie/terms
           const possibleSelectors = [
             'button:has-text("Akceptuj")', 
@@ -581,44 +770,77 @@ export async function runAccessibilityAudit(url: string): Promise<{
           for (const selector of possibleSelectors) {
             const button = await page.$(selector);
             if (button) {
-              console.log(`\x1b[34m%s\x1b[0m`, `Znaleziono element ${selector}, próba kliknięcia...`);
+              console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Znaleziono element ${selector}, próba kliknięcia...`);
               await button.click().catch((e: Error) => console.log(`Błąd kliknięcia: ${e.message}`));
               await page.waitForTimeout(500); // Krótkie opóźnienie po kliknięciu
             }
           }
           
           // Próba wykonania scrollowania strony
-          await autoScroll(page);
+          if (page) { // Ponowne sprawdzenie page, ponieważ może zostać zamknięty podczas klikania
+            await autoScroll(page);
+          }
           
         } catch (e) {
-          console.log(`\x1b[33m%s\x1b[0m`, `Błąd podczas emulacji interakcji: ${e instanceof Error ? e.message : String(e)}`);
+          console.log(`\x1b[33m%s\x1b[0m`, `[${auditId}] Błąd podczas emulacji interakcji: ${e instanceof Error ? e.message : String(e)}`);
         }
       }
       
-      // Próbujemy załadować stronę
-      let response = await page.goto(url, { 
-        waitUntil: 'domcontentloaded', 
-        timeout: PLAYWRIGHT_TIMEOUT 
-      });
+      console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Przygotowanie do nawigacji na URL: ${url}`);
+      
+      // Sprawdzamy czy zasoby są dostępne przed nawigacją
+      await verifyResourcesAvailable();
+      
+      console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Rozpoczynam nawigację do: ${url}`);
+      
+      // Próbujemy załadować stronę z bezpiecznym wrapperem z obsługą błędów
+      let response = null;
+      try {
+        response = await page.goto(url, { 
+          waitUntil: 'domcontentloaded', 
+          timeout: PLAYWRIGHT_TIMEOUT 
+        });
+        console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Nawigacja zakończona pomyślnie`);
+      } catch (navigationError) {
+        console.error(`\x1b[31m%s\x1b[0m`, `[${auditId}] Błąd podczas nawigacji:`, navigationError);
+        
+        // Sprawdzamy czy zasoby są nadal dostępne po błędzie nawigacji
+        try {
+          await verifyResourcesAvailable();
+          throw new Error(`Błąd nawigacji: ${navigationError instanceof Error ? navigationError.message : String(navigationError)}`);
+        } catch (resourceError) {
+          throw new Error(`Zasoby przeglądarki zostały zamknięte podczas nawigacji: ${resourceError instanceof Error ? resourceError.message : String(resourceError)}`);
+        }
+      }
       
       // Jeśli otrzymaliśmy 403, próbujemy obejść zabezpieczenia
       if (response && response.status() === 403) {
-        console.warn('\x1b[33m%s\x1b[0m', 'Otrzymano kod 403 (Forbidden), próbujemy obejść zabezpieczenia...');
+        console.warn(`\x1b[33m%s\x1b[0m`, `[${auditId}] Otrzymano kod 403 (Forbidden), próbujemy obejść zabezpieczenia...`);
         
         // Próba ominięcia zabezpieczeń
         await tryBypassProtection();
         
         // Ponowna próba załadowania strony
-        console.log('\x1b[34m%s\x1b[0m', 'Ponowna próba załadowania strony po ominięciu zabezpieczeń...');
-        response = await page.goto(url, { 
-          waitUntil: 'domcontentloaded', 
-          timeout: PLAYWRIGHT_TIMEOUT 
-        });
+        console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Ponowna próba załadowania strony po ominięciu zabezpieczeń...`);
+        
+        // Sprawdzamy ponownie czy zasoby są dostępne
+        await verifyResourcesAvailable();
+        
+        try {
+          response = await page.goto(url, { 
+            waitUntil: 'domcontentloaded', 
+            timeout: PLAYWRIGHT_TIMEOUT 
+          });
+          console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Ponowna nawigacja zakończona pomyślnie`);
+        } catch (retryError) {
+          console.error(`\x1b[31m%s\x1b[0m`, `[${auditId}] Błąd podczas ponownej nawigacji:`, retryError);
+          throw new Error(`Błąd podczas ponownej nawigacji: ${retryError instanceof Error ? retryError.message : String(retryError)}`);
+        }
       }
       
       if (response) {
         const status = response.status();
-        console.log(`\x1b[34m%s\x1b[0m`, `Status odpowiedzi strony: ${status}`);
+        console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Status odpowiedzi strony: ${status}`);
         
         // Sprawdzamy kody błędów serwera i strony nie znalezionej
         const isServerError = status >= 500 || status === 404;
@@ -629,18 +851,28 @@ export async function runAccessibilityAudit(url: string): Promise<{
         
         // Jeśli kod to 403, kontynuujemy audyt mimo wszystko
         if (status === 403) {
-          console.warn('\x1b[33m%s\x1b[0m', 'Otrzymano kod 403 (Forbidden) nawet po próbie ominięcia zabezpieczeń, ale kontynuujemy audyt');
+          console.warn(`\x1b[33m%s\x1b[0m`, `[${auditId}] Otrzymano kod 403 (Forbidden) nawet po próbie ominięcia zabezpieczeń, ale kontynuujemy audyt`);
         }
       } else {
-        console.warn('\x1b[33m%s\x1b[0m', 'Brak obiektu odpowiedzi, ale kontynuujemy audyt');
+        console.warn(`\x1b[33m%s\x1b[0m`, `[${auditId}] Brak obiektu odpowiedzi, ale kontynuujemy audyt`);
       }
       
-      await page.waitForLoadState('load', { timeout: PLAYWRIGHT_TIMEOUT / 2 }).catch(err => {
-        console.warn('\x1b[33m%s\x1b[0m', 'Timeout podczas oczekiwania na pełne załadowanie strony, ale kontynuujemy:', err.message);
-      });
+      // Dodajemy krótkie opóźnienie, aby strona miała czas się ustabilizować
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Sprawdzamy ponownie czy zasoby są dostępne
+      await verifyResourcesAvailable();
+      
+      // Czekamy na pełne załadowanie strony
+      try {
+        await page.waitForLoadState('load', { timeout: PLAYWRIGHT_TIMEOUT / 2 });
+        console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Strona w pełni załadowana`);
+      } catch (loadError) {
+        console.warn(`\x1b[33m%s\x1b[0m`, `[${auditId}] Timeout podczas oczekiwania na pełne załadowanie strony, ale kontynuujemy:`, loadError);
+      }
       
     } catch (error) {
-      console.error('\x1b[31m%s\x1b[0m', 'Błąd podczas ładowania strony:', error);
+      console.error(`\x1b[31m%s\x1b[0m`, `[${auditId}] Błąd podczas ładowania strony:`, error);
       throw new Error(`Nie udało się załadować strony: ${error instanceof Error ? error.message : String(error)}`);
     }
     
@@ -861,16 +1093,57 @@ export async function runAccessibilityAudit(url: string): Promise<{
       violations: axeResults?.violations || [],
     };
   } catch (error) {
-    console.error('Error running accessibility audit:', error);
-    throw error;
+    console.error('\x1b[31m%s\x1b[0m', 'Błąd podczas wykonywania audytu dostępności:', error);
+    throw new Error(`Błąd podczas wykonywania audytu dostępności: ${error instanceof Error ? error.message : String(error)}`);
   } finally {
+    console.log('\x1b[33m%s\x1b[0m', 'Rozpoczynam bezpieczne zamykanie zasobów przeglądarki...');
 
-    if (browser) {
+    // Zamykanie zasobów w odwrotnej kolejności: strona -> kontekst -> przeglądarka
+    // z odpowiednimi opóźnieniami i obsługą błędów
+
+    // Funkcja do bezpiecznego zamykania z timeoutem
+    const safeClose = async <T extends { close: () => Promise<void> }>(resource: T | null, name: string): Promise<void> => {
+      if (!resource) return;
+      
       try {
-        await browser.close();
-      } catch (error) {
-        console.error('Błąd podczas zamykania przeglądarki:', error instanceof Error ? error.message : String(error));
+        // Dodajemy timeout aby nie czekać w nieskończoność
+        const closePromise = resource.close();
+        await Promise.race([
+          closePromise,
+          new Promise(resolve => setTimeout(resolve, 3000)) // 3s timeout
+        ]);
+        console.log(`\x1b[32m%s\x1b[0m`, `Pomyślnie zamknięto: ${name}`);
+      } catch (closeError) {
+        console.error(`\x1b[31m%s\x1b[0m`, `Błąd podczas zamykania ${name}:`, 
+          closeError instanceof Error ? closeError.message : String(closeError));
       }
+    };
+
+    try {
+      // 1. Najpierw zamykamy stronę
+      if (page) {
+        await safeClose(page, 'strona');
+      }
+      
+      // Dodajemy krótkie opóźnienie przed przejściem do kontekstu
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // 2. Następnie zamykamy kontekst
+      if (context) {
+        await safeClose(context, 'kontekst przeglądarki');
+      }
+      
+      // Dodajemy krótkie opóźnienie przed przejściem do przeglądarki
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // 3. Na końcu zamykamy przeglądarkę
+      if (browser) {
+        await safeClose(browser, 'przeglądarka');
+      }
+    } catch (finallyError) {
+      // Łapiemy wszystkie błędy w finally, aby nie wpłynęły na zwracanie rezultatu
+      console.error('\x1b[31m%s\x1b[0m', 'Błąd podczas procedury zamykania zasobów:', 
+        finallyError instanceof Error ? finallyError.message : String(finallyError));
     }
   }
 }

@@ -6,6 +6,7 @@ import { Button } from '@/components/atoms/Button/Button';
 import { useCallback, useState } from 'react';
 import clsx from 'clsx';
 import { LuBraces, LuBrain, LuEye, LuEar   } from "react-icons/lu";
+import { AnimatedReveal } from '@/components/AnimatedReveal/AnimatedReveal';
 
 export const Hero = () => {
   const [isContactLoading, setIsContactLoading] = useState(false);
@@ -41,6 +42,7 @@ export const Hero = () => {
   }, []);
   
   return (
+
     <section id="hero" className={styles.wrapper}>
       {/* <div className={styles.bottom}>
         <div className={styles.imageContainer}>
@@ -79,5 +81,6 @@ export const Hero = () => {
       </div>
      
     </section>
+
   );
 };
