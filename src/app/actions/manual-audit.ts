@@ -14,6 +14,9 @@ interface UpdateAuditData {
   basicAudit?: AuditItemData[];
   intermediateAudit?: AuditItemData[];
   advancedAudit?: AuditItemData[];
+  basicAuditAISummary?: string;
+  intermediateAuditAISummary?: string;
+  advancedAuditAISummary?: string;
 }
 
 // Pobieranie pojedynczego audytu manualnego
@@ -61,6 +64,9 @@ export async function updateManualAudit(id: string, data: UpdateAuditData) {
       basicAudit?: string;
       intermediateAudit?: string;
       advancedAudit?: string;
+      basicAuditAISummary?: string;
+      intermediateAuditAISummary?: string;
+      advancedAuditAISummary?: string;
     } = {
       updatedAt: new Date(),
     };
@@ -74,6 +80,17 @@ export async function updateManualAudit(id: string, data: UpdateAuditData) {
     }
     if (data.advancedAudit) {
       updateData.advancedAudit = JSON.stringify(data.advancedAudit);
+    }
+    
+    // Dodanie podsumowań AI, jeśli zostały przekazane
+    if (data.basicAuditAISummary) {
+      updateData.basicAuditAISummary = data.basicAuditAISummary;
+    }
+    if (data.intermediateAuditAISummary) {
+      updateData.intermediateAuditAISummary = data.intermediateAuditAISummary;
+    }
+    if (data.advancedAuditAISummary) {
+      updateData.advancedAuditAISummary = data.advancedAuditAISummary;
     }
 
     // Aktualizacja audytu w bazie danych

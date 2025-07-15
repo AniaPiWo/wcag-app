@@ -13,6 +13,60 @@
     background-color: #f9f9f9;
   }
   
+  .reportControls {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #f0f7ff;
+    border-radius: 8px;
+    border: 1px solid #d0e1f9;
+  }
+  
+  .checkboxGroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  
+  .checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    
+    &:hover {
+      background-color: #f5f9ff;
+    }
+    
+    input[type="checkbox"] {
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+    }
+  }
+  
+  .aiSummary {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border-left: 4px solid #3b82f6;
+  }
+  
+  .summaryContent {
+    white-space: pre-line;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    padding: 0.75rem;
+    background-color: white;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+  }
+  
   .table {
     width: 100%;
     border-collapse: collapse;
@@ -118,9 +172,9 @@
   }
   
   .saveSection {
-    margin-top: 1.5rem;
     display: flex;
     align-items: center;
+    margin-top: 1.5rem;
     gap: 1rem;
   }
   
@@ -149,4 +203,44 @@
     position: fixed;
     top: 6rem;
     right: 1rem;
+  }
+
+  .AIreviewSection {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .AIreviewBtn {  
+    margin-bottom: 1rem;
+    align-self: flex-start;
+    padding: 0.5rem 1rem;
+    background-color: var(--vanilla);
+    color: var(--foreground);
+    font-size: 1.2rem;
+    cursor: pointer;
+    border: 1px solid var(--foreground);
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+  
+  .aiSummaryContainer {
+    margin-top: 0.5rem;
+    width: 100%;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .aiSummaryContent {
+    white-space: pre-line;
+    font-size: 0.95rem;
+    line-height: 1.6;
   }

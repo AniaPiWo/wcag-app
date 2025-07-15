@@ -119,13 +119,13 @@ rotate: -15deg;
 @media (max-width: 768px) {
   .wrapper {
     flex-direction: column;
+    padding-top: 5rem;
     gap: 0;
     height: 85dvh;
     position: relative;
   }
   
   .top {
-    width: 100%;
     max-width: 100%;
     align-items: flex-start;
     text-align: left;
@@ -136,15 +136,9 @@ rotate: -15deg;
   }
   
   .top .title {
-    padding-top: 1rem;
-    font-size: 26px;
-    text-align: start;
     max-width: 100%;
     width: 100%;
-    transform: rotate(0deg);
-    position: relative;
-    z-index: 10;
-    border-width: 2px;
+    font-size: 2.75rem;
   }
   
   .top .desc {
@@ -176,7 +170,10 @@ rotate: -15deg;
     width: 100%;
     padding: 0;
   }
-}
 
+  .badge {
+    display: none;
+  }
+}
 
 

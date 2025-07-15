@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-// import { chromium } from 'playwright'; // zakomentowane, ponieważ nie używamy już Playwright
+import { chromium } from 'playwright';
 
 export async function POST(request: NextRequest) {
   const headers = {
@@ -53,7 +53,6 @@ export async function POST(request: NextRequest) {
     }
     
     // Następnie sprawdź, czy strona może być zaudytowana przez Playwright
-    /* Komentujemy sprawdzanie przez Playwright dla zwiększenia wydajności
     let browser = null;
     try {
       browser = await chromium.launch({ timeout: 30000 });
@@ -86,14 +85,6 @@ export async function POST(request: NextRequest) {
         { status: 400, headers }
       );
     }
-    */
-
-    // Zwracamy sukces po podstawowym sprawdzeniu URL
-    return NextResponse.json({ 
-      success: true, 
-      url: normalizedUrl,
-      title: 'URL zweryfikowany'
-    }, { headers });
     
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Wystąpił błąd podczas weryfikacji URL';

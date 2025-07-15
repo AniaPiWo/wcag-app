@@ -171,7 +171,7 @@ export const Form = () => {
       
       // Krok 2: Dodanie do kolejki audytów
       setStatusMessage('Strona zweryfikowana. Dodawanie do kolejki audytów...');
-      
+      console.log("\x1b[33m%s\x1b[0m", "URL ok, rozpoczynam audyt");
       const payload = {
         url: verifyResult.url || data.website, // Używamy znormalizowanego URL z weryfikacji
         email: data.email,

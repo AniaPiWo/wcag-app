@@ -28,20 +28,24 @@ interface AuditData {
 interface Audit {
   id: string;
   url: string;
+  name: string;
+  email: string;
   createdAt: Date;
   updatedAt: Date;
-  selectedLevels: string | null;
   basicAudit?: string | null;
   intermediateAudit?: string | null;
   advancedAudit?: string | null;
-  auditType: string;
-  name?: string | null;
-  email?: string | null;
+  basicAuditAISummary?: string | null;
+  intermediateAuditAISummary?: string | null;
+  advancedAuditAISummary?: string | null;
+  consolidatedAuditAISummary?: string | null;
+  selectedLevels?: string | null;
   status?: string | null;
   completedAt?: Date | null;
   totalIssuesCount?: number | null;
   criticalCount?: number | null;
   seriousCount?: number | null;
+  auditType: string;
   errorMessage?: string | null;
 }
 
@@ -49,23 +53,232 @@ interface ManualAuditFormProps {
   id: string;
 }
 
-export function ManualAuditForm({ id }: ManualAuditFormProps) {
+export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElement {
   const [audit, setAudit] = useState<Audit | null>(null);
+  
+  // Interface for audit item data that we send to the API
+  interface AuditItemData {
+    itemId: number;
+    evaluation: string;
+    notes: string;
+  }
+  
+  // Interface for the UpdateAuditData type that we use with updateManualAudit
+  interface UpdateAuditData {
+    basicAudit?: AuditItemData[];
+    intermediateAudit?: AuditItemData[];
+    advancedAudit?: AuditItemData[];
+    basicAuditAISummary?: string;
+    intermediateAuditAISummary?: string;
+    advancedAuditAISummary?: string;
+    consolidatedAuditAISummary?: string;
+  };
   const [isLoading, setIsLoading] = useState(true);
   const [basicAuditData, setBasicAuditData] = useState<Array<{itemId: number, evaluation: string, notes: string}>>([]);
   const [intermediateAuditData, setIntermediateAuditData] = useState<Array<{itemId: number, evaluation: string, notes: string}>>([]);
   const [advancedAuditData, setAdvancedAuditData] = useState<Array<{itemId: number, evaluation: string, notes: string}>>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+  const [basicAduditAISummary, setBasicAduditAISummary] = useState<string | null>(null);
+  const [intermediateAduditAISummary, setIntermediateAduditAISummary] = useState<string | null>(null);
+  const [advancedAduditAISummary, setAdvancedAduditAISummary] = useState<string | null>(null);
+  const [consolidatedAISummary, setConsolidatedAISummary] = useState<string | null>(null);
+  
+  // Loading states for AI summaries
+  const [isLoadingBasicSummary, setIsLoadingBasicSummary] = useState(false);
+  const [isLoadingIntermediateSummary, setIsLoadingIntermediateSummary] = useState(false);
+  const [isLoadingAdvancedSummary, setIsLoadingAdvancedSummary] = useState(false);
+  const [isLoadingConsolidatedSummary, setIsLoadingConsolidatedSummary] = useState(false);
+  
+  // Selected audit levels for consolidated report
+  const [selectedLevelsForReport, setSelectedLevelsForReport] = useState({
+    basic: true,
+    intermediate: true,
+    advanced: true
+  });
   
   const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
+  
+  /**
+   * Handles generating an AI summary report for a specific audit level
+   * @param level The audit level ('basic', 'intermediate', or 'advanced')
+   */
+  const handleAIReview = async (level: 'basic' | 'intermediate' | 'advanced') => {
+    let auditData;
+    let setLoading;
+    let setSummary;
+    
+    // Set the appropriate data and state functions based on the level
+    switch (level) {
+      case 'basic':
+        auditData = basicAuditData;
+        setLoading = setIsLoadingBasicSummary;
+        setSummary = setBasicAduditAISummary;
+        break;
+      case 'intermediate':
+        auditData = intermediateAuditData;
+        setLoading = setIsLoadingIntermediateSummary;
+        setSummary = setIntermediateAduditAISummary;
+        break;
+      case 'advanced':
+        auditData = advancedAuditData;
+        setLoading = setIsLoadingAdvancedSummary;
+        setSummary = setAdvancedAduditAISummary;
+        break;
+    }
+    
+    // Don't proceed if there's no audit data
+    if (!auditData || auditData.length === 0) {
+      setSummary('Brak danych audytowych dla tego poziomu.');
+      return;
+    }
+    
+    setLoading(true);
+    setSummary('Generowanie podsumowania AI...');
+    
+    try {
+      const response = await fetch('/api/ai-summary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ auditData, level }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Błąd HTTP: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const aiSummary = data.summary;
+      setSummary(aiSummary);
+      
+      // Save the AI summary to the database
+      try {
+        const updateData: UpdateAuditData = {};
+        
+        // Set the appropriate field based on level
+        switch (level) {
+          case 'basic':
+            updateData.basicAuditAISummary = aiSummary;
+            break;
+          case 'intermediate':
+            updateData.intermediateAuditAISummary = aiSummary;
+            break;
+          case 'advanced':
+            updateData.advancedAuditAISummary = aiSummary;
+            break;
+        }
+        
+        // Update the audit in the database
+        await updateManualAudit(id, updateData);
+        console.log(`AI summary for ${level} level saved to database`);
+      } catch (dbError) {
+        console.error('Error saving AI summary to database:', dbError);
+        // We don't need to show this error to the user since the summary is still displayed
+      }
+    } catch (error) {
+      console.error('Błąd podczas generowania podsumowania AI:', error);
+      setSummary(`Wystąpił błąd podczas generowania podsumowania AI: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Generates a consolidated AI summary report from multiple audit levels
+   */
+  const handleConsolidatedAIReview = async () => {
+    // Check if at least one level is selected
+    if (!selectedLevelsForReport.basic && 
+        !selectedLevelsForReport.intermediate && 
+        !selectedLevelsForReport.advanced) {
+      setConsolidatedAISummary('Proszę wybrać co najmniej jeden poziom audytu.');
+      return;
+    }
+
+    setIsLoadingConsolidatedSummary(true);
+    setConsolidatedAISummary('Generowanie podsumowania AI dla wybranych poziomów...');
+    
+    try {
+      // Prepare data for all selected levels
+      const consolidatedData = [];
+      
+      if (selectedLevelsForReport.basic && basicAuditData.length > 0) {
+        consolidatedData.push({
+          level: 'basic',
+          data: basicAuditData
+        });
+      }
+      
+      if (selectedLevelsForReport.intermediate && intermediateAuditData.length > 0) {
+        consolidatedData.push({
+          level: 'intermediate',
+          data: intermediateAuditData
+        });
+      }
+      
+      if (selectedLevelsForReport.advanced && advancedAuditData.length > 0) {
+        consolidatedData.push({
+          level: 'advanced',
+          data: advancedAuditData
+        });
+      }
+      
+      if (consolidatedData.length === 0) {
+        setConsolidatedAISummary('Brak danych audytowych dla wybranych poziomów.');
+        setIsLoadingConsolidatedSummary(false);
+        return;
+      }
+      
+      // Call API to generate consolidated summary
+      const response = await fetch('/api/ai-summary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          auditData: consolidatedData.flatMap(item => item.data), 
+          level: 'consolidated',
+          selectedLevels: consolidatedData.map(item => item.level)
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Błąd HTTP: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const aiSummary = data.summary;
+      setConsolidatedAISummary(aiSummary);
+      
+      // Save the consolidated AI summary to the database
+      try {
+        const updateData: UpdateAuditData = {
+          consolidatedAuditAISummary: aiSummary
+        };
+        
+        await updateManualAudit(id, updateData);
+        console.log('Zbiorcza analiza AI zapisana do bazy danych');
+      } catch (dbError) {
+        console.error('Błąd zapisywania zbiorczej analizy AI do bazy danych:', dbError);
+        // Analiza nadal zostanie wyświetlona użytkownikowi
+      }
+      
+    } catch (error) {
+      console.error('Błąd generowania skonsolidowanego podsumowania AI:', error);
+      setConsolidatedAISummary(`Błąd generowania podsumowania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+    } finally {
+      setIsLoadingConsolidatedSummary(false);
+    }
+  };
 
   useEffect(() => {
     const fetchAudit = async () => {
       setIsLoading(true);
       try {
         const data = await getManualAudit(id);
-        setAudit(data);
+        setAudit(data as Audit);
         
         if (data.basicAudit) {
           setBasicAuditData(JSON.parse(data.basicAudit));
@@ -75,6 +288,23 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
         }
         if (data.advancedAudit) {
           setAdvancedAuditData(JSON.parse(data.advancedAudit));
+        }
+        
+        // Load existing AI summaries if available
+        // Type cast to Audit to access the AI summary fields
+        const auditData = data as Audit;
+        
+        if (auditData.basicAuditAISummary) {
+          setBasicAduditAISummary(auditData.basicAuditAISummary);
+        }
+        if (auditData.intermediateAuditAISummary) {
+          setIntermediateAduditAISummary(auditData.intermediateAuditAISummary);
+        }
+        if (auditData.advancedAuditAISummary) {
+          setAdvancedAduditAISummary(auditData.advancedAuditAISummary);
+        }
+        if (auditData.consolidatedAuditAISummary) {
+          setConsolidatedAISummary(auditData.consolidatedAuditAISummary);
         }
       } catch (error) {
         console.error('Błąd podczas pobierania audytu:', error);
@@ -202,6 +432,8 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
     }
   };
 
+  // The handleAIReview function has been moved to the top of the component
+
   return (
     <div className={styles.page}>
       <h1 className={styles.title}>Edycja audytu manualnego</h1>    
@@ -216,6 +448,55 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
             <p><strong>Data utworzenia:</strong> {new Date(audit.createdAt).toLocaleString()}</p>
             <p><strong>Ostatnia aktualizacja:</strong> {new Date(audit.updatedAt).toLocaleString()}</p>
             <p><strong>Wybrane poziomy:</strong> {renderSelectedLevels()}</p>
+            
+            <div className={styles.reportControls}>
+              <h3>Generowanie raportu zbiorczego</h3>
+              <div className={styles.checkboxGroup}>
+                <label className={styles.checkboxLabel}>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedLevelsForReport.basic} 
+                    onChange={(e) => setSelectedLevelsForReport(prev => ({ ...prev, basic: e.target.checked }))} 
+                  />
+                  Poziom podstawowy
+                </label>
+                <label className={styles.checkboxLabel}>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedLevelsForReport.intermediate} 
+                    onChange={(e) => setSelectedLevelsForReport(prev => ({ ...prev, intermediate: e.target.checked }))} 
+                  />
+                  Poziom średni
+                </label>
+                <label className={styles.checkboxLabel}>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedLevelsForReport.advanced} 
+                    onChange={(e) => setSelectedLevelsForReport(prev => ({ ...prev, advanced: e.target.checked }))} 
+                  />
+                  Poziom zaawansowany
+                </label>
+              </div>
+              
+              <Button 
+                onClick={handleConsolidatedAIReview} 
+                disabled={isLoadingConsolidatedSummary ||
+                  (!selectedLevelsForReport.basic && 
+                   !selectedLevelsForReport.intermediate && 
+                   !selectedLevelsForReport.advanced)}
+              >
+                {isLoadingConsolidatedSummary ? 'Generowanie...' : 'Generuj zbiorczy raport AI'}
+              </Button>
+            </div>
+            
+            {consolidatedAISummary && (
+              <div className={styles.aiSummary}>
+                <h3>Zbiorczy raport AI</h3>
+                <div className={styles.summaryContent}>
+                  {consolidatedAISummary}
+                </div>
+              </div>
+            )}
           </div>
           
           <table className={styles.table}>
@@ -279,7 +560,25 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
                 );
               })}
             </tbody>
+            </table>
+            {/* AI review button */}
+            <div className={styles.AIreviewSection}>
+              <button 
+                type="button" 
+                className={styles.AIreviewBtn} 
+                onClick={() => handleAIReview('basic')}
+                disabled={isLoadingBasicSummary}
+              >
+                {isLoadingBasicSummary ? 'Generowanie...' : 'Wygeneruj raport AI'}
+              </button>
+              {basicAduditAISummary && (
+                <div className={styles.aiSummaryContainer}>
+                  <div className={styles.aiSummaryContent}>{basicAduditAISummary}</div>
+                </div>
+              )}
+            </div>
 
+            <table className={styles.table}>
             <tbody className={styles.tbody}>
               <tr className={styles.sectionRow}>
                 <td colSpan={6} className={styles.sectionHeader}>Poziom średni</td>
@@ -328,7 +627,25 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
                 );
               })}
             </tbody>
-
+            </table>
+            
+            <div className={styles.AIreviewSection}>
+              <button 
+                type="button" 
+                className={styles.AIreviewBtn} 
+                onClick={() => handleAIReview('intermediate')}
+                disabled={isLoadingIntermediateSummary}
+              >
+                {isLoadingIntermediateSummary ? 'Generowanie...' : 'Wygeneruj raport AI'}
+              </button>
+              {intermediateAduditAISummary && (
+                <div className={styles.aiSummaryContainer}>
+                  <div className={styles.aiSummaryContent}>{intermediateAduditAISummary}</div>
+                </div>
+              )}
+            </div>
+            
+            <table className={styles.table}>
             <tbody className={styles.tbody}>
               <tr className={styles.sectionRow}>
                 <td colSpan={6} className={styles.sectionHeader}>Poziom zaawansowany</td>
@@ -377,7 +694,24 @@ export function ManualAuditForm({ id }: ManualAuditFormProps) {
                 );
               })}
             </tbody>
-          </table>
+              </table>
+            
+            <div className={styles.AIreviewSection}>
+              <button 
+                type="button" 
+                className={styles.AIreviewBtn} 
+                onClick={() => handleAIReview('advanced')}
+                disabled={isLoadingAdvancedSummary}
+              >
+                {isLoadingAdvancedSummary ? 'Generowanie...' : 'Wygeneruj raport AI'}
+              </button>
+              {advancedAduditAISummary && (
+                <div className={styles.aiSummaryContainer}>
+                  <div className={styles.aiSummaryContent}>{advancedAduditAISummary}</div>
+                </div>
+              )}
+            </div>
+          
           <div className={styles.saveSection}>
             <Button variant="primary" onClick={handleSave} disabled={isSaving}>
               {isSaving ? 'Zapisywanie...' : 'Zapisz'}

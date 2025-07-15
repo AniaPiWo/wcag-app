@@ -47,6 +47,11 @@ model AuditRequest {
   advancedAudit   String?  @db.String // JSON z odpowiedziami dla zaawansowanego poziomu
   selectedLevels  String?  @db.String // JSON z wybranymi poziomami audytu
   
+  // podsumowania AI dla audytu manualnego
+  basicAuditAISummary      String?  @db.String // Podsumowanie AI dla podstawowego poziomu
+  intermediateAuditAISummary String? @db.String // Podsumowanie AI dla średniego poziomu
+  advancedAuditAISummary   String?  @db.String // Podsumowanie AI dla zaawansowanego poziomu
+  
   // pola systemowe
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
