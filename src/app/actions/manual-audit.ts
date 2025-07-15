@@ -17,6 +17,7 @@ interface UpdateAuditData {
   basicAuditAISummary?: string;
   intermediateAuditAISummary?: string;
   advancedAuditAISummary?: string;
+  consolidatedAuditAISummary?: string;
 }
 
 // Pobieranie pojedynczego audytu manualnego
@@ -67,6 +68,7 @@ export async function updateManualAudit(id: string, data: UpdateAuditData) {
       basicAuditAISummary?: string;
       intermediateAuditAISummary?: string;
       advancedAuditAISummary?: string;
+      consolidatedAuditAISummary?: string;
     } = {
       updatedAt: new Date(),
     };
@@ -91,6 +93,9 @@ export async function updateManualAudit(id: string, data: UpdateAuditData) {
     }
     if (data.advancedAuditAISummary) {
       updateData.advancedAuditAISummary = data.advancedAuditAISummary;
+    }
+    if (data.consolidatedAuditAISummary) {
+      updateData.consolidatedAuditAISummary = data.consolidatedAuditAISummary;
     }
 
     // Aktualizacja audytu w bazie danych

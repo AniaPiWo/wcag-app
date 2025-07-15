@@ -51,6 +51,7 @@ model AuditRequest {
   basicAuditAISummary      String?  @db.String // Podsumowanie AI dla podstawowego poziomu
   intermediateAuditAISummary String? @db.String // Podsumowanie AI dla średniego poziomu
   advancedAuditAISummary   String?  @db.String // Podsumowanie AI dla zaawansowanego poziomu
+  consolidatedAuditAISummary String? @db.String // Zbiorcze podsumowanie AI dla wybranych poziomów
   
   // pola systemowe
   createdAt       DateTime @default(now())

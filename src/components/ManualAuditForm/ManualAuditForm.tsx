@@ -90,6 +90,18 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
   const [isLoadingAdvancedSummary, setIsLoadingAdvancedSummary] = useState(false);
   const [isLoadingConsolidatedSummary, setIsLoadingConsolidatedSummary] = useState(false);
   
+  // Edit mode states for AI summaries
+  const [isEditingBasicSummary, setIsEditingBasicSummary] = useState(false);
+  const [isEditingIntermediateSummary, setIsEditingIntermediateSummary] = useState(false);
+  const [isEditingAdvancedSummary, setIsEditingAdvancedSummary] = useState(false);
+  const [isEditingConsolidatedSummary, setIsEditingConsolidatedSummary] = useState(false);
+  
+  // Temporary states for editing summaries
+  const [editedBasicSummary, setEditedBasicSummary] = useState<string>('');
+  const [editedIntermediateSummary, setEditedIntermediateSummary] = useState<string>('');
+  const [editedAdvancedSummary, setEditedAdvancedSummary] = useState<string>('');
+  const [editedConsolidatedSummary, setEditedConsolidatedSummary] = useState<string>('');
+
   // Selected audit levels for consolidated report
   const [selectedLevelsForReport, setSelectedLevelsForReport] = useState({
     basic: true,
@@ -103,6 +115,84 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
    * Handles generating an AI summary report for a specific audit level
    * @param level The audit level ('basic', 'intermediate', or 'advanced')
    */
+  // Function to save edited AI summary
+  const saveEditedSummary = async (level: 'basic' | 'intermediate' | 'advanced' | 'consolidated') => {
+    try {
+      const updateData: UpdateAuditData = {};
+      
+      switch (level) {
+        case 'basic':
+          updateData.basicAuditAISummary = editedBasicSummary;
+          setBasicAduditAISummary(editedBasicSummary);
+          setIsEditingBasicSummary(false);
+          break;
+        case 'intermediate':
+          updateData.intermediateAuditAISummary = editedIntermediateSummary;
+          setIntermediateAduditAISummary(editedIntermediateSummary);
+          setIsEditingIntermediateSummary(false);
+          break;
+        case 'advanced':
+          updateData.advancedAuditAISummary = editedAdvancedSummary;
+          setAdvancedAduditAISummary(editedAdvancedSummary);
+          setIsEditingAdvancedSummary(false);
+          break;
+        case 'consolidated':
+          updateData.consolidatedAuditAISummary = editedConsolidatedSummary;
+          setConsolidatedAISummary(editedConsolidatedSummary);
+          setIsEditingConsolidatedSummary(false);
+          break;
+      }
+      
+      await updateManualAudit(id, updateData);
+      setSaveMessage({ type: 'success', text: 'Raport AI zapisany' });
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (error) {
+      console.error('Błąd podczas zapisywania edytowanego raportu AI:', error);
+      setSaveMessage({ type: 'error', text: 'Błąd podczas zapisywania raportu AI' });
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
+  };
+  
+  // Function to start editing a summary
+  const startEditingSummary = (level: 'basic' | 'intermediate' | 'advanced' | 'consolidated') => {
+    switch (level) {
+      case 'basic':
+        setEditedBasicSummary(basicAduditAISummary || '');
+        setIsEditingBasicSummary(true);
+        break;
+      case 'intermediate':
+        setEditedIntermediateSummary(intermediateAduditAISummary || '');
+        setIsEditingIntermediateSummary(true);
+        break;
+      case 'advanced':
+        setEditedAdvancedSummary(advancedAduditAISummary || '');
+        setIsEditingAdvancedSummary(true);
+        break;
+      case 'consolidated':
+        setEditedConsolidatedSummary(consolidatedAISummary || '');
+        setIsEditingConsolidatedSummary(true);
+        break;
+    }
+  };
+  
+  // Function to cancel editing
+  const cancelEditingSummary = (level: 'basic' | 'intermediate' | 'advanced' | 'consolidated') => {
+    switch (level) {
+      case 'basic':
+        setIsEditingBasicSummary(false);
+        break;
+      case 'intermediate':
+        setIsEditingIntermediateSummary(false);
+        break;
+      case 'advanced':
+        setIsEditingAdvancedSummary(false);
+        break;
+      case 'consolidated':
+        setIsEditingConsolidatedSummary(false);
+        break;
+    }
+  };
+
   const handleAIReview = async (level: 'basic' | 'intermediate' | 'advanced') => {
     let auditData;
     let setLoading;
@@ -432,8 +522,6 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
     }
   };
 
-  // The handleAIReview function has been moved to the top of the component
-
   return (
     <div className={styles.page}>
       <h1 className={styles.title}>Edycja audytu manualnego</h1>    
@@ -449,52 +537,102 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
             <p><strong>Ostatnia aktualizacja:</strong> {new Date(audit.updatedAt).toLocaleString()}</p>
             <p><strong>Wybrane poziomy:</strong> {renderSelectedLevels()}</p>
             
-            <div className={styles.reportControls}>
-              <h3>Generowanie raportu zbiorczego</h3>
-              <div className={styles.checkboxGroup}>
-                <label className={styles.checkboxLabel}>
-                  <input 
-                    type="checkbox" 
-                    checked={selectedLevelsForReport.basic} 
-                    onChange={(e) => setSelectedLevelsForReport(prev => ({ ...prev, basic: e.target.checked }))} 
-                  />
-                  Poziom podstawowy
-                </label>
-                <label className={styles.checkboxLabel}>
-                  <input 
-                    type="checkbox" 
-                    checked={selectedLevelsForReport.intermediate} 
-                    onChange={(e) => setSelectedLevelsForReport(prev => ({ ...prev, intermediate: e.target.checked }))} 
-                  />
-                  Poziom średni
-                </label>
-                <label className={styles.checkboxLabel}>
-                  <input 
-                    type="checkbox" 
-                    checked={selectedLevelsForReport.advanced} 
-                    onChange={(e) => setSelectedLevelsForReport(prev => ({ ...prev, advanced: e.target.checked }))} 
-                  />
-                  Poziom zaawansowany
-                </label>
+            {!consolidatedAISummary && (
+              <div className={styles.reportControls}>
+                <h3>Generowanie raportu zbiorczego</h3>
+                <div className={styles.checkboxGroup}>
+                  <label className={styles.checkboxLabel}>
+                    <input 
+                      type="checkbox" 
+                      className={styles.checkbox}
+                      checked={selectedLevelsForReport.basic} 
+                      onChange={(e) => setSelectedLevelsForReport(prev => ({ ...prev, basic: e.target.checked }))} 
+                    />
+                    Poziom podstawowy
+                  </label>
+                  <label className={styles.checkboxLabel}>
+                    <input 
+                      type="checkbox" 
+                      className={styles.checkbox}
+                      checked={selectedLevelsForReport.intermediate} 
+                      onChange={(e) => setSelectedLevelsForReport(prev => ({ ...prev, intermediate: e.target.checked }))} 
+                    />
+                    Poziom średni
+                  </label>
+                  <label className={styles.checkboxLabel}>
+                    <input 
+                      type="checkbox" 
+                      className={styles.checkbox}
+                      checked={selectedLevelsForReport.advanced} 
+                      onChange={(e) => setSelectedLevelsForReport(prev => ({ ...prev, advanced: e.target.checked }))} 
+                    />
+                    Poziom zaawansowany
+                  </label>
+                </div>
+                
+                <Button 
+                  onClick={handleConsolidatedAIReview} 
+                  disabled={isLoadingConsolidatedSummary ||
+                    (!selectedLevelsForReport.basic && 
+                     !selectedLevelsForReport.intermediate && 
+                     !selectedLevelsForReport.advanced)}
+                >
+                  {isLoadingConsolidatedSummary ? 'Generowanie...' : 'Generuj zbiorczy raport AI'}
+                </Button>
               </div>
-              
-              <Button 
-                onClick={handleConsolidatedAIReview} 
-                disabled={isLoadingConsolidatedSummary ||
-                  (!selectedLevelsForReport.basic && 
-                   !selectedLevelsForReport.intermediate && 
-                   !selectedLevelsForReport.advanced)}
-              >
-                {isLoadingConsolidatedSummary ? 'Generowanie...' : 'Generuj zbiorczy raport AI'}
-              </Button>
-            </div>
+            )}
             
             {consolidatedAISummary && (
               <div className={styles.aiSummary}>
-                <h3>Zbiorczy raport AI</h3>
-                <div className={styles.summaryContent}>
-                  {consolidatedAISummary}
+                <div className={styles.summaryHeader}>
+                  <h3>Zbiorczy raport AI</h3>
+                  {!isEditingConsolidatedSummary ? (
+                    <div className={styles.editButtons}>
+                      <Button 
+                        onClick={() => startEditingSummary('consolidated')}
+                        variant="secondary"
+                      >
+                        Edytuj raport
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          setConsolidatedAISummary(null);
+                          setIsLoadingConsolidatedSummary(false);
+                        }}
+                        variant="secondary"
+                      >
+                        Wygeneruj ponownie
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className={styles.editButtons}>
+                      <Button 
+                        onClick={() => saveEditedSummary('consolidated')}
+                        variant="primary"
+                      >
+                        Zapisz
+                      </Button>
+                      <Button 
+                        onClick={() => cancelEditingSummary('consolidated')}
+                        variant="secondary"
+                      >
+                        Anuluj
+                      </Button>
+                    </div>
+                  )}
                 </div>
+                {!isEditingConsolidatedSummary ? (
+                  <div className={styles.summaryContent}>
+                    {consolidatedAISummary}
+                  </div>
+                ) : (
+                  <textarea
+                    className={styles.summaryTextarea}
+                    value={editedConsolidatedSummary}
+                    onChange={(e) => setEditedConsolidatedSummary(e.target.value)}
+                    rows={10}
+                  />
+                )}
               </div>
             )}
           </div>
@@ -573,7 +711,53 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
               </button>
               {basicAduditAISummary && (
                 <div className={styles.aiSummaryContainer}>
-                  <div className={styles.aiSummaryContent}>{basicAduditAISummary}</div>
+                  <div className={styles.summaryHeader}>
+                    <h4>Raport AI - poziom podstawowy</h4>
+                    {!isEditingBasicSummary ? (
+                      <div className={styles.editButtons}>
+                        <Button 
+                          onClick={() => startEditingSummary('basic')}
+                          variant="secondary"
+                        >
+                          Edytuj raport
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            setBasicAduditAISummary(null);
+                            setIsLoadingBasicSummary(false);
+                          }}
+                          variant="secondary"
+                        >
+                          Wygeneruj ponownie
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className={styles.editButtons}>
+                        <Button 
+                          onClick={() => saveEditedSummary('basic')}
+                          variant="primary"
+                        >
+                          Zapisz
+                        </Button>
+                        <Button 
+                          onClick={() => cancelEditingSummary('basic')}
+                          variant="secondary"
+                        >
+                          Anuluj
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {!isEditingBasicSummary ? (
+                    <div className={styles.aiSummaryContent}>{basicAduditAISummary}</div>
+                  ) : (
+                    <textarea
+                      className={styles.summaryTextarea}
+                      value={editedBasicSummary}
+                      onChange={(e) => setEditedBasicSummary(e.target.value)}
+                      rows={8}
+                    />
+                  )}
                 </div>
               )}
             </div>
@@ -640,7 +824,53 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
               </button>
               {intermediateAduditAISummary && (
                 <div className={styles.aiSummaryContainer}>
-                  <div className={styles.aiSummaryContent}>{intermediateAduditAISummary}</div>
+                  <div className={styles.summaryHeader}>
+                    <h4>Raport AI - poziom średni</h4>
+                    {!isEditingIntermediateSummary ? (
+                      <div className={styles.editButtons}>
+                        <Button 
+                          onClick={() => startEditingSummary('intermediate')}
+                          variant="secondary"
+                        >
+                          Edytuj raport
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            setIntermediateAduditAISummary(null);
+                            setIsLoadingIntermediateSummary(false);
+                          }}
+                          variant="secondary"
+                        >
+                          Wygeneruj ponownie
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className={styles.editButtons}>
+                        <Button 
+                          onClick={() => saveEditedSummary('intermediate')}
+                          variant="primary"
+                        >
+                          Zapisz
+                        </Button>
+                        <Button 
+                          onClick={() => cancelEditingSummary('intermediate')}
+                          variant="secondary"
+                          >
+                          Anuluj
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {!isEditingIntermediateSummary ? (
+                    <div className={styles.aiSummaryContent}>{intermediateAduditAISummary}</div>
+                  ) : (
+                    <textarea
+                      className={styles.summaryTextarea}
+                      value={editedIntermediateSummary}
+                      onChange={(e) => setEditedIntermediateSummary(e.target.value)}
+                      rows={8}
+                    />
+                  )}
                 </div>
               )}
             </div>
@@ -707,7 +937,53 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
               </button>
               {advancedAduditAISummary && (
                 <div className={styles.aiSummaryContainer}>
-                  <div className={styles.aiSummaryContent}>{advancedAduditAISummary}</div>
+                  <div className={styles.summaryHeader}>
+                    <h4>Raport AI - poziom zaawansowany</h4>
+                    {!isEditingAdvancedSummary ? (
+                      <div className={styles.editButtons}>
+                        <Button 
+                          onClick={() => startEditingSummary('advanced')}
+                          variant="secondary"
+                        >
+                          Edytuj raport
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            setAdvancedAduditAISummary(null);
+                            setIsLoadingAdvancedSummary(false);
+                          }}
+                          variant="secondary"
+                        >
+                          Wygeneruj ponownie
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className={styles.editButtons}>
+                        <Button 
+                          onClick={() => saveEditedSummary('advanced')}
+                          variant="primary"
+                        >
+                          Zapisz
+                        </Button>
+                        <Button 
+                          onClick={() => cancelEditingSummary('advanced')}
+                          variant="secondary"
+                        >
+                          Anuluj
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {!isEditingAdvancedSummary ? (
+                    <div className={styles.aiSummaryContent}>{advancedAduditAISummary}</div>
+                  ) : (
+                    <textarea
+                      className={styles.summaryTextarea}
+                      value={editedAdvancedSummary}
+                      onChange={(e) => setEditedAdvancedSummary(e.target.value)}
+                      rows={8}
+                    />
+                  )}
                 </div>
               )}
             </div>

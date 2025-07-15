@@ -37,12 +37,11 @@ export async function generateManualAuditSummary(
     ${JSON.stringify(formattedAuditData, null, 2)}
     
     Na podstawie tych danych:
-    1. Przygotuj ZBIORCZĄ analizę wyników (maksymalnie 5-6 zdań)
-    2. Wypisz główne problemy dostępności (jeśli występują) z podziałem na kategorie
-    3. Zaproponuj 3-5 najważniejszych rekomendacji dla poprawy dostępności w kolejności priorytetów
-    4. Dodaj kompleksową ocenę zgodności z WCAG 2.2 uwzględniając wszystkie przeanalizowane poziomy
+    1. Przygotuj ZBIORCZĄ analizę wyników o nazwie raport podsumowujący audyt dostępności cyfrowej" (maksymalnie 5-6 zdań)
+    2. Wypisz główne problemy dostępności (jeśli występują) z podziałem na kategoriei i do każdego problemu dodaj rekomendacje naprawy. Wage problemu pobieraj z notatek - np błąd krytyczny, umiarkowany, mało istotny.
+    3. Dodaj kompleksową ocenę zgodności z WCAG 2.2 uwzględniając wszystkie przeanalizowane poziomy
     
-    Odpowiedź przygotuj w języku polskim. Format odpowiedzi powinien być czytelny, z odpowiednimi nagłówkami dla każdej sekcji.
+    Odpowiedź przygotuj w języku polskim. Format odpowiedzi powinien być czytelny, z odpowiednimi nagłówkami dla każdej sekcji. Nie używaj * i # w nagłówkach.
     Pamiętaj, że jest to raport zbiorczy, więc powinien zawierać kompleksową analizę wszystkich poziomów.
     `;
   } else {
@@ -53,9 +52,8 @@ export async function generateManualAuditSummary(
     
     Na podstawie tych danych:
     1. Przygotuj zwięzłe podsumowanie wyników (maks. 3-4 zdania)
-    2. Wypisz główne problemy dostępności (jeśli występują)
-    3. Zaproponuj 2-3 najważniejsze rekomendacje dla poprawy dostępności
-    4. Dodaj krótką ocenę zgodności z WCAG 2.2 dla tego poziomu
+    2. Wypisz główne problemy dostępności (jeśli występują) z podziałem na kategorie i do każdego problemu dodaj rekomendacje naprawy
+    3. Dodaj krótką ocenę zgodności z WCAG 2.2 dla tego poziomu
     
     Odpowiedź przygotuj w języku polskim. Format odpowiedzi powinien być czytelny, z odpowiednimi nagłówkami dla każdej sekcji.
     `;

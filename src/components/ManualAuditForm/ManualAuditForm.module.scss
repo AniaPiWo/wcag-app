@@ -15,10 +15,6 @@
   
   .reportControls {
     margin-top: 1.5rem;
-    padding: 1rem;
-    background-color: #f0f7ff;
-    border-radius: 8px;
-    border: 1px solid #d0e1f9;
   }
   
   .checkboxGroup {
@@ -33,28 +29,16 @@
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 4px;
-    background-color: white;
-    border: 1px solid #e0e0e0;
-    
-    &:hover {
-      background-color: #f5f9ff;
     }
     
-    input[type="checkbox"] {
+    .checkbox {
       cursor: pointer;
       width: 16px;
       height: 16px;
     }
-  }
   
   .aiSummary {
     margin-top: 1.5rem;
-    padding: 1rem;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    border-left: 4px solid #3b82f6;
   }
   
   .summaryContent {
@@ -62,9 +46,21 @@
     line-height: 1.6;
     font-size: 0.95rem;
     padding: 0.75rem;
-    background-color: white;
-    border-radius: 4px;
+  }
+
+  .summaryTextarea {
+    width: 100%;
+    height: 100%;
+    padding: 0.75rem;
     border: 1px solid #e0e0e0;
+    resize: vertical;
+    box-sizing: border-box;
+    display: block;
+  }
+
+  .editButtons {
+    display: flex;
+    gap: 0.5rem;
   }
   
   .table {
@@ -184,15 +180,6 @@
     font-size: 0.9rem;
   }
   
-  .success {
-    background-color: #e6f7e6;
-    color: #2e7d32;
-  }
-  
-  .error {
-    background-color: #fdeded;
-    color: #d32f2f;
-  }
   
   .saveSection {
     display: flex;
