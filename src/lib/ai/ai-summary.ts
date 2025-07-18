@@ -37,9 +37,8 @@ export async function generateManualAuditSummary(
     ${JSON.stringify(formattedAuditData, null, 2)}
     
     Na podstawie tych danych:
-    1. Przygotuj ZBIORCZĄ analizę wyników o nazwie raport podsumowujący audyt dostępności cyfrowej" (maksymalnie 5-6 zdań)
-    2. Wypisz główne problemy dostępności (jeśli występują) z podziałem na kategoriei i do każdego problemu dodaj rekomendacje naprawy. Wage problemu pobieraj z notatek - np błąd krytyczny, umiarkowany, mało istotny.
-    3. Dodaj kompleksową ocenę zgodności z WCAG 2.2 uwzględniając wszystkie przeanalizowane poziomy
+    1. Przygotuj ZBIORCZĄ analizę wyników o nazwie raport podsumowujący audyt dostępności cyfrowej". długość kokoło 10 zdań.
+    2. Wypisz główne problemy dostępności (jeśli występują) z podziałem na kategorie i do każdego problemu dodaj rekomendacje naprawy. Wage problemu pobieraj z notatek - np błąd krytyczny, umiarkowany, mało istotny, dopisz kryterium WCAG.
     
     Odpowiedź przygotuj w języku polskim. Format odpowiedzi powinien być czytelny, z odpowiednimi nagłówkami dla każdej sekcji. Nie używaj * i # w nagłówkach.
     Pamiętaj, że jest to raport zbiorczy, więc powinien zawierać kompleksową analizę wszystkich poziomów.

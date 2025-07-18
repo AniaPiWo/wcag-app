@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,52 +8,43 @@ datasource db {
 }
 
 model User {
-  id              String   @id @default(uuid())
-  email           String   @unique
-  name            String?
-  password        String
-  role            String   @default("user") // user, admin
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model AuditRequest {
-  id              String   @id @default(uuid())
-  url             String
-  name            String   @default("")
-  email           String   @default("")
-  status          String   @default("pending") // pending, in-progress, completed, failed
-  completedAt     DateTime?
-  auditType       String   @default("automated") // automated, manual
-  
-  // podsumowanie audytu automatycznego
-  totalIssuesCount Int?     @default(0)
-  criticalCount   Int?     @default(0)
-  seriousCount    Int?     @default(0)
-  moderateCount   Int?     @default(0)
-  minorCount      Int?     @default(0)
-  passedRules     Int?     @default(0)
-  incompleteRules Int?     @default(0)
-  timestamp       String?
-  
-  // podsumowanie audytu
-  violations      String?  @db.String // JSON z naruszeniami
-  aiAnalysis      String?  @db.String // Analiza AI wyników audytu
-  
-  // dane dla manualnego audytu
-  basicAudit      String?  @db.String // JSON z odpowiedziami dla podstawowego poziomu
-  intermediateAudit String? @db.String // JSON z odpowiedziami dla średniego poziomu
-  advancedAudit   String?  @db.String // JSON z odpowiedziami dla zaawansowanego poziomu
-  selectedLevels  String?  @db.String // JSON z wybranymi poziomami audytu
-  
-  // podsumowania AI dla audytu manualnego
-  basicAuditAISummary      String?  @db.String // Podsumowanie AI dla podstawowego poziomu
-  intermediateAuditAISummary String? @db.String // Podsumowanie AI dla średniego poziomu
-  advancedAuditAISummary   String?  @db.String // Podsumowanie AI dla zaawansowanego poziomu
-  consolidatedAuditAISummary String? @db.String // Zbiorcze podsumowanie AI dla wybranych poziomów
-  
-  // pola systemowe
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  errorMessage    String?  // W przypadku niepowodzenia
+  id                         String    @id @default(uuid())
+  url                        String
+  name                       String    @default("")
+  email                      String    @default("")
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
+  status                     String    @default("pending")
+  completedAt                DateTime?
+  criticalCount              Int?      @default(0)
+  errorMessage               String?
+  incompleteRules            Int?      @default(0)
+  minorCount                 Int?      @default(0)
+  moderateCount              Int?      @default(0)
+  passedRules                Int?      @default(0)
+  seriousCount               Int?      @default(0)
+  timestamp                  String?
+  totalIssuesCount           Int?      @default(0)
+  violations                 String?
+  aiAnalysis                 String?
+  advancedAudit              String?
+  auditType                  String    @default("automated")
+  basicAudit                 String?
+  intermediateAudit          String?
+  selectedLevels             String?
+  advancedAuditAISummary     String?
+  basicAuditAISummary        String?
+  intermediateAuditAISummary String?
+  consolidatedAuditAISummary String?
+  readyMadeAudit             String?
 }

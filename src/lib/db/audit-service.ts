@@ -226,5 +226,35 @@ export const auditService = {
       console.error(`Błąd podczas usuwania audytu ${id}:`, error);
       throw error;
     }
-  }
+  },
+
+  // znajduje audyty po URL
+  async findAuditRequestsByUrl(url: string) {
+    // Normalizacja URL - usunięcie protokołu, www i trailing slash
+    const normalizeUrl = (inputUrl: string) => {
+      let normalized = inputUrl.toLowerCase();
+      normalized = normalized.replace(/^https?:\/\//, '');
+      normalized = normalized.replace(/^www\./, '');
+      normalized = normalized.replace(/\/$/, '');
+      return normalized;
+    };
+
+    const normalizedSearchUrl = normalizeUrl(url);
+    
+    // Pobieramy wszystkie audyty i filtrujemy po znormalizowanym URL
+    const allAudits = await prisma.auditRequest.findMany({
+      where: {
+        status: 'completed' // Szukamy tylko ukończonych audytów
+      },
+      orderBy: { completedAt: 'desc' }
+    });
+
+    // Filtrujemy audyty, które mają ten sam znormalizowany URL
+    const matchingAudits = allAudits.filter(audit => {
+      if (!audit.url) return false;
+      return normalizeUrl(audit.url) === normalizedSearchUrl;
+    });
+
+    return matchingAudits;
+  },
 };
