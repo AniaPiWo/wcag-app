@@ -1,0 +1,34 @@
+.wrapper {
+    width: 100%;
+    height: 100%;
+    margin-block: 2rem;
+}
+
+.title {
+    font-size: 2rem;
+    margin: 2rem;
+    text-align: center;
+}
+
+.subtitle {
+    font-size: 1.5rem;
+    margin-top: 1rem;
+}
+
+.errorTitle {
+    font-weight: bold;
+    margin-top: 1rem;
+}
+
+.errorList {
+    margin-left: 1rem;
+}
+
+li::marker {
+    content: "- ";
+}
+
+.errorItem {
+    margin-bottom: 0.5rem;
+}
+

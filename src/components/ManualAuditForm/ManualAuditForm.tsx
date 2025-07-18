@@ -7,6 +7,7 @@ import { auditIntermediate } from '@/lib/wcag_checklist/intermediate';
 import { auditAdvanced } from '@/lib/wcag_checklist/advanced';
 import { Button } from '@/components';
 import { getManualAudit, updateManualAudit, updateAuditItem as updateAuditItemAction } from '@/app/actions/manual-audit';
+import ClientReadyReport from '../ClientReadyReport/ClientReadyReport';
 
 interface AuditLevel {
   id: string;
@@ -755,6 +756,8 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
             <p><strong>Data utworzenia:</strong> {new Date(audit.createdAt).toLocaleString()}</p>
             <p><strong>Ostatnia aktualizacja:</strong> {new Date(audit.updatedAt).toLocaleString()}</p>
             <p><strong>Wybrane poziomy:</strong> {renderSelectedLevels()}</p>
+
+            <ClientReadyReport id={id} audit={audit} />
             
             {/* Sekcja gotowego audytu */}
             <div className={styles.aiSummary}>
@@ -1417,18 +1420,25 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
               )}
             </div>
           
-          <div className={styles.saveSection}>
-            <Button variant="primary" onClick={handleSave} disabled={isSaving}>
-              {isSaving ? 'Zapisywanie...' : 'Zapisz'}
-            </Button>
-            <div className={styles.saveMessage}>{saveMessage?.text}</div>
-            
-
-          </div>
-        </>
-      ) : (
-        <p>Nie znaleziono audytu o podanym ID.</p>
-      )}
-    </div>
-  );
-}
+            <div className={styles.saveSection}>
+              <Button variant="primary" onClick={handleSave} disabled={isSaving}>
+                {isSaving ? 'Zapisywanie...' : 'Zapisz'}
+              </Button>
+              <div className={styles.saveMessage}>{saveMessage?.text}</div>
+            </div>
+          
+            {/* Client Ready Report Section */}
+            <div className={styles.clientReadyReportSection}>
+              <h3>Raport dla klienta</h3>
+              <p>Poniżej znajduje się podgląd raportu, który zostanie wygenerowany dla klienta.</p>
+              <div className={styles.clientReadyReportContainer}>
+                <ClientReadyReport id={id} audit={audit} />
+              </div>
+            </div>
+          </>
+        ) : (
+          <p>Nie znaleziono audytu o podanym ID.</p>
+        )}
+      </div>
+    );
+  }
