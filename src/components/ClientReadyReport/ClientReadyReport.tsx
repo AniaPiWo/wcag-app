@@ -206,7 +206,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
         parseable = true;
       } catch (syntaxError) {
         // If it can't be parsed, try more aggressive fixes
-        console.log('Initial parsing failed, trying more aggressive fixes:', syntaxError);
+        //console.log('Initial parsing failed, trying more aggressive fixes:', syntaxError);
         
         // Log the problematic position and nearby content
         const errorMatch = String(syntaxError).match(/position (\d+)/i);
@@ -214,7 +214,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           const pos = parseInt(errorMatch[1]);
           const start = Math.max(0, pos - 30);
           const end = Math.min(jsonString.length, pos + 30);
-          console.log(`Error near position ${pos}: '${jsonString.substring(start, pos)}👉HERE👈${jsonString.substring(pos, end)}'`);
+          //console.log(`Error near position ${pos}: '${jsonString.substring(start, pos)}👉HERE👈${jsonString.substring(pos, end)}'`);
         }
         jsonString = jsonString.replace(/("[^"]*")(\s*\n\s*")/g, '$1,$2');
         jsonString = jsonString.replace(/([^\s,\{\[])\s*("\w+"\s*:)/g, '$1,$2');
@@ -235,11 +235,11 @@ const ClientReadyReport = ({ id, audit }: Props) => {
       
       // Handle problems based on format
       if (Array.isArray(parsedJson.problems)) {
-        // Group problems by severity for the new format
+        // Group problems by WCAG criterion for the new format
         const problemsByCategory: Record<string, AuditIssue[]> = {};
         
         parsedJson.problems.forEach((item: any) => {
-          const category = item.severity || 'Nieokreślona waga';
+          const category = item.wcag || 'Nieokreślone kryterium';
           if (!problemsByCategory[category]) {
             problemsByCategory[category] = [];
           }
@@ -341,31 +341,29 @@ const ClientReadyReport = ({ id, audit }: Props) => {
 
        {parsedSummary && (
         <div className={styles.aiSummary}>
- <h3 className={styles.subtitle}>Raport podsumowujący audyt dostępności cyfrowej</h3>
-                <p className={styles.summaryList}>
-                  {Array.isArray(parsedSummary.summary) 
-                    ? parsedSummary.summary.join(" ")
-                    : parsedSummary.summary || 'Brak podsumowania'}
-                </p>
-                <h3 className={styles.subtitle}>Główne problemy dostępności i rekomendacje naprawy</h3>
-                {Array.isArray(parsedSummary.problems) ? parsedSummary.problems.map((category, catIndex) => (
-                  <div key={`category-${catIndex}`} className={styles.problemCategory}>
-                    <h5 className={styles.categoryTitle}>{catIndex + 1}. {category.category}</h5>
-                    {category.issues && Array.isArray(category.issues) && (
-                      <ul className={styles.problemList}>
-                        {category.issues.map((issue, issueIndex) => (
-                          <li key={`issue-${catIndex}-${issueIndex}`} className={styles.problemItem}>
-                            <div className={styles.problemItemTitle}>Kryterium WCAG: {issue.wcagCriterion}</div>
-                            <div><strong>Problem:</strong> {issue.description} ({issue.severity})</div>
-                            <div><strong>Rekomendacja:</strong> {issue.recommendation}</div>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )) : <p>Brak szczegółowego opisu problemów dostępności.</p>}
-          </div>
-    
+          <h3 className={styles.subtitle}>Raport podsumowujący audyt dostępności cyfrowej</h3>
+          <p className={styles.summaryList}>
+            {Array.isArray(parsedSummary.summary) 
+              ? parsedSummary.summary.join(" ")
+              : parsedSummary.summary || 'Brak podsumowania'}
+          </p>
+          <h3 className={styles.subtitle}>Główne problemy dostępności i rekomendacje naprawy</h3>
+          {Array.isArray(parsedSummary.problems) ? parsedSummary.problems.map((category, catIndex) => (
+            <div key={`category-${catIndex}`} className={styles.problemCategory}>
+              <p   className={styles.categoryTitle}>{catIndex + 1}. WCAG: {category.category} </p>
+              {category.issues && Array.isArray(category.issues) && (
+                <ul className={styles.problemList}>
+                  {category.issues.map((issue, issueIndex) => (
+                    <li key={`issue-${catIndex}-${issueIndex}`} className={styles.problemItem}>
+                      <div><strong> - Problem:</strong> {issue.description} ({issue.severity})</div>
+                      <div><strong> - Recomendacja:</strong> {issue.recommendation}</div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )) : <p>Brak szczegółowego opisu problemów dostępności.</p>}
+        </div>
       )}
       
       {auditData?.consolidatedAuditAISummary && !parsedSummary && (
