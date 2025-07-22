@@ -760,7 +760,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
             <ClientReadyReport id={id} audit={audit} />
             
             {/* Sekcja gotowego audytu */}
-            <div className={styles.aiSummary}>
+           <div className={styles.aiSummary}>
               <div className={styles.summaryHeader}>
                 <h3>Gotowy audyt</h3>
                 {!isEditingReadyMadeAudit ? (

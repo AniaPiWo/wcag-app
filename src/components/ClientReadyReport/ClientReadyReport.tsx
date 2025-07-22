@@ -528,26 +528,48 @@ const ClientReadyReport = ({ id, audit }: Props) => {
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.editControls}>
-        {!isEditing ? (
-          <button onClick={handleEditToggle} className={styles.editButton}>
-            Edytuj raport
-          </button>
-        ) : (
-          <div className={styles.editButtonGroup}>
-            <button 
-              onClick={handleSave} 
-              disabled={isSaving}
-              className={styles.saveButton}
-            >
-              {isSaving ? 'Zapisywanie...' : 'Zapisz'}
-            </button>
-            <button onClick={handleCancel} className={styles.cancelButton}>
-              Anuluj
+      {/* Sticky Sidebar for Edit Controls */}
+      {isEditing && (
+        <div className={styles.stickySidebar}>
+          <div className={styles.sidebarContent}>
+            <h4 className={styles.sidebarTitle}>Edycja raportu</h4>
+            
+            <div className={styles.sidebarButtons}>
+              <button 
+                onClick={handleSave} 
+                disabled={isSaving}
+                className={styles.saveButton}
+              >
+                {isSaving ? 'Zapisywanie...' : 'Zapisz zmiany'}
+              </button>
+              
+              <button onClick={handleCancel} className={styles.cancelButton}>
+                Anuluj edycję
+              </button>
+              
+              <div className={styles.divider}></div>
+              
+              <button 
+                onClick={handleAddCategory}
+                className={styles.addCategoryButton}
+              >
+                + Dodaj kategorię
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Main Content */}
+      <div className={`${styles.mainContent} ${isEditing ? styles.mainContentWithSidebar : ''}`}>
+        {/* Top Edit Button (only when not editing) */}
+        {!isEditing && (
+          <div className={styles.topEditControls}>
+            <button onClick={handleEditToggle} className={styles.editButton}>
+              Edytuj raport
             </button>
           </div>
         )}
-      </div>
 
       <h2 className={styles.title}>Raport z Audytu Dostępności Cyfrowej</h2>
       
@@ -648,22 +670,11 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           
           <h3 className={styles.subtitle}>Główne problemy dostępności i rekomendacje naprawy</h3>
           
-          {isEditing && (
-            <div className={styles.categoryControls}>
-              <button 
-                onClick={handleAddCategory}
-                className={styles.addButton}
-              >
-                + Dodaj nową kategorię
-              </button>
-            </div>
-          )}
-          
           {editedContent.problems && editedContent.problems.length > 0 ? editedContent.problems.map((category, catIndex) => (
             <div key={`category-${catIndex}`} className={styles.problemCategory}>
               <div className={styles.categoryHeader}>
                 <p className={styles.categoryTitle}>
-                  {catIndex + 1}. WCAG: 
+                  {catIndex + 1}. WCAG:{" "}
                   {isEditing ? (
                     <input
                       type="text"
@@ -717,7 +728,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
                         </div>
                       )}
                       <div>
-                        <strong> - Problem (</strong>
+                        <strong>Problem (</strong>
                         {isEditing ? (
                           <input
                             type="text"
@@ -727,7 +738,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
                             placeholder="np. krytyczny"
                           />
                         ) : (
-                          issue.severity
+                          <strong>{issue.severity}</strong>
                         )}
                         <strong>): </strong>
                         {isEditing ? (
@@ -743,7 +754,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
                         )}
                       </div>
                       <div>
-                        <strong> - Rekomendacja:</strong>
+                        <strong>Rekomendacja: </strong>
                         {isEditing ? (
                           <textarea
                             value={issue.recommendation}
@@ -774,112 +785,12 @@ const ClientReadyReport = ({ id, audit }: Props) => {
         </div>
       )}
 
-{/*       <h3 className={styles.subtitle}>Raport podsumowujący audyt dostępności cyfrowej</h3>
-      <p>Strona internetowa wykazuje kilka pozytywnych aspektów dostępności cyfrowej. Przede wszystkim, nawigacja na stronie jest intuicyjna i spójna, co zostało potwierdzone przez spójne menu na wszystkich podstronach oraz nawigację od góry do dołu. Strona jest w pełni responsywna, co oznacza, że dobrze dostosowuje się do różnych rozmiarów ekranów, co jest istotne dla użytkowników korzystających z urządzeń mobilnych. W przypadku powiększenia do 200%, strona pozostaje czytelna, co jest kluczowe dla osób z wadami wzroku. Formularze na stronie mają zrozumiałe etykiety, co ułatwia ich wypełnianie i zrozumienie przez użytkowników. Dodatkowo, brak automatycznie odtwarzanych dźwięków eliminuje potencjalne zakłócenia dla użytkowników. Strona nie zawiera pułapek klawiaturowych, co pozwala na swobodne poruszanie się po niej przy użyciu klawiatury. Brak migających elementów eliminuje ryzyko wywołania ataków epileptycznych u niektórych użytkowników. Ogólnie, pozytywne wyniki wskazują na dobrą podstawę dostępności cyfrowej, choć istnieją obszary wymagające pilnej poprawy.
-      </p> */}
 
-     {/*  <h3 className={styles.subtitle}>Główne problemy dostępności i rekomendacje naprawy</h3>
-      <p className={styles.errorTitle}>1. Błąd kontrastu:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Kontrast między kolorami pierwszego planu i tła nie spełnia minimalnych progów współczynnika kontrastu WCAG 1.4 (błąd krytyczny).</li>
-      <li className={styles.errorItem}>Rekomendacja: Zmiana koloru --e-global-color-text z HEX #7a7a7a na ciemniejszy (np kolor #4e4e4e spełnia wymogi współczynnika kontrastu AA 4.5 oraz AAA 7.0), zgodnie z WCAG 1.4.3 (Kontrast).</li>
-      <li className={styles.errorItem}>Rekomendacja: Zmiana koloru HEX #32c36c (zielony) na ciemniejszy (np kolor #1e7a43 spełnia wymogi współczynnika kontrastu AA 4.5), zgodnie z WCAG 1.4.3 (Kontrast).</li>
-      </ul> */}
- {/* 
-      <p className={styles.errorTitle}>2. Alternatywa dla obrazów:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Obrazy slidera w hero   nie zawierają atrybutu alt, co uniemożliwia jego zrozumienie użytkownikom korzystającym z czytników ekranu (błąd krytyczny).</li>
-      <li className={styles.errorItem}>Rekomendacja: Każdy obraz powinien posiadać opis alternatywny w atrybucie alt, zgodnie z WCAG 1.1.1 (Treść nietekstowa). Jeśli obraz pełni funkcję czysto dekoracyjną, należy dodać alt="" lub role="presentation".</li>
-      </ul> */}
-        
-     {/*  <p className={styles.errorTitle}>3. Alternatywa dla obrazów:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Obrazy przedstawiające loga klientów w karuzeli cms_clients_list nie zawierają atrybutu alt, co uniemożliwia jego zrozumienie użytkownikom korzystającym z czytników ekranu (błąd krytyczny).</li>
-      <li className={styles.errorItem}>Rekomendacja: Każdy z obrazów powinien posiadać opis alternatywny w atrybucie alt (przykład - alt="Logo firmy TCB Bud"). Jeśli logo pełni funkcję informacyjną lub nawigacyjną, jego opis alternatywny powinien odzwierciedlać tę funkcję, zgodnie z WCAG 1.1.1 (Treść nietekstowa).</li>
-      </ul>    */}
-{/* 
-      <p className={styles.errorTitle}>4. Odwołanie do nieistniejącego elementu:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Obrazy przedstawiające loga klientów w karuzeli cms_clients_list posiadają odwołanie aria-describedby do nieistniejącego elementu (błąd krytyczny)</li>
-      <li className={styles.errorItem}>Rekomendacja: Jeśli aria-describedby nie pełni żadnej funkcji dostępnościowej, najprostszym rozwiązaniem jest usunięcie tego atrybutu. Jeśli nie chcemy usuwać tego atrybutu, należy upewnić się, że aria-describedby wskazuje na istniejący element z opisem, co jest zgodne z WCAG 1.3.1.</li>
-      </ul> */}
-
-{/*       <p className={styles.errorTitle}>5. Bark etykiety formularza:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Pole formularza wyszukiwania nie posiada etykiety (label), a przycisk wyszukiwania zawiera jedynie ikonę bez tekstu lub alternatywnego opisu. Oba elementy mogą być niezrozumiałe dla użytkowników korzystających z czytników ekranu (błąd krytyczny i umiarkowany).</li>
-      <li className={styles.errorItem}>Rekomendacja: Należy dodać ukrytą etykietę do pola wyszukiwania, np.  Wyszukaj na stronie  lub atrybut aria-label="Wyszukaj na stronie" bezpośrednio do pola  . Należy dodać atrybut aria-label="Szukaj" do przycisku wysyłającego formularz (Kryteria WCAG 1.3.1 – Informacje i relacje, 3.3.2 – Etykiety lub instrukcje, 4.1.2 – Nazwa, rola, wartość).</li>
-      </ul> */}
-
-{/*       <p className={styles.errorTitle}>6. Nawigacja klawiaturą:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Brak widocznego obramowania (outline) dla linków (błąd krytyczny).</li>
-      <li className={styles.errorItem}>Rekomendacja: Upewnić się, że wszystkie linki mają widoczny focus outline, co jest zgodne z WCAG 2.2.1 (Klawiatura).</li>
-      </ul> */}
-    
-{/*       <p className={styles.errorTitle}>7. Nawigacja klawiaturą:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Brak rozwinięcia akordeonu w sekcji FAQ przy pomocy klawiatury (błąd krytyczny).</li>
-      <li className={styles.errorItem}>Rekomendacja: Należy upewnić się, że pola zapytań FAQ posiadają widoczny focus outline oraz że można rozwinąć je, np przy pomocy klawisza enter, co jest zgodne z WCAG 2.2.1 (Klawiatura).</li>
-      </ul> */}
-
-      <p className={styles.errorTitle}>8. Struktura nagłówków:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: W stopce (footer) użyto nagłówków poziomu 4 (h4), pomijając wcześniejsze poziomy (h2 i h3), co skutkuje przeskokiem w hierarchii nagłówków (błąd umiarkowany). Taka struktura może wprowadzać w błąd użytkowników technologii asystujących, utrudniając zrozumienie logicznej organizacji treści.</li>
-      <li className={styles.errorItem}>Rekomendacja: Zachować semantyczną kolejność nagłówków (np. h2, h3, h4) bez pomijania poziomów. Zgodne z WCAG 1.3.1 (Informacja i relacje).</li>
-      </ul>
-    
-      <p className={styles.errorTitle}>9. Linki zewnętrzne:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Brak informacji o otwieraniu nowych okien (umiarkowany).</li>
-      <li className={styles.errorItem}>Rekomendacja: Dodaj informację tekstową dla linków otwierających nowe okna, zgodnie z WCAG 3.2.2 (Zmiana na żądanie).</li>
-      </ul>
-    
-      <p className={styles.errorTitle}>10. Linki zewnętrzne:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Brak informacji o otwieraniu nowych okien (umiarkowany).</li>
-      <li className={styles.errorItem}>Rekomendacja: Dodaj informację tekstową dla linków otwierających nowe okna, zgodnie z WCAG 3.2.2 (Zmiana na żądanie).</li>
-      </ul>
-    
-      <p className={styles.errorTitle}>11. Treści nietekstowe:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Brak opisu guzika powrotu do góry dla czytników ekranowych (umiarkowany).</li>
-      <li className={styles.errorItem}>Rekomendacja: Dodaj brakujący atrybut np aria-label="Powrót do góry strony" lub tekst alternatywny, zgodnie z WCAG 1.1.1 (Treść nietekstowa).</li>
-      </ul>
-
-      <p className={styles.errorTitle}>12. Puste linki:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Link prowadzący do profilu Facebook ( ) nie zawiera żadnego tekstu ani alternatywnego opisu dostępnego dla czytników ekranu (np. aria-label). Ikona ( ) jest oznaczona jako aria-hidden="true", a element tekstowy jest pusty. To powoduje, że użytkownicy korzystający z technologii asystujących nie wiedzą, dokąd prowadzi ten link (błąd umiarkowany).</li>
-      <li className={styles.errorItem}>Rekomendacja: Dodać atrybut aria-label="Facebook firmy" do elementu   lub uzupełnić element tekstowy o ukryty wizualnie opis. Poprawka zapewni zgodność z WCAG 2.4.4 – Cel linku (poziom A).</li>
-      </ul>
-
-      <p className={styles.errorTitle}>13. Walidacja formularzy:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Brak wskazówek przy błędach i weryfikacji danych (umiarkowany).</li>
-      <li className={styles.errorItem}>Rekomendacja: Implementacja mechanizmów walidacji i podpowiedzi, zgodnie z WCAG 3.3.1 (Identyfikacja błędów).</li>
-      </ul>
-
-      <p className={styles.errorTitle}>14. Struktura tytułów:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Niespójna struktura tytułów na podstronach (mało istotny).</li>
-      <li className={styles.errorItem}>Rekomendacja: Ujednolicić strukturę tytułów, zgodnie z WCAG 2.4.2 (Tytuły stron).</li>
-      </ul>
-
-      <p className={styles.errorTitle}>15. Brak skiplinków:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Brak linków umożliwiających pominięcie powtarzających się bloków nawigacyjnych. Użytkownicy poruszający się po stronie za pomocą klawiatury lub czytników ekranu muszą każdorazowo przechodzić przez całe menu, co jest uciążliwe i czasochłonne.</li>
-      <li className={styles.errorItem}>Rekomendacja: Implementacja mechanizmu skiplinków (linków "Przejdź do treści"), zgodnie z WCAG 2.4.1 (Pomijanie bloków). Dodać widoczny (np. po najechaniu tabulatorem) link "Przejdź do treści" na początku strony, kierujący do sekcji .</li>
-      </ul>
-
-      <p className={styles.errorTitle}>16. Brak skiplinków:</p>
-      <ul className={styles.errorList}>
-      <li className={styles.errorItem}>Problem: Brak linków umożliwiających pominięcie powtarzających się bloków nawigacyjnych. Użytkownicy poruszający się po stronie za pomocą klawiatury lub czytników ekranu muszą każdorazowo przechodzić przez całe menu, co jest uciążliwe i czasochłonne.</li>
-      <li className={styles.errorItem}>Rekomendacja: Implementacja mechanizmu skiplinków (linków "Przejdź do treści"), zgodnie z WCAG 2.4.1 (Pomijanie bloków). Dodać widoczny (np. po najechaniu tabulatorem) link "Przejdź do treści" na początku strony, kierujący do sekcji .</li>
-      </ul>
-
-      <h3 className={styles.subtitle}>Oświadczenie</h3>
-      <p>Audyt został przeprowadzony manualnie oraz przy pomocy narzędzi automatycznych zgodnie z wytycznymi WCAG 2.2 na poziomie AA. Raport nie stanowi certyfikatu zgodności, lecz dokumentuje aktualny stan dostępności oraz kierunki poprawy.</p>
+        <h3 className={styles.subtitle}>Oświadczenie</h3>
+        <p>Audyt został przeprowadzony manualnie oraz przy pomocy narzędzi automatycznych zgodnie z wytycznymi WCAG 2.2 na poziomie AA. Raport nie stanowi certyfikatu zgodności, lecz dokumentuje aktualny stan dostępności oraz kierunki poprawy.</p>
+      </div>
     </div>
-  )
-}
+  );
+};
 
 export default ClientReadyReport

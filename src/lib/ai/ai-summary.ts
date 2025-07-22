@@ -38,7 +38,7 @@ export async function generateManualAuditSummary(
     
     Na podstawie tych danych:
     1. Przygotuj ZBIORCZĄ analizę wyników, odpowiedź zwróc w foracie JSON, nie dawaj ogólnego tytułu. W tej części skup się na pozytywnie zaliczonych regułach i nazwij summary "summary". Długość kokoło 10 zdań.
-    2. Wypisz główne problemy dostępności problems (jeśli występują) z podziałem na kategorie WCAG i do każdego problemu dodaj rekomendacje naprawy - wg schematu: problem, severity, wcag, recommendation. Wage problemu pobieraj z notatek - np błąd krytyczny, umiarkowany, mało istotny, dopisz kryterium WCAG. 
+    2. Wypisz główne problemy dostępności problems (jeśli występują) z podziałem na kategorie WCAG i do każdego problemu dodaj rekomendacje naprawy - wg schematu: problem, severity, wcag, recommendation. Wage problemu pobieraj z notatek - np krytyczny, umiarkowany, mało istotny, dopisz kryterium WCAG. 
     
     Odpowiedź przygotuj w języku polskim. Format odpowiedzi powinien być czytelny, z odpowiednimi nagłówkami dla każdej sekcji. Nie używaj * i # w nagłówkach. nie zaczynaj i nie kończ JSONA potrójnymi backtickami i slowem json.
     Pamiętaj, że jest to raport zbiorczy, więc powinien zawierać kompleksową analizę wszystkich poziomów.
