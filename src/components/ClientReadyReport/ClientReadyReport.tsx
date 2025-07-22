@@ -332,8 +332,8 @@ const ClientReadyReport = ({ id, audit }: Props) => {
       <p><strong>Cel audytu:</strong> Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA</p>
 
       <h3 className={styles.subtitle}>Zakres audytu</h3>
-      <p><strong>Metoda:</strong> Audyt manualny oraz analiza kodu źródłowego</p>
-      <p><strong>Narzędzia:</strong> Automatyczny audyt przy pomocy narzędzi (axe-core, NDVA, LightHouse, WAVE) oraz ręczne checklisty WCAG</p>
+      <p><strong>Metoda:</strong> Audyt automatyczny, manualny oraz analiza kodu źródłowego</p>
+      <p><strong>Narzędzia:</strong> Automatyczny audyt przy pomocy narzędzi (axe-core, NDVA, LightHouse, WAVE) oraz manualny audyt wg checklisty WCAG</p>
       <p><strong>Zakres:</strong> Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)</p>
       <p><strong>Poziom oceny:</strong> Podstawowy poziom WCAG 2.2 – poziom AA</p>
 
@@ -375,9 +375,9 @@ const ClientReadyReport = ({ id, audit }: Props) => {
         </div>
       )}
 
-      <h3 className={styles.subtitle}>Raport podsumowujący audyt dostępności cyfrowej</h3>
+{/*       <h3 className={styles.subtitle}>Raport podsumowujący audyt dostępności cyfrowej</h3>
       <p>Strona internetowa wykazuje kilka pozytywnych aspektów dostępności cyfrowej. Przede wszystkim, nawigacja na stronie jest intuicyjna i spójna, co zostało potwierdzone przez spójne menu na wszystkich podstronach oraz nawigację od góry do dołu. Strona jest w pełni responsywna, co oznacza, że dobrze dostosowuje się do różnych rozmiarów ekranów, co jest istotne dla użytkowników korzystających z urządzeń mobilnych. W przypadku powiększenia do 200%, strona pozostaje czytelna, co jest kluczowe dla osób z wadami wzroku. Formularze na stronie mają zrozumiałe etykiety, co ułatwia ich wypełnianie i zrozumienie przez użytkowników. Dodatkowo, brak automatycznie odtwarzanych dźwięków eliminuje potencjalne zakłócenia dla użytkowników. Strona nie zawiera pułapek klawiaturowych, co pozwala na swobodne poruszanie się po niej przy użyciu klawiatury. Brak migających elementów eliminuje ryzyko wywołania ataków epileptycznych u niektórych użytkowników. Ogólnie, pozytywne wyniki wskazują na dobrą podstawę dostępności cyfrowej, choć istnieją obszary wymagające pilnej poprawy.
-      </p>
+      </p> */}
 
       <h3 className={styles.subtitle}>Główne problemy dostępności i rekomendacje naprawy</h3>
       <p className={styles.errorTitle}>1. Błąd kontrastu:</p>
