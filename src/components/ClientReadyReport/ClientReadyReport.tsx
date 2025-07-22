@@ -169,6 +169,19 @@ interface ParsedAuditSummary {
 const ClientReadyReport = ({ id, audit }: Props) => {
   const [auditData, setAuditData] = useState<Audit | null>(null);
   const [parsedSummary, setParsedSummary] = useState<ParsedAuditSummary | null>(null);
+  
+  // Editing state management
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState({
+    url: '',
+    auditorName: 'Anna Piotrowiak-Wołosiuk',
+    auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
+    auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
+    complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
+    summary: '',
+    problems: [] as ProblemCategory[]
+  });
+  const [isSaving, setIsSaving] = useState(false);
 
   // Funkcja do parsowania JSON z odpowiedzi AI
   const parseJsonFromMarkdown = (text: string | null | undefined): ParsedAuditSummary | null => {
@@ -312,6 +325,196 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     }
   }, [auditData?.consolidatedAuditAISummary]);
 
+  // Initialize edited content when data is loaded
+  useEffect(() => {
+    if (auditData) {
+      // Check if there's already saved clientReadyAudit data
+      if (auditData.clientReadyAudit) {
+        try {
+          const savedContent = JSON.parse(auditData.clientReadyAudit);
+          setEditedContent(savedContent);
+          return;
+        } catch (error) {
+          console.error('Error parsing clientReadyAudit:', error);
+          // Fall through to use parsedSummary
+        }
+      }
+      
+      // Use parsedSummary as fallback if no clientReadyAudit or parsing failed
+      if (parsedSummary) {
+        setEditedContent({
+          url: auditData.url || '',
+          auditorName: 'Anna Piotrowiak-Wołosiuk',
+          auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
+          auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
+          complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
+          summary: Array.isArray(parsedSummary.summary) 
+            ? parsedSummary.summary.join(' ') 
+            : parsedSummary.summary || '',
+          problems: parsedSummary.problems || []
+        });
+      }
+    }
+  }, [auditData, parsedSummary]);
+
+  // Handle editing functions
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/audit/save-client-ready', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          auditId: id,
+          clientReadyAudit: JSON.stringify(editedContent)
+        })
+      });
+
+      if (response.ok) {
+        console.log('Audit saved successfully');
+        setIsEditing(false);
+        // Optionally refresh audit data
+        const updatedAudit = await getManualAudit(id);
+        setAuditData(updatedAudit);
+      } else {
+        console.error('Failed to save audit');
+      }
+    } catch (error) {
+      console.error('Error saving audit:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    // Reset to original values - prioritize clientReadyAudit if available
+    if (auditData) {
+      if (auditData.clientReadyAudit) {
+        try {
+          const savedContent = JSON.parse(auditData.clientReadyAudit);
+          setEditedContent(savedContent);
+          setIsEditing(false);
+          return;
+        } catch (error) {
+          console.error('Error parsing clientReadyAudit in cancel:', error);
+        }
+      }
+      
+      // Fallback to parsedSummary
+      if (parsedSummary) {
+        setEditedContent({
+          url: auditData.url || '',
+          auditorName: 'Anna Piotrowiak-Wołosiuk',
+          auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
+          auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
+          complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
+          summary: Array.isArray(parsedSummary.summary) 
+            ? parsedSummary.summary.join(' ') 
+            : parsedSummary.summary || '',
+          problems: parsedSummary.problems || []
+        });
+      }
+    }
+    setIsEditing(false);
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setEditedContent(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleProblemChange = (categoryIndex: number, issueIndex: number, field: string, value: string) => {
+    setEditedContent(prev => ({
+      ...prev,
+      problems: prev.problems.map((category, catIdx) => {
+        if (catIdx === categoryIndex) {
+          return {
+            ...category,
+            issues: category.issues.map((issue, issIdx) => {
+              if (issIdx === issueIndex) {
+                return {
+                  ...issue,
+                  [field]: value
+                };
+              }
+              return issue;
+            })
+          };
+        }
+        return category;
+      })
+    }));
+  };
+
+  const handleAddIssue = (categoryIndex: number) => {
+    const newIssue: AuditIssue = {
+      description: '',
+      severity: '',
+      recommendation: '',
+      wcagCriterion: ''
+    };
+
+    setEditedContent(prev => ({
+      ...prev,
+      problems: prev.problems.map((category, catIdx) => {
+        if (catIdx === categoryIndex) {
+          return {
+            ...category,
+            issues: [...category.issues, newIssue]
+          };
+        }
+        return category;
+      })
+    }));
+  };
+
+  const handleRemoveIssue = (categoryIndex: number, issueIndex: number) => {
+    setEditedContent(prev => ({
+      ...prev,
+      problems: prev.problems.map((category, catIdx) => {
+        if (catIdx === categoryIndex) {
+          return {
+            ...category,
+            issues: category.issues.filter((_, issIdx) => issIdx !== issueIndex)
+          };
+        }
+        return category;
+      })
+    }));
+  };
+
+  const handleAddCategory = () => {
+    const newCategory: ProblemCategory = {
+      category: 'Nowa kategoria',
+      issues: [{
+        description: '',
+        severity: '',
+        recommendation: '',
+        wcagCriterion: ''
+      }]
+    };
+
+    setEditedContent(prev => ({
+      ...prev,
+      problems: [...prev.problems, newCategory]
+    }));
+  };
+
+  const handleRemoveCategory = (categoryIndex: number) => {
+    setEditedContent(prev => ({
+      ...prev,
+      problems: prev.problems.filter((_, catIdx) => catIdx !== categoryIndex)
+    }));
+  };
+
   // Format date for display
   const formatDate = (date: Date | string | undefined) => {
     if (!date) return 'Brak daty';
@@ -325,38 +528,234 @@ const ClientReadyReport = ({ id, audit }: Props) => {
 
   return (
     <div className={styles.wrapper}>
+      <div className={styles.editControls}>
+        {!isEditing ? (
+          <button onClick={handleEditToggle} className={styles.editButton}>
+            Edytuj raport
+          </button>
+        ) : (
+          <div className={styles.editButtonGroup}>
+            <button 
+              onClick={handleSave} 
+              disabled={isSaving}
+              className={styles.saveButton}
+            >
+              {isSaving ? 'Zapisywanie...' : 'Zapisz'}
+            </button>
+            <button onClick={handleCancel} className={styles.cancelButton}>
+              Anuluj
+            </button>
+          </div>
+        )}
+      </div>
+
       <h2 className={styles.title}>Raport z Audytu Dostępności Cyfrowej</h2>
-      <p><strong>Adres audytowanej strony:</strong> {auditData?.url || 'Brak adresu URL'}</p>
+      
+      <p>
+        <strong>Adres audytowanej strony:</strong>{' '}
+        {isEditing ? (
+          <input
+            type="text"
+            value={editedContent.url}
+            onChange={(e) => handleInputChange('url', e.target.value)}
+            className={styles.editInput}
+          />
+        ) : (
+          auditData?.url || 'Brak adresu URL'
+        )}
+      </p>
+      
       <p><strong>Data zakończenia audytu:</strong> {auditData ? formatDate(auditData.updatedAt) : 'Brak daty'}</p>
-      <p><strong>Audyt wykonany przez:</strong> {"Anna Piotrowiak-Wołosiuk"}</p>
-      <p><strong>Cel audytu:</strong> Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA</p>
+      
+      <p>
+        <strong>Audyt wykonany przez:</strong>{' '}
+        {isEditing ? (
+          <input
+            type="text"
+            value={editedContent.auditorName}
+            onChange={(e) => handleInputChange('auditorName', e.target.value)}
+            className={styles.editInput}
+          />
+        ) : (
+          editedContent.auditorName
+        )}
+      </p>
+      
+      <p>
+        <strong>Cel audytu:</strong>{' '}
+        {isEditing ? (
+          <textarea
+            value={editedContent.auditGoal}
+            onChange={(e) => handleInputChange('auditGoal', e.target.value)}
+            className={styles.editTextarea}
+            rows={2}
+          />
+        ) : (
+          editedContent.auditGoal
+        )}
+      </p>
 
       <h3 className={styles.subtitle}>Zakres audytu</h3>
       <p><strong>Metoda:</strong> Audyt automatyczny, manualny oraz analiza kodu źródłowego</p>
       <p><strong>Narzędzia:</strong> Automatyczny audyt przy pomocy narzędzi (axe-core, NDVA, LightHouse, WAVE) oraz manualny audyt wg checklisty WCAG</p>
-      <p><strong>Zakres:</strong> Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)</p>
+      
+      <p>
+        <strong>Zakres:</strong>{' '}
+        {isEditing ? (
+          <textarea
+            value={editedContent.auditScope}
+            onChange={(e) => handleInputChange('auditScope', e.target.value)}
+            className={styles.editTextarea}
+            rows={2}
+          />
+        ) : (
+          editedContent.auditScope
+        )}
+      </p>
+      
       <p><strong>Poziom oceny:</strong> Podstawowy poziom WCAG 2.2 – poziom AA</p>
 
-      <h3 className={styles.title}>Poziom zgodności - Niepełna zgodność z WCAG 2.2 AA</h3>
+      <h3 className={styles.title}>
+        Poziom zgodności -{' '}
+        {isEditing ? (
+          <input
+            type="text"
+            value={editedContent.complianceLevel}
+            onChange={(e) => handleInputChange('complianceLevel', e.target.value)}
+            className={styles.editInput}
+          />
+        ) : (
+          editedContent.complianceLevel
+        )}
+      </h3>
 
-       {parsedSummary && (
+       {(parsedSummary || isEditing) && (
         <div className={styles.aiSummary}>
           <h3 className={styles.subtitle}>Raport podsumowujący audyt dostępności cyfrowej</h3>
-          <p className={styles.summaryList}>
-            {Array.isArray(parsedSummary.summary) 
-              ? parsedSummary.summary.join(" ")
-              : parsedSummary.summary || 'Brak podsumowania'}
-          </p>
+          {isEditing ? (
+            <textarea
+              value={editedContent.summary}
+              onChange={(e) => handleInputChange('summary', e.target.value)}
+              className={styles.editTextarea}
+              rows={5}
+              placeholder="Wprowadź podsumowanie audytu..."
+            />
+          ) : (
+            <p className={styles.summaryList}>
+              {editedContent.summary || 'Brak podsumowania'}
+            </p>
+          )}
+          
           <h3 className={styles.subtitle}>Główne problemy dostępności i rekomendacje naprawy</h3>
-          {Array.isArray(parsedSummary.problems) ? parsedSummary.problems.map((category, catIndex) => (
+          
+          {isEditing && (
+            <div className={styles.categoryControls}>
+              <button 
+                onClick={handleAddCategory}
+                className={styles.addButton}
+              >
+                + Dodaj nową kategorię
+              </button>
+            </div>
+          )}
+          
+          {editedContent.problems && editedContent.problems.length > 0 ? editedContent.problems.map((category, catIndex) => (
             <div key={`category-${catIndex}`} className={styles.problemCategory}>
-              <p   className={styles.categoryTitle}>{catIndex + 1}. WCAG: {category.category} </p>
+              <div className={styles.categoryHeader}>
+                <p className={styles.categoryTitle}>
+                  {catIndex + 1}. WCAG: 
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={category.category}
+                      onChange={(e) => {
+                        setEditedContent(prev => ({
+                          ...prev,
+                          problems: prev.problems.map((cat, idx) => 
+                            idx === catIndex ? { ...cat, category: e.target.value } : cat
+                          )
+                        }));
+                      }}
+                      className={styles.editInput}
+                    />
+                  ) : (
+                    category.category
+                  )}
+                </p>
+                {isEditing && (
+                  <div className={styles.categoryButtons}>
+                    <button 
+                      onClick={() => handleAddIssue(catIndex)}
+                      className={styles.addIssueButton}
+                    >
+                      + Dodaj problem
+                    </button>
+                    {editedContent.problems.length > 1 && (
+                      <button 
+                        onClick={() => handleRemoveCategory(catIndex)}
+                        className={styles.removeButton}
+                      >
+                        Usuń kategorię
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
               {category.issues && Array.isArray(category.issues) && (
                 <ul className={styles.problemList}>
                   {category.issues.map((issue, issueIndex) => (
                     <li key={`issue-${catIndex}-${issueIndex}`} className={styles.problemItem}>
-                      <div><strong> - Problem:</strong> {issue.description} ({issue.severity})</div>
-                      <div><strong> - Recomendacja:</strong> {issue.recommendation}</div>
+                      {isEditing && (
+                        <div className={styles.issueControls}>
+                          <button 
+                            onClick={() => handleRemoveIssue(catIndex, issueIndex)}
+                            className={styles.removeIssueButton}
+                            title="Usuń ten problem"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                      <div>
+                        <strong> - Problem (</strong>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={issue.severity}
+                            onChange={(e) => handleProblemChange(catIndex, issueIndex, 'severity', e.target.value)}
+                            className={styles.editInputSmall}
+                            placeholder="np. krytyczny"
+                          />
+                        ) : (
+                          issue.severity
+                        )}
+                        <strong>): </strong>
+                        {isEditing ? (
+                          <textarea
+                            value={issue.description}
+                            onChange={(e) => handleProblemChange(catIndex, issueIndex, 'description', e.target.value)}
+                            className={styles.editTextarea}
+                            rows={2}
+                            placeholder="Opisz problem dostępności..."
+                          />
+                        ) : (
+                          issue.description
+                        )}
+                      </div>
+                      <div>
+                        <strong> - Rekomendacja:</strong>
+                        {isEditing ? (
+                          <textarea
+                            value={issue.recommendation}
+                            onChange={(e) => handleProblemChange(catIndex, issueIndex, 'recommendation', e.target.value)}
+                            className={styles.editTextarea}
+                            rows={3}
+                            placeholder="Podaj rekomendację naprawy..."
+                          />
+                        ) : (
+                          issue.recommendation
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -379,49 +778,49 @@ const ClientReadyReport = ({ id, audit }: Props) => {
       <p>Strona internetowa wykazuje kilka pozytywnych aspektów dostępności cyfrowej. Przede wszystkim, nawigacja na stronie jest intuicyjna i spójna, co zostało potwierdzone przez spójne menu na wszystkich podstronach oraz nawigację od góry do dołu. Strona jest w pełni responsywna, co oznacza, że dobrze dostosowuje się do różnych rozmiarów ekranów, co jest istotne dla użytkowników korzystających z urządzeń mobilnych. W przypadku powiększenia do 200%, strona pozostaje czytelna, co jest kluczowe dla osób z wadami wzroku. Formularze na stronie mają zrozumiałe etykiety, co ułatwia ich wypełnianie i zrozumienie przez użytkowników. Dodatkowo, brak automatycznie odtwarzanych dźwięków eliminuje potencjalne zakłócenia dla użytkowników. Strona nie zawiera pułapek klawiaturowych, co pozwala na swobodne poruszanie się po niej przy użyciu klawiatury. Brak migających elementów eliminuje ryzyko wywołania ataków epileptycznych u niektórych użytkowników. Ogólnie, pozytywne wyniki wskazują na dobrą podstawę dostępności cyfrowej, choć istnieją obszary wymagające pilnej poprawy.
       </p> */}
 
-      <h3 className={styles.subtitle}>Główne problemy dostępności i rekomendacje naprawy</h3>
+     {/*  <h3 className={styles.subtitle}>Główne problemy dostępności i rekomendacje naprawy</h3>
       <p className={styles.errorTitle}>1. Błąd kontrastu:</p>
       <ul className={styles.errorList}>
       <li className={styles.errorItem}>Problem: Kontrast między kolorami pierwszego planu i tła nie spełnia minimalnych progów współczynnika kontrastu WCAG 1.4 (błąd krytyczny).</li>
       <li className={styles.errorItem}>Rekomendacja: Zmiana koloru --e-global-color-text z HEX #7a7a7a na ciemniejszy (np kolor #4e4e4e spełnia wymogi współczynnika kontrastu AA 4.5 oraz AAA 7.0), zgodnie z WCAG 1.4.3 (Kontrast).</li>
       <li className={styles.errorItem}>Rekomendacja: Zmiana koloru HEX #32c36c (zielony) na ciemniejszy (np kolor #1e7a43 spełnia wymogi współczynnika kontrastu AA 4.5), zgodnie z WCAG 1.4.3 (Kontrast).</li>
-      </ul>
- 
+      </ul> */}
+ {/* 
       <p className={styles.errorTitle}>2. Alternatywa dla obrazów:</p>
       <ul className={styles.errorList}>
       <li className={styles.errorItem}>Problem: Obrazy slidera w hero   nie zawierają atrybutu alt, co uniemożliwia jego zrozumienie użytkownikom korzystającym z czytników ekranu (błąd krytyczny).</li>
       <li className={styles.errorItem}>Rekomendacja: Każdy obraz powinien posiadać opis alternatywny w atrybucie alt, zgodnie z WCAG 1.1.1 (Treść nietekstowa). Jeśli obraz pełni funkcję czysto dekoracyjną, należy dodać alt="" lub role="presentation".</li>
-      </ul>
+      </ul> */}
         
-      <p className={styles.errorTitle}>3. Alternatywa dla obrazów:</p>
+     {/*  <p className={styles.errorTitle}>3. Alternatywa dla obrazów:</p>
       <ul className={styles.errorList}>
       <li className={styles.errorItem}>Problem: Obrazy przedstawiające loga klientów w karuzeli cms_clients_list nie zawierają atrybutu alt, co uniemożliwia jego zrozumienie użytkownikom korzystającym z czytników ekranu (błąd krytyczny).</li>
       <li className={styles.errorItem}>Rekomendacja: Każdy z obrazów powinien posiadać opis alternatywny w atrybucie alt (przykład - alt="Logo firmy TCB Bud"). Jeśli logo pełni funkcję informacyjną lub nawigacyjną, jego opis alternatywny powinien odzwierciedlać tę funkcję, zgodnie z WCAG 1.1.1 (Treść nietekstowa).</li>
-      </ul>   
-
+      </ul>    */}
+{/* 
       <p className={styles.errorTitle}>4. Odwołanie do nieistniejącego elementu:</p>
       <ul className={styles.errorList}>
       <li className={styles.errorItem}>Problem: Obrazy przedstawiające loga klientów w karuzeli cms_clients_list posiadają odwołanie aria-describedby do nieistniejącego elementu (błąd krytyczny)</li>
       <li className={styles.errorItem}>Rekomendacja: Jeśli aria-describedby nie pełni żadnej funkcji dostępnościowej, najprostszym rozwiązaniem jest usunięcie tego atrybutu. Jeśli nie chcemy usuwać tego atrybutu, należy upewnić się, że aria-describedby wskazuje na istniejący element z opisem, co jest zgodne z WCAG 1.3.1.</li>
-      </ul>
+      </ul> */}
 
-      <p className={styles.errorTitle}>5. Bark etykiety formularza:</p>
+{/*       <p className={styles.errorTitle}>5. Bark etykiety formularza:</p>
       <ul className={styles.errorList}>
       <li className={styles.errorItem}>Problem: Pole formularza wyszukiwania nie posiada etykiety (label), a przycisk wyszukiwania zawiera jedynie ikonę bez tekstu lub alternatywnego opisu. Oba elementy mogą być niezrozumiałe dla użytkowników korzystających z czytników ekranu (błąd krytyczny i umiarkowany).</li>
       <li className={styles.errorItem}>Rekomendacja: Należy dodać ukrytą etykietę do pola wyszukiwania, np.  Wyszukaj na stronie  lub atrybut aria-label="Wyszukaj na stronie" bezpośrednio do pola  . Należy dodać atrybut aria-label="Szukaj" do przycisku wysyłającego formularz (Kryteria WCAG 1.3.1 – Informacje i relacje, 3.3.2 – Etykiety lub instrukcje, 4.1.2 – Nazwa, rola, wartość).</li>
-      </ul>
+      </ul> */}
 
-      <p className={styles.errorTitle}>6. Nawigacja klawiaturą:</p>
+{/*       <p className={styles.errorTitle}>6. Nawigacja klawiaturą:</p>
       <ul className={styles.errorList}>
       <li className={styles.errorItem}>Problem: Brak widocznego obramowania (outline) dla linków (błąd krytyczny).</li>
       <li className={styles.errorItem}>Rekomendacja: Upewnić się, że wszystkie linki mają widoczny focus outline, co jest zgodne z WCAG 2.2.1 (Klawiatura).</li>
-      </ul>
+      </ul> */}
     
-      <p className={styles.errorTitle}>7. Nawigacja klawiaturą:</p>
+{/*       <p className={styles.errorTitle}>7. Nawigacja klawiaturą:</p>
       <ul className={styles.errorList}>
       <li className={styles.errorItem}>Problem: Brak rozwinięcia akordeonu w sekcji FAQ przy pomocy klawiatury (błąd krytyczny).</li>
       <li className={styles.errorItem}>Rekomendacja: Należy upewnić się, że pola zapytań FAQ posiadają widoczny focus outline oraz że można rozwinąć je, np przy pomocy klawisza enter, co jest zgodne z WCAG 2.2.1 (Klawiatura).</li>
-      </ul>
+      </ul> */}
 
       <p className={styles.errorTitle}>8. Struktura nagłówków:</p>
       <ul className={styles.errorList}>
