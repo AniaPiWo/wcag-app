@@ -322,19 +322,30 @@ const ClientReadyReport = ({ id, audit }: Props) => {
   };
 
   const handleCategoryChange = (catIndex: number, field: string, value: string) => {
-    setEditedContent(prev => ({
-      ...prev,
-      problems: prev.problems.map((cat, idx) => {
-        if (idx === catIndex) {
-          // Jeśli zmieniamy severity, ustaw severity na poziomie kategorii
-          if (field === 'severity') {
-            return { ...cat, severity: value };
-          }
-          return { ...cat, [field]: value };
-        }
-        return cat;
-      })
-    }));
+    console.log(`Updating category ${catIndex}, field ${field} to value ${value}`);
+    
+    setEditedContent(prev => {
+      const updatedProblems = [...prev.problems];
+      
+      // Make a direct modification to the category
+      if (field === 'severity') {
+        updatedProblems[catIndex] = {
+          ...updatedProblems[catIndex],
+          severity: value
+        };
+        console.log('Updated severity to:', value, 'for category:', updatedProblems[catIndex].category);
+      } else {
+        updatedProblems[catIndex] = {
+          ...updatedProblems[catIndex],
+          [field]: value
+        };
+      }
+      
+      return {
+        ...prev,
+        problems: updatedProblems
+      };
+    });
   };
 
   const handleProblemChange = (categoryIndex: number, issueIndex: number, field: string, value: string) => {
@@ -437,6 +448,24 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     return severityName;
   };
   
+  // Helper function to normalize severity values to match dropdown options
+  const normalizeSeverity = (severity: string): string => {
+    const severityMap: Record<string, string> = {
+      'critical': 'krytyczny',
+      'serious': 'poważny',
+      'moderate': 'umiarkowany',
+      'średni': 'umiarkowany',
+      'minor': 'lekki',
+      'low': 'lekki'
+    };
+    
+    // Convert to lowercase for case-insensitive matching
+    const lowerSeverity = severity?.toLowerCase() || '';
+    
+    // Return mapped value if exists, otherwise return original or default
+    return severityMap[lowerSeverity] || severity || 'lekki';
+  };
+  
   // Function to sort issues by severity
   const sortIssuesBySeverity = (issues: AuditIssue[]): AuditIssue[] => {
     const severityOrder: Record<string, number> = {
@@ -483,6 +512,30 @@ const ClientReadyReport = ({ id, audit }: Props) => {
       problems: prev.problems.filter((_, catIdx) => catIdx !== categoryIndex)
     }));
   };
+
+  const handleMoveCategory = (categoryIndex: number, direction: 'up' | 'down') => {
+    if (
+      (direction === 'up' && categoryIndex === 0) || 
+      (direction === 'down' && categoryIndex === editedContent.problems.length - 1)
+    ) {
+      return; // Can't move further up/down
+    }
+
+    const newIndex = direction === 'up' ? categoryIndex - 1 : categoryIndex + 1;
+    
+    setEditedContent(prev => {
+      const updatedProblems = [...prev.problems];
+      // Swap the categories
+      [updatedProblems[categoryIndex], updatedProblems[newIndex]] = 
+        [updatedProblems[newIndex], updatedProblems[categoryIndex]];
+      
+      return {
+        ...prev,
+        problems: updatedProblems
+      };
+    });
+  };
+
 
   // Format date for display
   const formatDate = (date: Date | string | undefined) => {
@@ -654,17 +707,13 @@ const ClientReadyReport = ({ id, audit }: Props) => {
                           className={styles.editInputSmall}
                         />
                         {" - błąd "}
-                        <select 
-                          className={styles.editSelect}
+                        <input
+                          type="text"
+                          className={styles.editInputSmall}
                           value={category.severity || getCategorySeverity(category)}
                           onChange={(e) => handleCategoryChange(catIndex, 'severity', e.target.value)}
-                        >
-                          <option value="krytyczny">krytyczny</option>
-                          <option value="poważny">poważny</option>
-                          <option value="umiarkowany">umiarkowany</option>
-                          <option value="lekki">lekki</option>
-                          <option value="mało istotny">mało istotny</option>
-                        </select>
+                          placeholder="krytyczny/poważny/umiarkowany/lekki/mało istotny"
+                        />
                       </>
                     ) : (
                       <>
@@ -681,6 +730,24 @@ const ClientReadyReport = ({ id, audit }: Props) => {
                 
                 {isEditing && (
                   <div className={styles.categoryButtons}>
+                    <div className={styles.orderButtons}>
+                      <button
+                        className={styles.moveButton}
+                        onClick={() => handleMoveCategory(catIndex, 'up')}
+                        disabled={catIndex === 0}
+                        title="Przesuń wyżej"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        className={styles.moveButton}
+                        onClick={() => handleMoveCategory(catIndex, 'down')}
+                        disabled={catIndex === editedContent.problems.length - 1}
+                        title="Przesuń niżej"
+                      >
+                        ↓
+                      </button>
+                    </div>
                     <button
                       className={styles.addIssueButton}
                       onClick={() => handleAddIssue(catIndex)}
