@@ -37,117 +37,6 @@ type Props = {
   audit?: Audit | null;
 }
 
-/* const violations = [
-    {
-      "id": 1,
-      "problem": "Kontrast między kolorami pierwszego planu i tła nie spełnia minimalnych progów współczynnika kontrastu WCAG 1.4 (błąd krytyczny).",
-      "rekomendacje": [
-        "Zmiana koloru --e-global-color-text z HEX #7a7a7a na ciemniejszy (np kolor #4e4e4e spełnia wymogi współczynnika kontrastu AA 4.5 oraz AAA 7.0), zgodnie z WCAG 1.4.3 (Kontrast).",
-        "Zmiana koloru HEX #32c36c (zielony) na ciemniejszy (np kolor #1e7a43 spełnia wymogi współczynnika kontrastu AA 4.5), zgodnie z WCAG 1.4.3 (Kontrast)."
-      ]
-    },
-    {
-      "id": 2,
-      "problem": "Obrazy slidera w hero nie zawierają atrybutu alt, co uniemożliwia jego zrozumienie użytkownikom korzystającym z czytników ekranu (błąd krytyczny).",
-      "rekomendacje": [
-        "Każdy obraz powinien posiadać opis alternatywny w atrybucie alt, zgodnie z WCAG 1.1.1 (Treść nietekstowa). Jeśli obraz pełni funkcję czysto dekoracyjną, należy dodać alt=\"\" lub role=\"presentation\"."
-      ]
-    },
-    {
-      "id": 3,
-      "problem": "Obrazy przedstawiające loga klientów w karuzeli cms_clients_list nie zawierają atrybutu alt, co uniemożliwia jego zrozumienie użytkownikom korzystającym z czytników ekranu (błąd krytyczny).",
-      "rekomendacje": [
-        "Każdy z obrazów powinien posiadać opis alternatywny w atrybucie alt (przykład - alt=\"Logo firmy TCB Bud\"). Jeśli logo pełni funkcję informacyjną lub nawigacyjną, jego opis alternatywny powinien odzwierciedlać tę funkcję, zgodnie z WCAG 1.1.1 (Treść nietekstowa)."
-      ]
-    },
-    {
-      "id": 4,
-      "problem": "Obrazy przedstawiające loga klientów w karuzeli cms_clients_list posiadają odwołanie aria-describedby do nieistniejącego elementu (błąd krytyczny)",
-      "rekomendacje": [
-        "Jeśli aria-describedby nie pełni żadnej funkcji dostępnościowej, najprostszym rozwiązaniem jest usunięcie tego atrybutu. Jeśli nie chcemy usuwać tego atrybutu, należy upewnić się, że aria-describedby wskazuje na istniejący element z opisem, co jest zgodne z WCAG 1.3.1."
-      ]
-    },
-    {
-      "id": 5,
-      "problem": "Pole formularza wyszukiwania nie posiada etykiety (label), a przycisk wyszukiwania zawiera jedynie ikonę bez tekstu lub alternatywnego opisu. Oba elementy mogą być niezrozumiałe dla użytkowników korzystających z czytników ekranu (błąd krytyczny i umiarkowany).",
-      "rekomendacje": [
-        "Należy dodać ukrytą etykietę do pola wyszukiwania, np. Wyszukaj na stronie lub atrybut aria-label=\"Wyszukaj na stronie\" bezpośrednio do pola.",
-        "Należy dodać atrybut aria-label=\"Szukaj\" do przycisku wysyłającego formularz (Kryteria WCAG 1.3.1 – Informacje i relacje, 3.3.2 – Etykiety lub instrukcje, 4.1.2 – Nazwa, rola, wartość)."
-      ]
-    },
-    {
-      "id": 6,
-      "problem": "Brak widocznego obramowania (outline) dla linków (błąd krytyczny).",
-      "rekomendacje": [
-        "Upewnić się, że wszystkie linki mają widoczny focus outline, co jest zgodne z WCAG 2.2.1 (Klawiatura)."
-      ]
-    },
-    {
-      "id": 7,
-      "problem": "Brak rozwinięcia akordeonu w sekcji FAQ przy pomocy klawiatury (błąd krytyczny).",
-      "rekomendacje": [
-        "Należy upewnić się, że pola zapytań FAQ posiadają widoczny focus outline oraz że można rozwinąć je, np przy pomocy klawisza enter, co jest zgodne z WCAG 2.2.1 (Klawiatura)."
-      ]
-    },
-    {
-      "id": 8,
-      "problem": "W stopce (footer) użyto nagłówków poziomu 4 (h4), pomijając wcześniejsze poziomy (h2 i h3), co skutkuje przeskokiem w hierarchii nagłówków (błąd umiarkowany).",
-      "rekomendacje": [
-        "Zachować semantyczną kolejność nagłówków (np. h2, h3, h4) bez pomijania poziomów. Zgodne z WCAG 1.3.1 (Informacja i relacje)."
-      ]
-    },
-    {
-      "id": 9,
-      "problem": "Brak informacji o otwieraniu nowych okien (umiarkowany).",
-      "rekomendacje": [
-        "Dodaj informację tekstową dla linków otwierających nowe okna, zgodnie z WCAG 3.2.2 (Zmiana na żądanie)."
-      ]
-    },
-    {
-      "id": 10,
-      "problem": "Brak informacji o otwieraniu nowych okien (umiarkowany).",
-      "rekomendacje": [
-        "Dodaj informację tekstową dla linków otwierających nowe okna, zgodnie z WCAG 3.2.2 (Zmiana na żądanie)."
-      ]
-    },
-    {
-      "id": 11,
-      "problem": "Brak opisu guzika powrotu do góry dla czytników ekranowych (umiarkowany).",
-      "rekomendacje": [
-        "Dodaj brakujący atrybut np aria-label=\"Powrót do góry strony\" lub tekst alternatywny, zgodnie z WCAG 1.1.1 (Treść nietekstowa)."
-      ]
-    },
-    {
-      "id": 12,
-      "problem": "Link prowadzący do profilu Facebook nie zawiera żadnego tekstu ani alternatywnego opisu dostępnego dla czytników ekranu (np. aria-label). Ikona jest oznaczona jako aria-hidden=\"true\", a element tekstowy jest pusty (błąd umiarkowany).",
-      "rekomendacje": [
-        "Dodać atrybut aria-label=\"Facebook firmy\" do elementu lub uzupełnić element tekstowy o ukryty wizualnie opis. Poprawka zapewni zgodność z WCAG 2.4.4 – Cel linku (poziom A)."
-      ]
-    },
-    {
-      "id": 13,
-      "problem": "Brak wskazówek przy błędach i weryfikacji danych (umiarkowany).",
-      "rekomendacje": [
-        "Implementacja mechanizmów walidacji i podpowiedzi, zgodnie z WCAG 3.3.1 (Identyfikacja błędów)."
-      ]
-    },
-    {
-      "id": 14,
-      "problem": "Niespójna struktura tytułów na podstronach (mało istotny).",
-      "rekomendacje": [
-        "Ujednolicić strukturę tytułów, zgodnie z WCAG 2.4.2 (Tytuły stron)."
-      ]
-    },
-    {
-      "id": 15,
-      "problem": "Brak linków umożliwiających pominięcie powtarzających się bloków nawigacyjnych (skiplinków).",
-      "rekomendacje": [
-        "Implementacja mechanizmu skiplinków (linków \"Przejdź do treści\"), zgodnie z WCAG 2.4.1 (Pomijanie bloków).",
-        "Dodać widoczny (np. po najechaniu tabulatorem) link \"Przejdź do treści\" na początku strony, kierujący do sekcji ."
-      ]
-    }
-  ] */
-
 // Interfejsy dla danych JSON z AI Summary
 interface AuditIssue {
   description: string;
@@ -158,6 +47,7 @@ interface AuditIssue {
 
 interface ProblemCategory {
   category: string;
+  severity?: string;
   issues: AuditIssue[];
 }
 
@@ -431,6 +321,22 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     }));
   };
 
+  const handleCategoryChange = (catIndex: number, field: string, value: string) => {
+    setEditedContent(prev => ({
+      ...prev,
+      problems: prev.problems.map((cat, idx) => {
+        if (idx === catIndex) {
+          // Jeśli zmieniamy severity, ustaw severity na poziomie kategorii
+          if (field === 'severity') {
+            return { ...cat, severity: value };
+          }
+          return { ...cat, [field]: value };
+        }
+        return cat;
+      })
+    }));
+  };
+
   const handleProblemChange = (categoryIndex: number, issueIndex: number, field: string, value: string) => {
     setEditedContent(prev => ({
       ...prev,
@@ -489,6 +395,69 @@ const ClientReadyReport = ({ id, audit }: Props) => {
         return category;
       })
     }));
+  };
+
+  // Helper function to get severity for a category - returns category severity if set, otherwise highest severity from issues
+  const getCategorySeverity = (category: ProblemCategory): string => {
+    // If category has severity set, use it
+    if (category.severity) return category.severity;
+    
+    // Otherwise determine severity from issues
+    if (!category.issues || category.issues.length === 0) return 'lekki';
+    
+    // Define severity order (lower number = higher severity)
+    const severityOrder: Record<string, number> = {
+      'krytyczny': 1,
+      'critical': 1,
+      'poważny': 2, 
+      'serious': 2,
+      'umiarkowany': 3,
+      'średni': 3,
+      'moderate': 3,
+      'lekki': 4,
+      'minor': 4,
+      'low': 4,
+      'mało istotny': 5
+    };
+    
+    // Find the highest severity (lowest number) among issues
+    let highestSeverity = 999;
+    let severityName = 'lekki';
+    
+    category.issues.forEach(issue => {
+      const severity = issue.severity.toLowerCase();
+      const value = severityOrder[severity] || 10; // Default to low priority if unknown
+      
+      if (value < highestSeverity) {
+        highestSeverity = value;
+        severityName = issue.severity;
+      }
+    });
+    
+    return severityName;
+  };
+  
+  // Function to sort issues by severity
+  const sortIssuesBySeverity = (issues: AuditIssue[]): AuditIssue[] => {
+    const severityOrder: Record<string, number> = {
+      'krytyczny': 1,
+      'critical': 1,
+      'poważny': 2,
+      'serious': 2,
+      'umiarkowany': 3,
+      'średni': 3,
+      'moderate': 3,
+      'lekki': 4,
+      'minor': 4,
+      'low': 4,
+      'mało istotny': 5
+    };
+    
+    return [...issues].sort((a, b) => {
+      const severityA = severityOrder[a.severity.toLowerCase()] || 999;
+      const severityB = severityOrder[b.severity.toLowerCase()] || 999;
+      return severityA - severityB;
+    });
   };
 
   const handleAddCategory = () => {
@@ -673,105 +642,115 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           {editedContent.problems && editedContent.problems.length > 0 ? editedContent.problems.map((category, catIndex) => (
             <div key={`category-${catIndex}`} className={styles.problemCategory}>
               <div className={styles.categoryHeader}>
-                <p className={styles.categoryTitle}>
-                  {catIndex + 1}. WCAG:{" "}
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={category.category}
-                      onChange={(e) => {
-                        setEditedContent(prev => ({
-                          ...prev,
-                          problems: prev.problems.map((cat, idx) => 
-                            idx === catIndex ? { ...cat, category: e.target.value } : cat
-                          )
-                        }));
-                      }}
-                      className={styles.editInput}
-                    />
-                  ) : (
-                    category.category
-                  )}
-                </p>
+                <div>
+                  <p className={styles.categoryTitle}>
+                    {catIndex + 1}. WCAG:{" "}
+                    {isEditing ? (
+                      <>
+                        <input
+                          type="text"
+                          value={category.category}
+                          onChange={(e) => handleCategoryChange(catIndex, 'category', e.target.value)}
+                          className={styles.editInputSmall}
+                        />
+                        {" - błąd "}
+                        <select 
+                          className={styles.editSelect}
+                          value={category.severity || getCategorySeverity(category)}
+                          onChange={(e) => handleCategoryChange(catIndex, 'severity', e.target.value)}
+                        >
+                          <option value="krytyczny">krytyczny</option>
+                          <option value="poważny">poważny</option>
+                          <option value="umiarkowany">umiarkowany</option>
+                          <option value="lekki">lekki</option>
+                          <option value="mało istotny">mało istotny</option>
+                        </select>
+                      </>
+                    ) : (
+                      <>
+                        {category.category}{" - błąd "}
+                        <span 
+                          className={`${styles.severityBadge} ${styles[`severity_${(category.severity || getCategorySeverity(category)).toLowerCase().replace(/\s/g, '_')}`]}`}
+                        >
+                          {(category.severity || getCategorySeverity(category)).toLowerCase()}
+                        </span>
+                      </>
+                    )}
+                  </p>
+                </div>
+                
                 {isEditing && (
                   <div className={styles.categoryButtons}>
-                    <button 
-                      onClick={() => handleAddIssue(catIndex)}
+                    <button
                       className={styles.addIssueButton}
+                      onClick={() => handleAddIssue(catIndex)}
                     >
-                      + Dodaj problem
+                      Dodaj problem
                     </button>
-                    {editedContent.problems.length > 1 && (
-                      <button 
-                        onClick={() => handleRemoveCategory(catIndex)}
-                        className={styles.removeButton}
-                      >
-                        Usuń kategorię
-                      </button>
-                    )}
+                    <button
+                      className={styles.removeButton}
+                      onClick={() => handleRemoveCategory(catIndex)}
+                    >
+                      Usuń kategorię
+                    </button>
                   </div>
                 )}
               </div>
-              {category.issues && Array.isArray(category.issues) && (
-                <ul className={styles.problemList}>
-                  {category.issues.map((issue, issueIndex) => (
-                    <li key={`issue-${catIndex}-${issueIndex}`} className={styles.problemItem}>
-                      {isEditing && (
-                        <div className={styles.issueControls}>
-                          <button 
-                            onClick={() => handleRemoveIssue(catIndex, issueIndex)}
-                            className={styles.removeIssueButton}
-                            title="Usuń ten problem"
-                          >
-                            ×
-                          </button>
+                {/* Lista problemów - posortowana wg severity */}
+                <ul className={styles.problemsList}>
+                  {sortIssuesBySeverity(category.issues).map((issue, idx) => {
+                    // Znajdź oryginalny indeks problemu (przed sortowaniem)
+                    const originalIndex = category.issues.findIndex(
+                      (i) => i.description === issue.description && i.recommendation === issue.recommendation
+                    );
+                    
+                    return (
+                      <li key={`issue-${catIndex}-${idx}`} className={styles.problemItem}>
+                        {isEditing && (
+                          <div className={styles.issueControls}>
+                            <button 
+                              onClick={() => handleRemoveIssue(catIndex, originalIndex)}
+                              className={styles.removeIssueButton}
+                              title="Usuń ten problem"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                        <div>
+                          <strong>Problem: </strong>
+                          {isEditing ? (
+                            <textarea
+                              value={issue.description}
+                              onChange={(e) => handleProblemChange(catIndex, originalIndex, 'description', e.target.value)}
+                              className={styles.editTextarea}
+                              rows={2}
+                              placeholder="Opisz problem dostępności..."
+                            />
+                          ) : (
+                            issue.description
+                          )}
                         </div>
-                      )}
-                      <div>
-                        <strong>Problem (</strong>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={issue.severity}
-                            onChange={(e) => handleProblemChange(catIndex, issueIndex, 'severity', e.target.value)}
-                            className={styles.editInputSmall}
-                            placeholder="np. krytyczny"
-                          />
-                        ) : (
-                          <strong>{issue.severity}</strong>
-                        )}
-                        <strong>): </strong>
-                        {isEditing ? (
-                          <textarea
-                            value={issue.description}
-                            onChange={(e) => handleProblemChange(catIndex, issueIndex, 'description', e.target.value)}
-                            className={styles.editTextarea}
-                            rows={2}
-                            placeholder="Opisz problem dostępności..."
-                          />
-                        ) : (
-                          issue.description
-                        )}
-                      </div>
-                      <div>
-                        <strong>Rekomendacja: </strong>
-                        {isEditing ? (
-                          <textarea
-                            value={issue.recommendation}
-                            onChange={(e) => handleProblemChange(catIndex, issueIndex, 'recommendation', e.target.value)}
-                            className={styles.editTextarea}
-                            rows={3}
-                            placeholder="Podaj rekomendację naprawy..."
-                          />
-                        ) : (
-                          issue.recommendation
-                        )}
-                      </div>
-                    </li>
-                  ))}
+                        <div>
+                          <strong>Rekomendacja: </strong>
+                          {isEditing ? (
+                            <textarea
+                              value={issue.recommendation}
+                              onChange={(e) => handleProblemChange(catIndex, originalIndex, 'recommendation', e.target.value)}
+                              className={styles.editTextarea}
+                              rows={3}
+                              placeholder="Podaj rekomendację naprawy..."
+                            />
+                          ) : (
+                            issue.recommendation
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
-              )}
-            </div>
+              </div>
+            
           )) : <p>Brak szczegółowego opisu problemów dostępności.</p>}
         </div>
       )}
