@@ -13,6 +13,56 @@
     background-color: #f9f9f9;
   }
   
+  .reportControls {
+    margin-top: 1.5rem;
+  }
+  
+  .checkboxGroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  
+  .checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    }
+    
+    .checkbox {
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+    }
+  
+  .aiSummary {
+    margin-top: 1.5rem;
+  }
+  
+  .summaryContent {
+    white-space: pre-line;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    padding: 0.75rem;
+  }
+
+  .summaryTextarea {
+    width: 100%;
+    height: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e0e0e0;
+    resize: vertical;
+    box-sizing: border-box;
+    display: block;
+  }
+
+  .editButtons {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
   .table {
     width: 100%;
     border-collapse: collapse;
@@ -118,9 +168,9 @@
   }
   
   .saveSection {
-    margin-top: 1.5rem;
     display: flex;
     align-items: center;
+    margin-top: 1.5rem;
     gap: 1rem;
   }
   
@@ -130,15 +180,6 @@
     font-size: 0.9rem;
   }
   
-  .success {
-    background-color: #e6f7e6;
-    color: #2e7d32;
-  }
-  
-  .error {
-    background-color: #fdeded;
-    color: #d32f2f;
-  }
   
   .saveSection {
     display: flex;
@@ -149,4 +190,282 @@
     position: fixed;
     top: 6rem;
     right: 1rem;
+  }
+
+  .AIreviewSection {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .AIreviewBtn {  
+    margin-bottom: 1rem;
+    align-self: flex-start;
+    padding: 0.5rem 1rem;
+    background-color: var(--vanilla);
+    color: var(--foreground);
+    font-size: 1.2rem;
+    cursor: pointer;
+    border: 1px solid var(--foreground);
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+  
+  .aiSummaryContainer {
+    margin-top: 0.5rem;
+    width: 100%;
+    background-color: #f9f9f9;
+  }
+  
+  .aiSummaryContent {
+    white-space: pre-line;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  
+  .automatedAuditSection {
+    margin-top: 30px;
+    
+    h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+      color: #333;
+    }
+    
+    p {
+      margin-bottom: 1rem;
+      color: #555;
+    }
+  }
+  
+  .automatedAuditButton {
+    padding: 0.5rem 1rem;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+    
+    &:hover {
+      background-color: #388e3c;
+    }
+    
+    &:disabled {
+      background-color: #9e9e9e;
+      cursor: not-allowed;
+    }
+  }
+  
+  .automatedAuditMessage {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    
+    &.info {
+      background-color: #e3f2fd;
+      color: #0d47a1;
+    }
+    
+    &.success {
+      background-color: #e8f5e9;
+      color: #1b5e20;
+    }
+    
+    &.error {
+      background-color: #ffebee;
+      color: #b71c1c;
+    }
+  }
+  
+  .existingAuditContainer {
+    margin-top: 1.5rem;
+    
+    h4 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      color: #333;
+    }
+  }
+  
+  .existingAuditDetails {
+    margin-bottom: 1.5rem;
+    
+    p {
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+  }
+  
+  .existingAuditSummary {
+    margin-bottom: 1.5rem;
+    
+    h5 {
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+    }
+    
+    .summaryItem {
+      display: inline-block;
+      margin-right: 1rem;
+      margin-bottom: 0.5rem;
+      
+      strong {
+        color: #333;
+      }
+    }
+  }
+  
+  .existingAuditViolations {
+    margin-top: 15px;
+    
+    h5 {
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+      
+      li {
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+    }
+    
+    .impactTag {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 6px;
+      font-size: 12px;
+      font-weight: 500;
+      background-color: #f0f0f0;
+      color: #666;
+    }
+    
+    .fullViolation {
+      margin-bottom: 20px;
+      
+      .violationHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        
+        strong {
+          font-size: 16px;
+        }
+      }
+      
+      .violationDescription {
+        margin-bottom: 15px;
+        
+        p {
+          margin: 5px 0;
+        }
+      }
+      
+      .violationNodes {
+        background-color: #f0f0f0;
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 10px;
+        
+        ul {
+          margin-top: 10px;
+          
+          li {
+            margin-bottom: 15px;
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: 4px;
+            
+            code {
+              display: block;
+              padding: 8px;
+              background-color: #f5f5f5;
+              border-radius: 4px;
+              overflow-x: auto;
+              font-size: 12px;
+              margin-bottom: 8px;
+              white-space: pre-wrap;
+              word-break: break-all;
+            }
+            
+            .failureSummary {
+              margin-top: 8px;
+              padding: 8px;
+              background-color: #fff0f0;
+              border-left: 3px solid #ffcccc;
+              font-size: 13px;
+            }
+          }
+        }
+      }
+    }
+    
+    // Style dla różnych poziomów wpływu
+    .critical {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+    
+    .serious {
+      background-color: #fff8e1;
+      color: #ff8f00;
+    }
+    
+    .moderate {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .minor {
+      background-color: #e3f2fd;
+      color: #1565c0;
+    }
+  }
+  
+  .existingAuditActions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .hideAuditButton, .viewFullAuditButton {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+  }
+  
+  .hideAuditButton {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #e0e0e0;
+    
+    &:hover {
+      background-color: #e0e0e0;
+    }
+  }
+  
+  .viewFullAuditButton {
+    background-color: #2196f3;
+    color: white;
+    
+    &:hover {
+      background-color: #1976d2;
+    }
   }

@@ -786,12 +786,12 @@ export async function runAccessibilityAudit(url: string): Promise<{
         }
       }
       
-      console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Przygotowanie do nawigacji na URL: ${url}`);
+      //console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Przygotowanie do nawigacji na URL: ${url}`);
       
       // Sprawdzamy czy zasoby są dostępne przed nawigacją
       await verifyResourcesAvailable();
       
-      console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Rozpoczynam nawigację do: ${url}`);
+      //console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Rozpoczynam nawigację do: ${url}`);
       
       // Próbujemy załadować stronę z bezpiecznym wrapperem z obsługą błędów
       let response = null;
@@ -800,9 +800,9 @@ export async function runAccessibilityAudit(url: string): Promise<{
           waitUntil: 'domcontentloaded', 
           timeout: PLAYWRIGHT_TIMEOUT 
         });
-        console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Nawigacja zakończona pomyślnie`);
+        //console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Nawigacja zakończona pomyślnie`);
       } catch (navigationError) {
-        console.error(`\x1b[31m%s\x1b[0m`, `[${auditId}] Błąd podczas nawigacji:`, navigationError);
+        //console.error(`\x1b[31m%s\x1b[0m`, `[${auditId}] Błąd podczas nawigacji:`, navigationError);
         
         // Sprawdzamy czy zasoby są nadal dostępne po błędzie nawigacji
         try {
@@ -821,7 +821,7 @@ export async function runAccessibilityAudit(url: string): Promise<{
         await tryBypassProtection();
         
         // Ponowna próba załadowania strony
-        console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Ponowna próba załadowania strony po ominięciu zabezpieczeń...`);
+        //console.log(`\x1b[34m%s\x1b[0m`, `[${auditId}] Ponowna próba załadowania strony po ominięciu zabezpieczeń...`);
         
         // Sprawdzamy ponownie czy zasoby są dostępne
         await verifyResourcesAvailable();
@@ -831,9 +831,9 @@ export async function runAccessibilityAudit(url: string): Promise<{
             waitUntil: 'domcontentloaded', 
             timeout: PLAYWRIGHT_TIMEOUT 
           });
-          console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Ponowna nawigacja zakończona pomyślnie`);
+          //console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Ponowna nawigacja zakończona pomyślnie`);
         } catch (retryError) {
-          console.error(`\x1b[31m%s\x1b[0m`, `[${auditId}] Błąd podczas ponownej nawigacji:`, retryError);
+          //console.error(`\x1b[31m%s\x1b[0m`, `[${auditId}] Błąd podczas ponownej nawigacji:`, retryError);
           throw new Error(`Błąd podczas ponownej nawigacji: ${retryError instanceof Error ? retryError.message : String(retryError)}`);
         }
       }
@@ -866,7 +866,7 @@ export async function runAccessibilityAudit(url: string): Promise<{
       // Czekamy na pełne załadowanie strony
       try {
         await page.waitForLoadState('load', { timeout: PLAYWRIGHT_TIMEOUT / 2 });
-        console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Strona w pełni załadowana`);
+        //console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Strona w pełni załadowana`);
       } catch (loadError) {
         console.warn(`\x1b[33m%s\x1b[0m`, `[${auditId}] Timeout podczas oczekiwania na pełne załadowanie strony, ale kontynuujemy:`, loadError);
       }
@@ -1096,7 +1096,7 @@ export async function runAccessibilityAudit(url: string): Promise<{
     console.error('\x1b[31m%s\x1b[0m', 'Błąd podczas wykonywania audytu dostępności:', error);
     throw new Error(`Błąd podczas wykonywania audytu dostępności: ${error instanceof Error ? error.message : String(error)}`);
   } finally {
-    console.log('\x1b[33m%s\x1b[0m', 'Rozpoczynam bezpieczne zamykanie zasobów przeglądarki...');
+    //console.log('\x1b[33m%s\x1b[0m', 'Rozpoczynam bezpieczne zamykanie zasobów przeglądarki...');
 
     // Zamykanie zasobów w odwrotnej kolejności: strona -> kontekst -> przeglądarka
     // z odpowiednimi opóźnieniami i obsługą błędów
@@ -1112,7 +1112,7 @@ export async function runAccessibilityAudit(url: string): Promise<{
           closePromise,
           new Promise(resolve => setTimeout(resolve, 3000)) // 3s timeout
         ]);
-        console.log(`\x1b[32m%s\x1b[0m`, `Pomyślnie zamknięto: ${name}`);
+        //console.log(`\x1b[32m%s\x1b[0m`, `Pomyślnie zamknięto: ${name}`);
       } catch (closeError) {
         console.error(`\x1b[31m%s\x1b[0m`, `Błąd podczas zamykania ${name}:`, 
           closeError instanceof Error ? closeError.message : String(closeError));
@@ -1141,7 +1141,6 @@ export async function runAccessibilityAudit(url: string): Promise<{
         await safeClose(browser, 'przeglądarka');
       }
     } catch (finallyError) {
-      // Łapiemy wszystkie błędy w finally, aby nie wpłynęły na zwracanie rezultatu
       console.error('\x1b[31m%s\x1b[0m', 'Błąd podczas procedury zamykania zasobów:', 
         finallyError instanceof Error ? finallyError.message : String(finallyError));
     }
