@@ -4,9 +4,7 @@
 import styles from './Hero.module.scss';
 import { Button } from '@/components/atoms/Button/Button';
 import { useCallback, useState } from 'react';
-import clsx from 'clsx';
-import { LuBraces, LuBrain, LuEye, LuEar   } from "react-icons/lu";
-import { AnimatedReveal } from '@/components/AnimatedReveal/AnimatedReveal';
+import { Threads } from '@/components/atoms/Threads/Threads.jsx';
 
 export const Hero = () => {
   const [isContactLoading, setIsContactLoading] = useState(false);
@@ -20,7 +18,7 @@ export const Hero = () => {
       
       const windowHeight = window.innerHeight;
       const formHeight = formRect.height;
-      const centerPosition = formTop - (windowHeight / 2 - formHeight / 2);
+      const centerPosition = formTop - (windowHeight / 2 - formHeight / 2 + 35);
       
       window.scrollTo({
         top: centerPosition,
@@ -44,6 +42,11 @@ export const Hero = () => {
   return (
 
     <section id="hero" className={styles.wrapper}>
+      <Threads 
+          amplitude={1.6}
+          distance={0.6}
+          enableMouseInteraction={true}
+          className={styles.threads}/>
       {/* <div className={styles.bottom}>
         <div className={styles.imageContainer}>
           <Image
@@ -63,9 +66,6 @@ export const Hero = () => {
 <p className={styles.desc}>
   Zadbam o to, by Twoja strona była naprawdę dostępna – pomogę Ci stworzyć miejsce, które działa lepiej, sprzedaje więcej i nie wyklucza nikogo.
 </p>
-<div className={clsx(styles.badge, styles.braces)}><LuEar /></div>
-<div className={clsx(styles.badge, styles.brain)}><LuBrain /></div>
-<div className={clsx(styles.badge, styles.eye)}><LuEye /></div>
 
         <div className={styles.buttonContainer}>
           <Button variant="primary" onClick={handleAuditClick}>Bezpłatny audyt strony</Button>

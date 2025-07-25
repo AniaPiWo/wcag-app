@@ -36,9 +36,9 @@ export async function generateManualAuditSummary(
     Dane wejściowe zawierają wyniki z wszystkich wybranych poziomów:
     ${JSON.stringify(formattedAuditData, null, 2)}
     
-    Na podstawie tych danych:
-    1. Przygotuj ZBIORCZĄ analizę wyników, odpowiedź zwróc w foracie JSON, nie dawaj ogólnego tytułu. W tej części skup się na pozytywnie zaliczonych regułach i nazwij summary "summary". Długość kokoło 10 zdań.
-    2. Wypisz główne problemy dostępności problems (jeśli występują) do kazdego problemu dodaj: kategorie WCAG, severity (krytyczny, poważny, umiarkowany, drobny), opis problemu i rekomendacje naprawy - wg schematu: problem, recommendation. 
+    Na podstawie tych danych odpowiedź przygotuj analize wyników audytu, odpowiedź zwróc w formacie JSON bez tytułu, wynik podziel na dwie czesci:
+    1.  Wygeneruj opisową analizę pozytywnie zaliczonych kryteriów dostępności "summary". Nie podawaj ogólnego tytułu. Stwórz jeden spójny, ciągły tekst, w którym w naturalny sposób przedstawisz, które reguły zostały spełnione, na czym one polegają oraz co to oznacza dla użytkownika końcowego. W tekście uwzględnij nazwy ocenionych elementów (jeśli są dostępne), ale nie stosuj list punktowanych i numerów elementów na liście audytu. Utrzymaj długość tekstu na poziomie około 30 zdań. Nie opisuj reguł, które zostały ocenione negatywnie lub jako "not applicable". Jeśli występują "problems" to na końcu dopisz, że w kolejnej sekcji znajduje się lista głównych problemów dostępności.
+    2. Wypisz główne problemy dostępności "problems" (jeśli występują) do kazdego problemu dodaj: kategorie WCAG, severity (krytyczny, poważny, umiarkowany, drobny), opis problemu i rekomendacje naprawy - wg schematu: problem, recommendation. 
     
     Odpowiedź przygotuj w języku polskim. Format odpowiedzi powinien być czytelny, z odpowiednimi nagłówkami dla każdej sekcji. Nie używaj * i # w nagłówkach. nie zaczynaj i nie kończ JSONA potrójnymi backtickami i slowem json.
     Pamiętaj, że jest to raport zbiorczy, więc powinien zawierać kompleksową analizę wszystkich poziomów.

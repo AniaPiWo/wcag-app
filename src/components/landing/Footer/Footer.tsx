@@ -61,7 +61,10 @@ export const Footer = () => {
         <p className={styles.copyright}>
           &copy; {currentYear} Seahorse. All rights reserved.
         </p>
-        <button className={styles.cookieSettings} onClick={modifyCookies}>Zarządzaj ustawieniami cookies</button>
+        <div className={styles.footerLinks}>
+          <Link href="/terms-of-use" className={styles.footerLink}>Regulamin</Link>
+          <button className={styles.cookieSettings} onClick={modifyCookies}>Zarządzaj ustawieniami cookies</button>
+        </div>
         </div>
         </div>
         {showCookiesBanner && (

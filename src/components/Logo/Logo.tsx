@@ -14,7 +14,7 @@ export const Logo: React.FC<LogoProps> = ({
   onClick,
   className = '',
   ariaLabel = 'Strona główna',
-  href
+  href = '/', // domyślnie do strony głównej
 }) => {
   const logoContent = (
     <>
@@ -25,26 +25,14 @@ export const Logo: React.FC<LogoProps> = ({
     </>
   );
 
-  if (href) {
-    return (
-      <Link 
-        href={href}
-        className={`${styles.logoContainer} ${className}`}
-        aria-label={ariaLabel}
-      >
-        {logoContent}
-      </Link>
-    );
-  }
-
   return (
-    <button 
-      type="button"
+    <Link 
+      href={href}
       onClick={onClick}
       className={`${styles.logoContainer} ${className}`}
       aria-label={ariaLabel}
     >
       {logoContent}
-    </button>
+    </Link>
   );
 };
