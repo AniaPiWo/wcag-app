@@ -125,10 +125,13 @@
   align-self: stretch;
   background-color: #313131;
   color: white;
+z-index: 1;
+position: relative;
 }
 
 .input:focus {
   outline: 0.0625rem solid white;
+    background-color: #313131;
 }
 
 .inputError {

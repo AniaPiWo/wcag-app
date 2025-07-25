@@ -4,7 +4,7 @@
   align-items: center;
   gap: 40px;
   padding-bottom: 0;
-  padding-top: 8rem;
+  padding-top: 10rem;
   height: 60dvh;
   overflow: visible;
   position: relative;
@@ -34,6 +34,16 @@
   line-height: 26px;
   max-width: 55%;
   margin-bottom: 1rem;
+
+}
+
+.threads {
+  position: absolute;
+  width: 100vw;
+  height: 115%; /* Zwiększono wysokość o 15% */
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* @keyframes float {

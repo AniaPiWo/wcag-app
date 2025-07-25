@@ -11,7 +11,7 @@ export const GoToForm = () => {
       const elementRect = formElement.getBoundingClientRect();
       const absoluteElementTop = elementRect.top + window.pageYOffset;
   
-      const offset = 50; // np. wysokość nagłówka lub bufor
+      const offset = 25; // np. wysokość nagłówka lub bufor
       window.scrollTo({
         top: absoluteElementTop - offset,
         behavior: 'smooth'
