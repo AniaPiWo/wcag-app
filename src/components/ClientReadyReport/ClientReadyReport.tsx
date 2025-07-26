@@ -968,7 +968,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           // Dodaj stopkę na każdej stronie z polskimi znakami
           const url = auditData?.url || 'Brak adresu URL';
           const domain = getDomainOnly(url);
-          const footerText = "Audyt dostepnosci cyfrowej dla " + domain + " | str. " + i + " z " + totalPages;
+          const footerText = "Audyt dostępności cyfrowej dla " + domain + " | str. " + i + " z " + totalPages;
           const footerFontSize = 9;
           
           // Ustaw właściwości tekstu

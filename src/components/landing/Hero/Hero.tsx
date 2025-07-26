@@ -46,7 +46,10 @@ export const Hero = () => {
           amplitude={1.6}
           distance={0.6}
           enableMouseInteraction={true}
-          className={styles.threads}/>
+          className={styles.threads}
+          color={[0.5, 0.5, 0.5]  }
+          />
+
       {/* <div className={styles.bottom}>
         <div className={styles.imageContainer}>
           <Image
