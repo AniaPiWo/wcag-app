@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import styles from './ClientReadyReport.module.scss'
 import { getManualAudit } from '@/app/actions/manual-audit'
-import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas'
 
 interface Audit {
   id: string;
@@ -60,7 +58,7 @@ interface ParsedAuditSummary {
 const ClientReadyReport = ({ id, audit }: Props) => {
   const [auditData, setAuditData] = useState<Audit | null>(null);
   const [parsedSummary, setParsedSummary] = useState<ParsedAuditSummary | null>(null);
-  const [generatingPdf, setGeneratingPdf] = useState(false);  
+  
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState({
     url: '',
@@ -72,8 +70,6 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     problems: [] as ProblemCategory[]
   });
   const [isSaving, setIsSaving] = useState(false);
-    // Reference to report content for PDF generation
-    const reportRef = useRef<HTMLDivElement>(null);
   
   // Helper function to format dates
   const formatDate = (date: Date): string => {
@@ -554,471 +550,11 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     }));
   };
 
-  // Generate PDF function
-  const generatePdf = async () => {
-    if (!reportRef.current || !auditData) return;
-    
-    setGeneratingPdf(true);
-    
-    // Define type for storing original styles
-    interface OriginalStyle {
-      element: HTMLElement;
-      style: string;
-    }
-    const originalStyles: OriginalStyle[] = [];
 
-    // Znajdź elementy do podziału na określone strony PDF
-    const detailsElement = reportRef.current.querySelector(`.${styles.reportHeader}`);
-    const summaryElement = reportRef.current.querySelector(`.${styles.aiSummary}`);
-    const problemsElement = reportRef.current.querySelector('h3.'+styles.subtitle); // Główne problemy dostępności
-    
-    try {
-      const reportElement = reportRef.current;
-      
-      // Save original styles to restore later
-      const originalDisplay = reportElement.style.display;
-      const originalPosition = reportElement.style.position;
-      const originalOverflow = document.body.style.overflow;
-      
-      // Hide control buttons during PDF generation
-      const controlButtons = document.querySelectorAll(`.${styles.topEditControls}`);
-      const buttonsDisplay: string[] = [];
-      
-      controlButtons.forEach((button) => {
-        const el = button as HTMLElement;
-        buttonsDisplay.push(el.style.display);
-        el.style.display = 'none';
-      });
-      
-      // Prepare element for capturing
-      reportElement.style.display = 'block';
-      reportElement.style.position = 'static'; // Static position works better for capturing
-      document.body.style.overflow = 'auto';
-      
-      // Apply inline styles directly to elements for PDF
-
-      // Style title (h1)
-      const titleElements1 = reportElement.querySelectorAll('h1');
-      titleElements1.forEach(el => {
-        const element = el as HTMLElement;
-        originalStyles.push({element, style: element.getAttribute('style') || ''});
-        element.style.cssText += 'font-size: 3rem; padding: 1rem; margin: 6rem 0;';
-      });
-      
-      // Style title (h2)
-      const titleElements2 = reportElement.querySelectorAll('h2');
-      titleElements2.forEach(el => {
-        const element = el as HTMLElement;
-        originalStyles.push({element, style: element.getAttribute('style') || ''});
-        element.style.cssText += 'font-size: 2.6rem; background-color: #A985FF; color: white; padding: 1rem; margin: 6rem 0;';
-      });
-      
-      // Style h3 titles
-      const h3Elements = reportElement.querySelectorAll('h3');
-      h3Elements.forEach(el => {
-        const element = el as HTMLElement;
-        originalStyles.push({element, style: element.getAttribute('style') || ''});
-        element.style.cssText += 'font-size: 2rem; margin: 3rem 0 2rem 0;';
-      });
-      
-      // Style paragraphs
-      const paragraphs = reportElement.querySelectorAll('p');
-      paragraphs.forEach(el => {
-        const element = el as HTMLElement;
-        originalStyles.push({element, style: element.getAttribute('style') || ''});
-        element.style.cssText += 'font-size: 1.6rem; line-height: 1.5; margin-bottom: 0.3rem;';
-      });
-
-            // Style list items
-            const listItems = reportElement.querySelectorAll('li');
-            listItems.forEach(el => {
-              const element = el as HTMLElement;
-              originalStyles.push({element, style: element.getAttribute('style') || ''});
-              element.style.cssText += 'font-size: 1.6rem; line-height: 1.5; margin-bottom: 0.3rem;';
-            });
-      
-      // Style strong elements
-      const strongElements = reportElement.querySelectorAll('strong');
-      strongElements.forEach(el => {
-        const element = el as HTMLElement;
-        originalStyles.push({element, style: element.getAttribute('style') || ''});
-        element.style.cssText += 'font-size: 1.6rem;';
-      });
-      
-      // Give browser time to apply styles
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Dodaj klasy CSS i atrybuty dla identyfikacji wszystkich ważnych elementów raportu
-      const problemCategoriesElements = reportElement.querySelectorAll('[class*="problemCategory"]');
-      problemCategoriesElements.forEach((el, idx) => {
-        (el as HTMLElement).setAttribute('data-category', `category-${idx}`);
-        (el as HTMLElement).style.pageBreakInside = 'avoid';
-        (el as HTMLElement).style.breakInside = 'avoid';
-      });
-      
-      // Oznacz wszystkie problemy i rekomendacje jako niepodzielne
-      const problemElements = reportElement.querySelectorAll('[class*="problemItem"]');
-      problemElements.forEach((el, idx) => {
-        (el as HTMLElement).setAttribute('data-problem', `problem-${idx}`);
-        (el as HTMLElement).style.pageBreakInside = 'avoid';
-        (el as HTMLElement).style.breakInside = 'avoid';
-      });
-      
-      // Zastosuj style do h3, h4 i p, aby zapobiec dzieleniu ich
-      reportElement.querySelectorAll('h3, h4, p, div').forEach(el => {
-        (el as HTMLElement).style.pageBreakInside = 'avoid';
-        (el as HTMLElement).style.breakInside = 'avoid';
-      });
-
-      // Create basic A4 PDF
-      const pdf = new jsPDF('portrait', 'pt', 'a4');
-      
-      // Get A4 dimensions in points
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      console.log("pageWidth", pageWidth);
-      console.log("pageHeight", pageHeight);
-      
-      // Zmniejszone marginesy
-      const topMargin = 30  ;
-      const sideMargin = 40;
-      const bottomMargin = 30;
-      const printableWidth = pageWidth - (sideMargin * 2);
-      
-      // Capture the entire report at once with optimized quality
-      const canvas = await html2canvas(reportElement, {
-        scale: 1.5, // Zoptymalizowana jakość dla mniejszego rozmiaru pliku
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#FFFFFF',
-        imageTimeout: 0 // Zapobiegaj timeoutom dla dużych raportów
-      });
-      
-      // Calculate dimensions and scaling
-      const scale = printableWidth / canvas.width;
-      const scaledHeight = canvas.height * scale;
-      const totalPdfHeight = scaledHeight;
-      
-      // Calculate available height per page (accounting for margins and footer)
-      const footerHeight = 20; // Zmniejszona wysokość stopki
-      const availablePageHeight = pageHeight - topMargin - bottomMargin - footerHeight - 10; // Mniejszy margines dolny
-      
-
-      
-      // If content fits on a single page
-      if (totalPdfHeight <= availablePageHeight) {
-        // Kompresja jakości
-        pdf.addImage(
-          canvas.toDataURL('image/jpeg', 0.85),  // JPEG z kompresjÄ… dla mniejszej wagi pliku
-          'JPEG',
-          sideMargin,
-          topMargin,
-          printableWidth,
-          scaledHeight
-        );
-      } else {
-        // Content requires multiple pages - more precise page splitting
-        const contentPixelsPerPdfPoint = canvas.height / totalPdfHeight;
-        const pixelsPerPage = availablePageHeight * contentPixelsPerPdfPoint;
-        
-        const pageCount = Math.ceil(canvas.height / pixelsPerPage);
-        
-        // Zbierzmy informacje o pozycji kluczowych elementów dla sztywnego podziału stron
-        // Strona 1: Szczegóły audytu
-        // Strona 2: Tylko podsumowanie
-        // Strona 3+: Problemy dostępności i rekomendacje
-        const pageBoundaries: { pageType: string; top: number; bottom: number; }[] = [];
-        
-        // Pobierz informacje o położeniu poszczególnych sekcji
-        let detailsTop = 0;
-        let detailsBottom = 0;
-        let summaryTop = 0;
-        let summaryBottom = 0;
-        let problemsTop = 0;
-        
-        if (detailsElement) {
-          const rect = detailsElement.getBoundingClientRect();
-          detailsTop = rect.top + window.scrollY;
-          detailsBottom = rect.bottom + window.scrollY;
-          console.log('Znaleziono szczegóły audytu:', detailsTop, detailsBottom);
-        }
-        
-        if (summaryElement) {
-          const rect = summaryElement.getBoundingClientRect();
-          summaryTop = rect.top + window.scrollY;
-          summaryBottom = rect.bottom + window.scrollY;
-          console.log('Znaleziono podsumowanie:', summaryTop, summaryBottom);
-        }
-        
-        if (problemsElement) {
-          const rect = problemsElement.getBoundingClientRect();
-          problemsTop = rect.top + window.scrollY;
-          console.log('Znaleziono sekcję problemów:', problemsTop);
-        }
-
-        // Definiujemy granice stron na podstawie zebranych informacji
-        // Strona 1: Od początku do końca szczegółów lub do początku podsumowania
-        // Strona 2: Od początku podsumowania do końca podsumowania lub do początku problemów
-        // Strona 3+: Od początku problemów do końca dokumentu
-        
-        // Granice strony 1 - Szczegóły
-        const page1Start = 0;
-        const page1End = summaryTop || problemsTop || canvas.height;
-        
-        // Granice strony 2 - Podsumowanie
-        const page2Start = summaryTop;
-        const page2End = problemsTop || canvas.height;
-        
-        // Granice strony 3 - Problemy
-        const page3Start = problemsTop;
-        
-        console.log('Granice stron:', {
-          page1: { start: page1Start, end: page1End },
-          page2: { start: page2Start, end: page2End },
-          page3Start
-        });
-        
-        // Używamy małego overlap dla bezpiecznego nakładania się stron
-        const overlapPixels = 20;
-        
-        // Generujemy dokładnie 3 strony (lub mniej, jeśli nie mamy np. sekcji problemów)
-        // 1. Strona z szczegółami audytu
-        // 2. Strona z podsumowaniem
-        // 3. Strona z problemami i rekomendacjami
-        
-        // Strona 1 - Szczegóły audytu
-        console.log('Generowanie strony 1 - szczegóły audytu');
-        
-        // Obliczanie obszaru strony 1
-        const page1SourceY = page1Start;
-        const page1Height = page1End - page1Start;
-        const page1SourceHeight = Math.min(page1Height, canvas.height - page1SourceY);
-        
-        // Wycinamy fragment obrazu dla strony 1
-        const tempCanvas1 = document.createElement('canvas');
-        tempCanvas1.width = canvas.width;
-        tempCanvas1.height = page1SourceHeight;
-        const ctx1 = tempCanvas1.getContext('2d');
-        if (ctx1) {
-          ctx1.drawImage(
-            canvas,
-            0,
-            page1SourceY,
-            canvas.width,
-            page1SourceHeight,
-            0,
-            0,
-            tempCanvas1.width,
-            tempCanvas1.height
-          );
-        }
-
-        // Dodajemy wycięty fragment do PDF
-        pdf.addImage({
-          imageData: tempCanvas1.toDataURL('image/jpeg', 0.85),
-          format: 'JPEG',
-          x: sideMargin,
-          y: topMargin,
-          width: printableWidth,
-          height: page1SourceHeight / contentPixelsPerPdfPoint,
-          alias: undefined,
-          compression: 'FAST',
-          rotation: 0
-        });
-        
-        // Strona 2 - Podsumowanie (tylko jeśli istnieje)
-        if (summaryTop > 0) {
-          pdf.addPage();
-          console.log('Generowanie strony 2 - podsumowanie');
-          
-          // Obliczanie obszaru strony 2
-          const page2SourceY = page2Start;
-          const page2Height = page2End - page2Start;
-          const page2SourceHeight = Math.min(page2Height, canvas.height - page2SourceY);
-          
-          // Wycinamy fragment obrazu dla strony 2 (podsumowanie)
-          const tempCanvas2 = document.createElement('canvas');
-          tempCanvas2.width = canvas.width;
-          tempCanvas2.height = page2SourceHeight;
-          const ctx2 = tempCanvas2.getContext('2d');
-          if (ctx2) {
-            ctx2.drawImage(
-              canvas,
-              0,
-              page2SourceY,
-              canvas.width,
-              page2SourceHeight,
-              0,
-              0,
-              tempCanvas2.width,
-              tempCanvas2.height
-            );
-          }
-
-          // Dodajemy wycięty fragment do PDF
-          pdf.addImage({
-            imageData: tempCanvas2.toDataURL('image/jpeg', 0.85),
-            format: 'JPEG',
-            x: sideMargin,
-            y: topMargin,
-            width: printableWidth,
-            height: page2SourceHeight / contentPixelsPerPdfPoint,
-            alias: undefined,
-            compression: 'FAST',
-            rotation: 0
-          });
-        }
-        
-        // Strona 3+ - Problemy i rekomendacje (tylko jeśli istnieje)
-        if (problemsTop > 0) {
-          pdf.addPage();
-          console.log('Generowanie strony 3 - problemy i rekomendacje');
-          
-          // Dla sekcji problemów możemy potrzebować wielu stron, więc dzielimy ją na części
-          const problemsHeight = canvas.height - page3Start;
-          const problemsPages = Math.ceil(problemsHeight / pixelsPerPage);
-          
-          // Na pierwszej stronie problemów nie stosujemy overlap
-          let sourceY = page3Start;
-          let sourceHeight = Math.min(pixelsPerPage, canvas.height - sourceY);
-          
-          // Wycinamy fragment obrazu dla pierwszej strony problemów
-          const tempCanvas3 = document.createElement('canvas');
-          tempCanvas3.width = canvas.width;
-          tempCanvas3.height = sourceHeight;
-          const ctx3 = tempCanvas3.getContext('2d');
-          if (ctx3) {
-            ctx3.drawImage(
-              canvas,
-              0,
-              sourceY,
-              canvas.width,
-              sourceHeight,
-              0,
-              0,
-              tempCanvas3.width,
-              tempCanvas3.height
-            );
-          }
-
-          // Dodajemy wycięty fragment do PDF
-          pdf.addImage({
-            imageData: tempCanvas3.toDataURL('image/jpeg', 0.85),
-            format: 'JPEG',
-            x: sideMargin,
-            y: topMargin,
-            width: printableWidth,
-            height: sourceHeight / contentPixelsPerPdfPoint,
-            alias: undefined,
-            compression: 'FAST',
-            rotation: 0
-          });
-          
-          // Dodajemy kolejne strony dla długiej sekcji problemów
-          for (let i = 1; i < problemsPages; i++) {
-            pdf.addPage();
-            sourceY = page3Start + (i * pixelsPerPage) - overlapPixels;
-            sourceHeight = Math.min(pixelsPerPage + overlapPixels, canvas.height - sourceY);
-            
-            // Wycinamy fragment obrazu dla kolejnych stron problemów
-            const tempCanvas4 = document.createElement('canvas');
-            tempCanvas4.width = canvas.width;
-            tempCanvas4.height = sourceHeight;
-            const ctx4 = tempCanvas4.getContext('2d');
-            if (ctx4) {
-              ctx4.drawImage(
-                canvas,
-                0,
-                sourceY,
-                canvas.width,
-                sourceHeight,
-                0,
-                0,
-                tempCanvas4.width,
-                tempCanvas4.height
-              );
-            }
-
-            // Dodajemy wycięty fragment do PDF
-            pdf.addImage({
-              imageData: tempCanvas4.toDataURL('image/jpeg', 0.85),
-              format: 'JPEG',
-              x: sideMargin,
-              y: topMargin,
-              width: printableWidth,
-              height: sourceHeight / contentPixelsPerPdfPoint,
-              alias: undefined,
-              compression: 'FAST',
-              rotation: 0
-            });
-          }
-        }
-        
-        // Dodaj stopki na każdej stronie
-        const totalPages = pdf.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-          pdf.setPage(i);
-          
-          // Stopka na każdej stronie
-          const footerY = pageHeight - bottomMargin - footerHeight / 2;
-          pdf.setDrawColor(220, 220, 220);
-          pdf.setLineWidth(0.5);
-          pdf.line(sideMargin, footerY - footerHeight / 2, pageWidth - sideMargin, footerY - footerHeight / 2);
-          
-          // Dodaj stopkę na każdej stronie z polskimi znakami
-          const url = auditData?.url || 'Brak adresu URL';
-          const domain = getDomainOnly(url);
-          const footerText = "Audyt dostępności cyfrowej dla " + domain + " | str. " + i + " z " + totalPages;
-          const footerFontSize = 9;
-          
-          // Ustaw właściwości tekstu
-          pdf.setFontSize(footerFontSize);
-          pdf.setTextColor(100, 100, 100);
-          
-          // Oblicz szerokość tekstu aby go wycentrować
-          const textWidth = pdf.getStringUnitWidth(footerText) * footerFontSize / pdf.internal.scaleFactor;
-          const textX = (pageWidth - textWidth) / 2;
-          
-          // Pozycja tekstu w stopce
-          pdf.text(footerText, textX, pageHeight - 12);
-        }
-      }
-      
-      // Generate sanitized filename from site URL and client name
-      const sanitizedSiteUrl = (editedContent.url || auditData.url || 'strona')
-        .replace(/https?:\/\//, '')
-        .replace(/\/$/,'')
-        .replace(/[^a-z0-9]/gi, '_');
-      const fileName = `raport_wcag_${sanitizedSiteUrl}.pdf`;
-      
-      // Save the PDF
-      pdf.save(fileName);
-      // Clean up and restore original styles
-      reportElement.style.display = originalDisplay;
-      reportElement.style.position = originalPosition;
-      document.body.style.overflow = originalOverflow;
-      
-      controlButtons.forEach((button, index) => {
-        (button as HTMLElement).style.display = buttonsDisplay[index] || '';
-      });
-      
-      // Restore original inline styles
-      originalStyles.forEach(({element, style}) => {
-        element.setAttribute('style', style);
-      });
-      
-      setGeneratingPdf(false);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      
-      // Restore original inline styles in case of error
-      originalStyles.forEach(({element, style}) => {
-        element.setAttribute('style', style);
-      });
-      
-      setGeneratingPdf(false);
-    }
-  };
+  function generatePdfFromJson(event: React.MouseEvent<HTMLButtonElement>): void {
+  event.preventDefault();
+console.log(editedContent);
+}
 
 return (
   <div className={styles.wrapper}>
@@ -1046,19 +582,31 @@ return (
       </div>
     )}
 
-    <div className={`${styles.mainContent} ${isEditing ? styles.mainContentWithSidebar : ''}`} ref={reportRef}>
+    <div className={`${styles.mainContent} ${isEditing ? styles.mainContentWithSidebar : ''}`} >
 
       {!isEditing && (
         <div className={styles.topEditControls}>
           <button onClick={handleEditToggle} className={styles.editButton}>
             Edytuj raport
           </button>
-          <button 
-            onClick={generatePdf} 
-            className={styles.pdfButton} 
-            disabled={generatingPdf}
+          <button
+            type="button"
+            className={styles.editButton}
+            style={{ marginLeft: 8 }}
+            onClick={() => {
+              // Konsoluj JSON z clientReadyAudit (editedContent)
+              console.log('RAPORT W JSON =>', editedContent);
+            }}
           >
-            {generatingPdf ? 'Generowanie...' : 'Generuj PDF'}
+            Pokaż JSON
+          </button>
+          <button
+            type="button"
+            className={styles.editButton}
+            style={{ marginLeft: 8 }}
+            onClick={generatePdfFromJson}
+          >
+            Pobierz PDF
           </button>
         </div>
       )}
