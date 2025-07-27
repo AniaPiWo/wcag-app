@@ -69,7 +69,8 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
     complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
     summary: '',
-    problems: [] as ProblemCategory[]
+    problems: [] as ProblemCategory[],
+    updatedAt: new Date().toISOString()
   });
   const [isSaving, setIsSaving] = useState(false);
   
@@ -212,7 +213,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
         // If audit is provided as prop, use it, otherwise fetch it
         if (audit) {
           setAuditData(audit);
-          console.log(audit.consolidatedAuditAISummary);
+          //console.log(audit.consolidatedAuditAISummary);
         } else {
           const response = await getManualAudit(id);
           setAuditData(response);
@@ -259,7 +260,8 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           summary: Array.isArray(parsedSummary.summary) 
             ? parsedSummary.summary.join(' ') 
             : parsedSummary.summary || '',
-          problems: parsedSummary.problems || []
+          problems: parsedSummary.problems || [],
+          updatedAt: new Date().toISOString()
         });
       }
     }
@@ -273,6 +275,14 @@ const ClientReadyReport = ({ id, audit }: Props) => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const currentDate = new Date();
+      
+      // Dodaj datę aktualizacji do obiektu editedContent
+      const updatedContent = {
+        ...editedContent,
+        updatedAt: currentDate.toISOString() // Używamy ISO formatu dla lepszej kompatybilności
+      };
+      
       const response = await fetch('/api/audit/save-client-ready', {
         method: 'POST',
         headers: {
@@ -280,7 +290,8 @@ const ClientReadyReport = ({ id, audit }: Props) => {
         },
         body: JSON.stringify({
           auditId: id,
-          clientReadyAudit: JSON.stringify(editedContent)
+          clientReadyAudit: JSON.stringify(updatedContent),
+          updatedAt: currentDate
         })
       });
 
@@ -322,6 +333,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
           auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
           complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
+          updatedAt: auditData.updatedAt.toISOString(),
           summary: Array.isArray(parsedSummary.summary) 
             ? parsedSummary.summary.join(' ') 
             : parsedSummary.summary || '',
