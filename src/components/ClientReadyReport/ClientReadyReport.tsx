@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react'
 import styles from './ClientReadyReport.module.scss'
 import { getManualAudit } from '@/app/actions/manual-audit'
-import { PDFDownloadLink } from '@react-pdf/renderer'
+import { PDFDownloadLink, pdf } from '@react-pdf/renderer'
 import AuditPDF from './AuditPDF'
 
 interface Audit {
@@ -611,16 +613,32 @@ return (
             Pokaż JSON
           </button>
           {editedContent && editedContent.problems && editedContent.problems.length > 0 && (
-            <PDFDownloadLink 
-              document={<AuditPDF data={editedContent} />} 
-              fileName="Raport_WCAG22.pdf"
-              className={styles.editButton}
-              style={{ marginLeft: 8, textDecoration: 'none' }}
-            >
-              {({ blob, url, loading, error }) => 
-                loading ? 'Generowanie PDF...' : 'Pobierz PDF'
-              }
-            </PDFDownloadLink>
+            <>
+              <button
+                className={styles.editButton}
+                style={{ marginLeft: 8 }}
+                onClick={() => {
+                  const filename = `Raport_WCAG22_${editedContent?.url ? editedContent.url.replace(/^https?:\/\/(?:www\.)?/, '').replace(/[\/:*?"<>|]/g, '_').substring(0, 30) : ''}.pdf`;
+                  
+                  // Generate PDF
+                  const blob = pdf(<AuditPDF data={editedContent} />).toBlob();
+                  
+                  // When generation completes, create download link
+                  blob.then((blobData: Blob) => {
+                    const url = URL.createObjectURL(blobData);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    link.click();
+                    
+                    // Clean up
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                  });
+                }}
+              >
+                Generuj i pobierz PDF
+              </button>
+            </>
           )}
         </div>
       )}
