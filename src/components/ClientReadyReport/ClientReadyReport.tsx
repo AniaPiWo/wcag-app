@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import styles from './ClientReadyReport.module.scss'
 import { getManualAudit } from '@/app/actions/manual-audit'
+import { PDFDownloadLink } from '@react-pdf/renderer'
+import AuditPDF from './AuditPDF'
 
 interface Audit {
   id: string;
@@ -551,10 +553,6 @@ const ClientReadyReport = ({ id, audit }: Props) => {
   };
 
 
-  function generatePdfFromJson(event: React.MouseEvent<HTMLButtonElement>): void {
-  event.preventDefault();
-console.log(editedContent);
-}
 
 return (
   <div className={styles.wrapper}>
@@ -600,14 +598,18 @@ return (
           >
             Pokaż JSON
           </button>
-          <button
-            type="button"
-            className={styles.editButton}
-            style={{ marginLeft: 8 }}
-            onClick={generatePdfFromJson}
-          >
-            Pobierz PDF
-          </button>
+          {editedContent && editedContent.problems && editedContent.problems.length > 0 && (
+            <PDFDownloadLink 
+              document={<AuditPDF data={editedContent} />} 
+              fileName="Raport_WCAG22.pdf"
+              className={styles.editButton}
+              style={{ marginLeft: 8, textDecoration: 'none' }}
+            >
+              {({ blob, url, loading, error }) => 
+                loading ? 'Generowanie PDF...' : 'Pobierz PDF'
+              }
+            </PDFDownloadLink>
+          )}
         </div>
       )}
 

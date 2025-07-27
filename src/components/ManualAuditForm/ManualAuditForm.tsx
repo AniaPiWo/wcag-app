@@ -1427,14 +1427,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
               <div className={styles.saveMessage}>{saveMessage?.text}</div>
             </div>
           
-            {/* Client Ready Report Section */}
-            <div className={styles.clientReadyReportSection}>
-              <h3>Raport dla klienta</h3>
-              <p>Poniżej znajduje się podgląd raportu, który zostanie wygenerowany dla klienta.</p>
-              <div className={styles.clientReadyReportContainer}>
-                <ClientReadyReport id={id} audit={audit} />
-              </div>
-            </div>
+
           </>
         ) : (
           <p>Nie znaleziono audytu o podanym ID.</p>
