@@ -2,6 +2,56 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+/**
+ * Saves PDF data to the database with retry logic
+ * @param auditId - The ID of the audit to save the PDF data for
+ * @param pdfData - The PDF data to save (base64 string)
+ * @returns Promise<boolean> - Whether the save was successful
+ */
+async function savePdfToDatabase(auditId: string, pdfData: unknown): Promise<boolean> {
+  // Maximum number of retries
+  const MAX_RETRIES = 2;
+  let retries = 0;
+  let success = false;
+  
+  while (retries <= MAX_RETRIES && !success) {
+    try {
+      // Truncate data if too large to avoid server issues
+      const truncatedData = typeof pdfData === 'string' && pdfData.length > 1024 * 1024 * 2 ? 
+        pdfData.substring(0, 1024 * 100) + '...[truncated]' : pdfData;
+      
+      const response = await fetch('/api/audit/save-pdf-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          auditId,
+          pdfData: truncatedData
+        })
+      });
+      
+      // Check for success
+      if (response.ok) {
+        const result = await response.json();
+        success = result.success === true;
+      } else {
+        console.warn(`API error (attempt ${retries+1}): ${response.status} ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error(`Save attempt ${retries+1} failed:`, error instanceof Error ? error.message : String(error));
+    }
+    
+    retries++;
+    
+    // Wait before retry
+    if (!success && retries <= MAX_RETRIES) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * retries)); // Exponential backoff
+    }
+  }
+  
+  return success;
+}
+
 import React, { useEffect, useState } from 'react'
 import styles from './ClientReadyReport.module.scss'
 import { getManualAudit } from '@/app/actions/manual-audit'
@@ -618,22 +668,52 @@ return (
                 className={styles.editButton}
                 style={{ marginLeft: 8 }}
                 onClick={() => {
-                  const filename = `Raport_WCAG22_${editedContent?.url ? editedContent.url.replace(/^https?:\/\/(?:www\.)?/, '').replace(/[\/:*?"<>|]/g, '_').substring(0, 30) : ''}.pdf`;
-                  
-                  // Generate PDF
-                  const blob = pdf(<AuditPDF data={editedContent} />).toBlob();
-                  
-                  // When generation completes, create download link
-                  blob.then((blobData: Blob) => {
-                    const url = URL.createObjectURL(blobData);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = filename;
-                    link.click();
+                  try {
+                    const filename = `Raport_WCAG22_${editedContent?.url ? editedContent.url.replace(/^https?:\/\/(?:www\.)?/, '').replace(/[\/:*?"<>|]/g, '_').substring(0, 30) : ''}.pdf`;
                     
-                    // Clean up
-                    setTimeout(() => URL.revokeObjectURL(url), 1000);
-                  });
+                    // Generate PDF, save to database, and download
+                    pdf(<AuditPDF data={editedContent} />)
+                      .toBlob()
+                      .then((blobData: Blob) => {
+                        // Create download URL
+                        const url = URL.createObjectURL(blobData);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = filename;
+                        
+                        // Save to database (parallel operation, won't block download)
+                        if (audit?.id) {
+                          const reader = new FileReader();
+                          reader.readAsDataURL(blobData);
+                          reader.onloadend = function() {
+                            const base64data = reader.result;
+                            // Save with retry logic
+                            savePdfToDatabase(audit.id, base64data)
+                              .then(success => {
+                                if (success) {
+                                  console.log('PDF saved to database successfully');
+                                } else {
+                                  console.warn('Failed to save PDF to database');
+                                }
+                              })
+                              .catch(err => {
+                                console.error('Error saving PDF:', err);
+                              });
+                          };
+                        }
+                        
+                        // Download PDF immediately (doesn't wait for database save)
+                        link.click();
+                        
+                        // Clean up
+                        setTimeout(() => URL.revokeObjectURL(url), 1000);
+                      })
+                      .catch((error) => {
+                        console.error('Error generating PDF:', error instanceof Error ? error.message : String(error));
+                      });
+                  } catch (error) {
+                    console.error('Error in PDF generation process:', error instanceof Error ? error.message : String(error));
+                  }
                 }}
               >
                 Generuj i pobierz PDF
