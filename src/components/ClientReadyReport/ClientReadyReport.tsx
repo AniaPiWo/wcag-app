@@ -114,6 +114,18 @@ const ClientReadyReport = ({ id, audit }: Props) => {
   const [parsedSummary, setParsedSummary] = useState<ParsedAuditSummary | null>(null);
   
   const [isEditing, setIsEditing] = useState(false);
+  // Email related state
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [emailData, setEmailData] = useState({
+    recipient: '',
+    subject: '',
+    message: '',
+    filename: '',
+    sending: false,
+    error: '',
+    success: false,
+    showPreview: false
+  });
   const [editedContent, setEditedContent] = useState({
     url: '',
     auditorName: 'Anna Piotrowiak-Wołosiuk',
@@ -616,6 +628,178 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     }));
   };
 
+  /**
+   * Opens the email dialog to send the report
+   */
+  const handleSendReport = () => {
+    // Generate default filename
+    const defaultFilename = `Raport_WCAG22_${editedContent.url ? getDomainOnly(editedContent.url).replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30) : 'strona_internetowa'}.pdf`;
+    
+    // Format current date for the email
+    const currentDate = new Date().toLocaleDateString('pl-PL');
+    
+    // Set default values based on audit data
+    setEmailData({
+      recipient: auditData?.email || '',
+      subject: `Raport dostępności WCAG 2.2 - ${editedContent.url ? getDomainOnly(editedContent.url) : 'strona internetowa'}`,
+      message: `Dzień dobry,\n\nW załączeniu przesyłam raport z audytu dostępności WCAG 2.2 dla strony ${editedContent.url}.\n\nData wykonania audytu: ${currentDate}\n\nZ poważaniem,\n${editedContent.auditorName}`,
+      filename: defaultFilename,
+      sending: false,
+      error: '',
+      success: false,
+      showPreview: false
+    });
+    setShowEmailDialog(true);
+  };
+  
+  /**
+   * Handles sending the report via email
+   */
+  const handleSendEmail = async () => {
+    try {
+      // Validate email address format
+      if (!validateEmail(emailData.recipient)) {
+        setEmailData(prev => ({ 
+          ...prev, 
+          error: 'Proszę podać prawidłowy adres email.'
+        }));
+        return;
+      }
+      
+      setEmailData(prev => ({ ...prev, sending: true, error: '', success: false }));
+      
+      // Generate PDF blob
+      const pdfBlob = await pdf(<AuditPDF data={editedContent} />).toBlob();
+      
+      // Convert blob to base64
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(pdfBlob);
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+      });
+      
+      // Use provided filename or fallback to default
+      const filename = emailData.filename || `Raport_WCAG22_${getDomainOnly(editedContent.url)}.pdf`;
+      
+      // Send email via API
+      const response = await fetch('/api/email/send-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          auditId: id,
+          recipient: emailData.recipient,
+          subject: emailData.subject,
+          message: emailData.message,
+          pdfData: base64Data,
+          filename: filename
+        })
+      });
+      
+      if (response.ok) {
+        // Success
+        setEmailData(prev => ({ ...prev, sending: false, success: true }));
+        
+        // Close dialog after success message display
+        setTimeout(() => {
+          setShowEmailDialog(false);
+          setEmailData(prev => ({ ...prev, success: false }));
+        }, 3000);
+      } else {
+        // API error
+        const errorData = await response.json();
+        setEmailData(prev => ({ 
+          ...prev, 
+          sending: false, 
+          error: errorData.message || 'Wystąpił błąd podczas wysyłania emaila.'
+        }));
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+      setEmailData(prev => ({ 
+        ...prev, 
+        sending: false, 
+        error: error instanceof Error ? error.message : 'Wystąpił nieoczekiwany błąd.'
+      }));
+    }
+  };
+  
+  /**
+   * Toggles the email preview mode
+   */
+  const toggleEmailPreview = () => {
+    setEmailData(prev => ({ ...prev, showPreview: !prev.showPreview }));
+  };
+  
+  /**
+   * Validates email address format
+   * @param email - Email address to validate
+   * @returns Boolean indicating if the email format is valid
+   */
+  const validateEmail = (email: string): boolean => {
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return re.test(email.toLowerCase());
+  };
+
+  /**
+   * Closes the email dialog
+   */
+  const handleCloseEmailDialog = () => {
+    setShowEmailDialog(false);
+    setEmailData(prev => ({ ...prev, error: '', success: false, showPreview: false }));
+  };
+  
+  /**
+   * Generates a PDF, saves it to the database, and triggers download
+   */
+  const handleGeneratePDF = () => {
+    try {
+      const filename = `Raport_WCAG22_${editedContent?.url ? editedContent.url.replace(/^https?:\/\/(?:www\.)?/, '').replace(/[\/:*?"<>|]/g, '_').substring(0, 30) : ''}.pdf`;
+      
+      // Generate PDF, save to database, and download
+      pdf(<AuditPDF data={editedContent} />)
+        .toBlob()
+        .then((blobData: Blob) => {
+          // Create download URL
+          const url = URL.createObjectURL(blobData);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = filename;
+          
+          // Save to database (parallel operation, won't block download)
+          if (audit?.id) {
+            const reader = new FileReader();
+            reader.readAsDataURL(blobData);
+            reader.onloadend = function() {
+              const base64data = reader.result;
+              // Save with retry logic
+              savePdfToDatabase(audit.id, base64data)
+                .then(success => {
+                  if (success) {
+                    console.log('PDF saved to database successfully');
+                  } else {
+                    console.warn('Failed to save PDF to database');
+                  }
+                })
+                .catch(err => {
+                  console.error('Error saving PDF:', err);
+                });
+            };
+          }
+          
+          // Download PDF immediately (doesn't wait for database save)
+          link.click();
+          
+          // Clean up
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        })
+        .catch((error) => {
+          console.error('Error generating PDF:', error instanceof Error ? error.message : String(error));
+        });
+    } catch (error) {
+      console.error('Error in PDF generation process:', error instanceof Error ? error.message : String(error));
+    }
+  };
 
 
 return (
@@ -654,7 +838,6 @@ return (
           <button
             type="button"
             className={styles.editButton}
-            style={{ marginLeft: 8 }}
             onClick={() => {
               // Konsoluj JSON z clientReadyAudit (editedContent)
               console.log('RAPORT W JSON =>', editedContent);
@@ -663,63 +846,22 @@ return (
             Pokaż JSON
           </button>
           {editedContent && editedContent.problems && editedContent.problems.length > 0 && (
-            <>
+          
               <button
                 className={styles.editButton}
-                style={{ marginLeft: 8 }}
-                onClick={() => {
-                  try {
-                    const filename = `Raport_WCAG22_${editedContent?.url ? editedContent.url.replace(/^https?:\/\/(?:www\.)?/, '').replace(/[\/:*?"<>|]/g, '_').substring(0, 30) : ''}.pdf`;
-                    
-                    // Generate PDF, save to database, and download
-                    pdf(<AuditPDF data={editedContent} />)
-                      .toBlob()
-                      .then((blobData: Blob) => {
-                        // Create download URL
-                        const url = URL.createObjectURL(blobData);
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.download = filename;
-                        
-                        // Save to database (parallel operation, won't block download)
-                        if (audit?.id) {
-                          const reader = new FileReader();
-                          reader.readAsDataURL(blobData);
-                          reader.onloadend = function() {
-                            const base64data = reader.result;
-                            // Save with retry logic
-                            savePdfToDatabase(audit.id, base64data)
-                              .then(success => {
-                                if (success) {
-                                  console.log('PDF saved to database successfully');
-                                } else {
-                                  console.warn('Failed to save PDF to database');
-                                }
-                              })
-                              .catch(err => {
-                                console.error('Error saving PDF:', err);
-                              });
-                          };
-                        }
-                        
-                        // Download PDF immediately (doesn't wait for database save)
-                        link.click();
-                        
-                        // Clean up
-                        setTimeout(() => URL.revokeObjectURL(url), 1000);
-                      })
-                      .catch((error) => {
-                        console.error('Error generating PDF:', error instanceof Error ? error.message : String(error));
-                      });
-                  } catch (error) {
-                    console.error('Error in PDF generation process:', error instanceof Error ? error.message : String(error));
-                  }
-                }}
+                onClick={handleGeneratePDF}
               >
                 Generuj i pobierz PDF
               </button>
-            </>
+          
           )}
+          <button
+            type="button"
+            className={styles.editButton}
+            onClick={handleSendReport}
+          >
+            Wyślij raport
+          </button>
         </div>
       )}
 
@@ -979,6 +1121,159 @@ return (
         <h3 className={styles.subtitle}>Oświadczenie</h3>
         <p>Audyt został przeprowadzony manualnie oraz przy pomocy narzędzi automatycznych zgodnie z wytycznymi WCAG 2.2 na poziomie AA. Raport nie stanowi certyfikatu zgodności, lecz dokumentuje aktualny stan dostępności oraz kierunki poprawy.</p>
       </div>
+      
+      {/* Email Dialog */}
+      {showEmailDialog && (
+        <div className={styles.emailDialogOverlay}>
+          <div className={styles.emailDialog}>
+            <h3 className={styles.emailDialogTitle}>
+              Wyślij raport email
+            </h3>
+            
+            {emailData.success ? (
+              <div className={styles.emailSuccess}>
+                <p>Email został wysłany pomyślnie!</p>
+              </div>
+            ) : (
+              <>
+                {emailData.showPreview ? (
+                <div className={styles.emailPreview}>
+                  <div className={styles.emailPreviewHeader}>
+                    <h4>Podgląd wiadomości</h4>
+                    <button 
+                      className={styles.previewBackButton} 
+                      onClick={toggleEmailPreview}
+                      disabled={emailData.sending}
+                    >
+                      Powrót do edycji
+                    </button>
+                  </div>
+                  
+                  <div className={styles.emailPreviewContent}>
+                    <div className={styles.emailPreviewField}>
+                      <span className={styles.emailPreviewLabel}>Do:</span>
+                      <span>{emailData.recipient}</span>
+                    </div>
+                    
+                    <div className={styles.emailPreviewField}>
+                      <span className={styles.emailPreviewLabel}>Temat:</span>
+                      <span>{emailData.subject}</span>
+                    </div>
+                    
+                    <div className={styles.emailPreviewField}>
+                      <span className={styles.emailPreviewLabel}>Załącznik:</span>
+                      <span>{emailData.filename}</span>
+                    </div>
+                    
+                    <div className={styles.emailPreviewBody}>
+                      <span className={styles.emailPreviewLabel}>Treść:</span>
+                      <div className={styles.emailPreviewMessage}>
+                        {emailData.message.split('\n').map((line, index) => (
+                          <p key={index}>{line}</p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className={styles.emailFormGroup}>
+                    <label htmlFor="recipient">Adresat:</label>
+                    <input 
+                      type="email" 
+                      id="recipient" 
+                      value={emailData.recipient} 
+                      onChange={(e) => setEmailData({...emailData, recipient: e.target.value})}
+                      className={styles.emailInput}
+                      disabled={emailData.sending}
+                      required 
+                    />
+                  </div>
+                  
+                  <div className={styles.emailFormGroup}>
+                    <label htmlFor="subject">Temat:</label>
+                    <input 
+                      type="text" 
+                      id="subject" 
+                      value={emailData.subject} 
+                      onChange={(e) => setEmailData({...emailData, subject: e.target.value})}
+                      className={styles.emailInput}
+                      disabled={emailData.sending}
+                      required 
+                    />
+                  </div>
+                  
+                  <div className={styles.emailFormGroup}>
+                    <label htmlFor="filename">Nazwa pliku PDF:</label>
+                    <input 
+                      type="text" 
+                      id="filename" 
+                      value={emailData.filename} 
+                      onChange={(e) => setEmailData({...emailData, filename: e.target.value})}
+                      className={styles.emailInput}
+                      disabled={emailData.sending}
+                      required 
+                    />
+                  </div>
+                  
+                  <div className={styles.emailFormGroup}>
+                    <label htmlFor="message">Treść wiadomości:</label>
+                    <textarea 
+                      id="message" 
+                      value={emailData.message} 
+                      onChange={(e) => setEmailData({...emailData, message: e.target.value})}
+                      className={styles.emailTextarea}
+                      rows={6}
+                      disabled={emailData.sending}
+                      required 
+                    ></textarea>
+                  </div>
+                </>
+              )}
+                
+                {emailData.error && (
+                  <div className={styles.emailError}>
+                    <p>{emailData.error}</p>
+                  </div>
+                )}
+                
+                <div className={styles.emailDialogButtons}>
+                  {!emailData.showPreview ? (
+                    <button 
+                      type="button" 
+                      className={styles.previewButton}
+                      onClick={toggleEmailPreview}
+                      disabled={emailData.sending}
+                    >
+                      Podgląd wiadomości
+                    </button>
+                  ) : null}
+                  
+                  <div className={styles.actionButtons}>
+                    <button 
+                      type="button" 
+                      className={`${styles.sendEmailButton} ${emailData.sending ? styles.buttonDisabled : ''}`}
+                      onClick={handleSendEmail}
+                      disabled={emailData.sending}
+                    >
+                      {emailData.sending ? 'Wysyłanie...' : 'Wyślij'}
+                    </button>
+                    <button 
+                      type="button" 
+                      className={styles.cancelEmailButton}
+                      onClick={handleCloseEmailDialog}
+                      disabled={emailData.sending}
+                    >
+                      Anuluj
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 };

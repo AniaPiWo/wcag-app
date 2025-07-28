@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
         id: auditId
       },
       data: {
-        // @ts-expect-error - new field may not be in type definition yet
         pdfAuditData: pdfData,
         updatedAt: new Date()
       }
