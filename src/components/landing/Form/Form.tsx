@@ -356,7 +356,7 @@ export const Form = () => {
           <form
             onSubmit={handleSubmit(onSubmit, onError)}
             className={styles.form}
-            noValidate
+            noValidate={true}
           >
             <div className={styles.inputWrapper}>
               <div style={{ position: 'relative' }}>

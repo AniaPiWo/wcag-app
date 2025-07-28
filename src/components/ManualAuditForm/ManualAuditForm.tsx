@@ -321,7 +321,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
         name: audit.name || 'Audyt automatyczny' // Domyślna nazwa jeśli brak
       };
       
-      console.log('Wysyłanie żądania audytu automatycznego:', requestData);
+      //console.log('Wysyłanie żądania audytu automatycznego:', requestData);
       
       const response = await fetch('/api/audit', {
         method: 'POST',
@@ -753,6 +753,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
           <div className={styles.auditDetails}>
             <p><strong>ID audytu:</strong> {id}</p>
             <p><strong>URL:</strong> {audit.url}</p>
+            <p><strong>Email:</strong> {audit.email}</p>
             <p><strong>Data utworzenia:</strong> {new Date(audit.createdAt).toLocaleString()}</p>
             <p><strong>Ostatnia aktualizacja:</strong> {new Date(audit.updatedAt).toLocaleString()}</p>
             <p><strong>Wybrane poziomy:</strong> {renderSelectedLevels()}</p>
@@ -1427,14 +1428,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
               <div className={styles.saveMessage}>{saveMessage?.text}</div>
             </div>
           
-            {/* Client Ready Report Section */}
-            <div className={styles.clientReadyReportSection}>
-              <h3>Raport dla klienta</h3>
-              <p>Poniżej znajduje się podgląd raportu, który zostanie wygenerowany dla klienta.</p>
-              <div className={styles.clientReadyReportContainer}>
-                <ClientReadyReport id={id} audit={audit} />
-              </div>
-            </div>
+
           </>
         ) : (
           <p>Nie znaleziono audytu o podanym ID.</p>

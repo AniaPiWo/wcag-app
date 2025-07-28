@@ -48,4 +48,5 @@ model AuditRequest {
   consolidatedAuditAISummary String?
   readyMadeAudit             String?
   clientReadyAudit          String?
+  pdfAuditData             String?
 }

@@ -44,22 +44,12 @@ export const Hero = () => {
     <section id="hero" className={styles.wrapper}>
       <Threads 
           amplitude={1.6}
-          distance={0.6}
+          distance={0.5}
           enableMouseInteraction={true}
-          className={styles.threads}/>
-      {/* <div className={styles.bottom}>
-        <div className={styles.imageContainer}>
-          <Image
-            src="/pug.jpg"
-            alt="Mops jako symbol dostępności"
-            fill
-            fetchPriority="high"
-            loading="eager"
-            className={styles.image}
-            sizes="(max-width: 768px) 100vw, 50vw"
+          className={styles.threads}
+          color={[0.5, 0.5, 0.5]  }
           />
-        </div>
-      </div> */}
+
       <div className={styles.top}>
 
 <h1 className={styles.title}>Popraw dostępność, zwiększ sprzedaż i widoczność – dzięki WCAG 2.2</h1>
