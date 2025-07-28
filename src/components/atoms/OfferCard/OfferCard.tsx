@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './OfferCard.module.scss';
 import { Button } from '../Button/Button';
 
@@ -18,6 +18,8 @@ type OfferCardProps = {
   features: string[];
   buttonText?: string;
   buttonUrl?: string;
+  emailSubject?: string;
+  emailBody?: string;
   popular?: boolean;
   className?: string;
 };
@@ -30,9 +32,13 @@ export const OfferCard = ({
   features = [],
   buttonText = 'Dowiedz się więcej',
   buttonUrl = '#',
+  emailSubject = '',
+  emailBody = '',
 }: OfferCardProps) => {
   const [showFeatures, setShowFeatures] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const featuresSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -51,9 +57,29 @@ export const OfferCard = ({
   
   const toggleFeatures = () => {
     setShowFeatures(!showFeatures);
+    
+    // Delay update of parent card height to allow animation to start
+    setTimeout(() => {
+      updateCardHeight();
+    }, 50);
   };
+  
+  // Function to update the card height based on content
+  const updateCardHeight = useCallback(() => {
+    if (isMobile && cardRef.current) {
+      // Reset height to auto first to get natural height
+      cardRef.current.style.height = 'auto';
+    }
+  }, [isMobile]);
+  
+  // Effect to adjust card height when features visibility changes
+  useEffect(() => {
+    if (isMobile && showFeatures) {
+      updateCardHeight();
+    }
+  }, [showFeatures, isMobile, updateCardHeight]);
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${showFeatures ? styles.expanded : ''}`} ref={cardRef}>
       <div className={styles.header}>
         <h3 className={styles.title}>{title}</h3>
         {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
@@ -76,7 +102,17 @@ export const OfferCard = ({
         <div className={styles.buttonWrapper}>
           <Button 
             variant="primary" 
-            onClick={() => { if (buttonUrl) window.location.href = buttonUrl; }}
+            onClick={() => {
+              // Sprawdź, czy mamy dane emaila
+              if (emailSubject && emailBody) {
+                // Utworzenie poprawnego linku mailto z encodowanym tytułem i treścią
+                const mailtoUrl = `mailto:biuro@wcag.co?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+                window.location.href = mailtoUrl;
+              } else if (buttonUrl) {
+                // Fallback do zwykłego URL
+                window.location.href = buttonUrl;
+              }
+            }}
           >
             {buttonText}
           </Button>
@@ -108,7 +144,8 @@ export const OfferCard = ({
           {isMobile ? (
             <div 
               id={`features-${title.replace(/\s+/g, '-').toLowerCase()}`}
-              className={styles.featuresSection}
+              className={`${styles.featuresSection} ${showFeatures ? styles.featuresVisible : ''}`}
+              ref={featuresSectionRef}
               style={{ 
                 maxHeight: showFeatures ? '1000px' : '0',
                 overflow: 'hidden',
@@ -119,6 +156,7 @@ export const OfferCard = ({
                 opacity: showFeatures ? 1 : 0
               }}
               aria-hidden={!showFeatures}
+              onTransitionEnd={updateCardHeight}
             >
               <ul className={styles.featuresList}>
                 {features.map((feature, index) => (

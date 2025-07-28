@@ -88,8 +88,10 @@
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    padding-inline: 0;
+    padding: 0 16px 20px 16px; // Dodajemy boczne paddingii lepszy padding dolny
     gap: 16px;
+    flex-wrap: nowrap; // Zapobiega zawijaniu kart
+    scrollbar-width: thin;
   }
 
   .cardsMobile::-webkit-scrollbar {
@@ -98,6 +100,12 @@
 
   .cardItem {
     scroll-snap-align: start;
+    // Upewnia się, że karty mają elastyczną wysokość
+    height: auto;
+    min-height: auto;
+    max-height: none;
+    // Pozwala na rozszerzanie się karty
+    transition: height 0.5s ease;
   }
 }
 

@@ -40,37 +40,30 @@ export async function middleware(req: NextRequest) {
   
   console.log(`\x1b[35m🔄 [Middleware] Przetwarzanie ścieżki: ${pathname}\x1b[0m`);
   
-  // Sprawdzamy czy to jest żądanie z audytu automatycznego
-  const auditHeader = req.headers.get('x-wcag-audit');
-  console.log('\x1b[36m📡 [Headers Debug] x-wcag-audit header:', auditHeader, '\x1b[0m');
-  
   // Wypisujemy wszystkie nagłówki dla celów diagnostycznych
   console.log('\x1b[36m📡 [Headers Debug] Wszystkie nagłówki:\x1b[0m');
   req.headers.forEach((value, key) => {
     console.log(`\x1b[36m - ${key}: ${value}\x1b[0m`);
   });
   
-  const isAuditRequest = auditHeader === 'true';
-  if (isAuditRequest) {
-    console.log('\x1b[32m✅ [Audit] Wykryto żądanie z audytu automatycznego - pomijamy uwierzytelnianie\x1b[0m');
-    return NextResponse.next();
-  }
-  
-  // Ścieżki związane z audytami automatycznymi, które powinny być dostępne bez uwierzytelniania
-  const publicAuditPaths = [
-    '/admin/auto-audits',
+  // Ścieżki wyłącznie API, które mogą mieć specjalne traktowanie
+  const apiPaths = [
     '/api/admin-audits'
   ];
   
-  // Sprawdzamy, czy bieżąca ścieżka jest publiczną ścieżką audytu
-  const isPublicAuditPath = publicAuditPaths.some(path => pathname === path || pathname.startsWith(path + '/'));
-  
-  if (isPublicAuditPath) {
-    console.log('\x1b[32m✅ [Public Path] Wykryto publiczną ścieżkę audytu - pomijamy uwierzytelnianie\x1b[0m');
-    return NextResponse.next();
+  // Dla ścieżek API, możemy dodać dodatkowe mechanizmy uwierzytelniania, np. token API
+  const isApiPath = apiPaths.some(path => pathname === path || pathname.startsWith(path + '/'));
+  if (isApiPath) {
+    // Uwaga: Nawet dla API wymagamy uwierzytelniania, ale można dodać tutaj specjalną logikę
+    // np. sprawdzanie tokenu API zamiast sesji
+    const apiKey = req.headers.get('x-api-key');
+    if (apiKey === process.env.API_SECRET_KEY) {
+      console.log('\x1b[32m✅ [API] Uwierzytelnianie przez API Key - dozwolone\x1b[0m');
+      return NextResponse.next();
+    }
   }
   
-  // Protect /admin root and all subpages except /admin/login and public audit paths
+  // Protect /admin root and all subpages except /admin/login
   if ((pathname === '/admin' || (pathname.startsWith('/admin/') && pathname !== '/admin/login'))) {
     console.log('\x1b[33m🔍 [Auth Check] Sprawdzanie sesji dla ścieżki administracyjnej\x1b[0m');
     const isValid = await validateSessionInMiddleware(req);

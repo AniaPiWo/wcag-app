@@ -12,18 +12,27 @@ export const offers = [
     description:
       'Szczegółowa analiza Twojej strony pod kątem zgodności z WCAG 2.2.',
     price: {
-      amount: '399',
+      amount: 'od 399',
       currency: 'zł netto',
       period: 'jednorazowo',
     },
     features: [
       'Manualny audyt dostępności stron internetowych',
-      'Analiza 92 kluczowych kryteriów dostępności wskazanych przez Ministerstwo Cyfryzacji',
+      'Analiza kluczowych kryteriów dostępności wskazanych przez Ministerstwo Cyfryzacji',
       'Szczegółowy raport z wykrytymi problemami dostępności',
+      'dostępne poziomy auditu: podstawowy, średni i zaawansowany',
       'Praktyczne rekomendacje naprawcze',
       'Audyt dostępności do 5 podstron serwisu'
     ],
-    
+    emailSubject: 'Zapytanie o audyt dostępności',
+    emailBody: `Dzień dobry,
+
+Jestem zainteresowany/a zamówieniem audytu dostępności dla mojej strony internetowej.
+
+Proszę o informacje dotyczące procesu i dostępnych pakietów.
+
+Pozdrawiam,
+`,
     buttonText: 'Zamów audyt'
   },
   {
@@ -40,12 +49,20 @@ export const offers = [
     features: [
       'Manualny audyt dostępności stron',
       'Implementacja poprawek dostępności',
-      'Testy dostępności z użytkownikami',
+      'Testy dostępności',
       'Certyfikat dostępności cyfrowej',
       'Deklaracja dostępności strony',
       'Wsparcie po wdrożeniu dostępności'
     ],
-    
+    emailSubject: 'Zapytanie o dostosowanie strony do WCAG 2.2',
+    emailBody: `Dzień dobry,
+
+Jestem zainteresowany/a dostosowaniem mojej strony internetowej do standardów WCAG 2.2.
+
+Proszę o wycenę oraz informacje o procesie dostosowania.
+
+Pozdrawiam,
+`,
     buttonText: 'Zapytaj o wycenę'
   },
   {
@@ -67,6 +84,15 @@ export const offers = [
       'Deklaracja dostępności strony',
       'Wsparcie techniczne'
     ],
+    emailSubject: 'Zapytanie o stworzenie dostępnej strony',
+    emailBody: `Dzień dobry,
+
+Jestem zainteresowany/a stworzeniem nowej, w pełni dostępnej strony internetowej zgodnej z WCAG 2.2.
+
+Proszę o wycenę oraz informacje o procesie tworzenia strony.
+
+Pozdrawiam,
+`,
     buttonText: 'Zapytaj o wycenę'
   },
 ];
@@ -162,6 +188,8 @@ export const Offer = () => {
               price={card.price}
               features={card.features}
               buttonText={card.buttonText}
+              emailSubject={card.emailSubject}
+              emailBody={card.emailBody}
             />
           </div>
         ))}
@@ -178,6 +206,8 @@ export const Offer = () => {
               price={card.price}
               features={card.features}
               buttonText={card.buttonText}
+              emailSubject={card.emailSubject}
+              emailBody={card.emailBody}
             />
           </div>
         ))}
