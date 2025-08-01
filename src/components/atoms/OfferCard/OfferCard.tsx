@@ -66,11 +66,21 @@ export const OfferCard = ({
   
   // Function to update the card height based on content
   const updateCardHeight = useCallback(() => {
-    if (isMobile && cardRef.current) {
-      // Reset height to auto first to get natural height
-      cardRef.current.style.height = 'auto';
+    if (isMobile && cardRef.current && featuresSectionRef.current) {
+      // Jeśli karta jest rozwinięta, ustaw wyraźnie wysokość na auto
+      if (showFeatures) {
+        // Ustaw wysokość karty, aby pomieściła całą zawartość
+        cardRef.current.style.height = 'auto';
+        cardRef.current.style.minHeight = 'auto';
+        cardRef.current.style.maxHeight = 'none';
+        cardRef.current.style.overflow = 'visible';
+      } else {
+        // Jeśli karta jest zwinięta, pozwól CSS kontrolować wysokość
+        cardRef.current.style.height = '';
+        cardRef.current.style.overflow = '';
+      }
     }
-  }, [isMobile]);
+  }, [isMobile, showFeatures]);
   
   // Effect to adjust card height when features visibility changes
   useEffect(() => {

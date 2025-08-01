@@ -17,7 +17,7 @@ export const offers = [
       period: 'jednorazowo',
     },
     features: [
-      'Manualny audyt dostępności stron internetowych',
+      'Manualny oraz automatyczny audyt dostępności',
       'Analiza kluczowych kryteriów dostępności wskazanych przez Ministerstwo Cyfryzacji',
       'Szczegółowy raport z wykrytymi problemami dostępności',
       'dostępne poziomy auditu: podstawowy, średni i zaawansowany',
@@ -42,12 +42,12 @@ Pozdrawiam,
     description:
       'Dostosuję Twoją stronę lub aplikację do standardów WCAG 2.2.',
     price: {
-      amount: 'od 500',
+      amount: 'od 499',
       currency: 'zł netto',
       period: 'projekt'
     },
     features: [
-      'Manualny audyt dostępności stron',
+      'Manualny oraz automatyczny audyt dostępności',
       'Implementacja poprawek dostępności',
       'Testy dostępności',
       'Certyfikat dostępności cyfrowej',
@@ -127,29 +127,8 @@ export const Offer = () => {
       }
     }
     
-    // For mobile cards (when visible)
-    if (cardsMobileRef.current && window.innerWidth <= 768) {
-      const cards = cardsMobileRef.current.querySelectorAll(`.${styles.cardItem}`);
-      
-      // Reset heights first
-      cards.forEach(card => {
-        (card as HTMLElement).style.height = 'auto';
-      });
-      
-      // Find the tallest card
-      let maxHeight = 0;
-      cards.forEach(card => {
-        const height = (card as HTMLElement).offsetHeight;
-        maxHeight = Math.max(maxHeight, height);
-      });
-      
-      // Set all cards to the tallest height
-      if (maxHeight > 0) {
-        cards.forEach(card => {
-          (card as HTMLElement).style.height = `${maxHeight}px`;
-        });
-      }
-    }
+    // Na mobilnych nie wyrównujemy wysokości kart, aby umożliwić dynamiczne rozwijanie
+    // Usunięto wyrównywanie wysokości na mobile, aby umożliwić prawidłowe działanie rozwijanych szczegółów
   };
 
   // Run on initial render and window resize

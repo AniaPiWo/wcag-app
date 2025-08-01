@@ -5,7 +5,7 @@
   align-items: flex-start;
   justify-content: center;
   gap: 40px;
-  padding-bottom: 0;
+  padding-bottom: 40px; /* Mniejszy padding na dole na urządzeniach mobilnych */
 }
 .top {
   display: flex;
@@ -82,9 +82,11 @@
   .cardsMobile {
     display: flex;
     overflow-x: auto;
+    overflow-y: visible; /* Pozwalamy na widoczność rozszerzonej zawartości */
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
+    /* Usunięto overscroll-behavior-y */
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -92,6 +94,7 @@
     gap: 16px;
     flex-wrap: nowrap; // Zapobiega zawijaniu kart
     scrollbar-width: thin;
+    position: relative; /* Dodajemy pozycjonowanie */
   }
 
   .cardsMobile::-webkit-scrollbar {
@@ -104,8 +107,9 @@
     height: auto;
     min-height: auto;
     max-height: none;
+    overflow-y: visible; /* Ważne: pozwalamy na wyświetlanie zawartości poza kartą */
     // Pozwala na rozszerzanie się karty
-    transition: height 0.5s ease;
+    transition: all 0.5s ease;
   }
 }
 

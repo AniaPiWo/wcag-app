@@ -10,6 +10,21 @@
   position: relative;
 }
 
+.threadsContainer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  top: 0;
+  left: 0;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+}
+
 .top {
   display: flex;
   flex: 1;
@@ -48,11 +63,11 @@
   @media (max-width: 768px) {
     height: 100%;
     top: -7%;
-    width: 100%;
-    left: 0;
-    transform: translateX(0);
+    width: 100vw; /* Używamy 100vw zamiast 100% dla pełnej szerokości ekranu */
+    left: 50%;
+    transform: translateX(-50%); /* Centrujemy względem ekranu */
     position: absolute;
-    overflow-x: hidden;
+    overflow-x: visible; /* Usuwamy ograniczenie overflow */
   }
 }
 

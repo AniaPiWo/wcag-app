@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 //import Image from 'next/image';
 import styles from './Hero.module.scss';
@@ -42,13 +41,15 @@ export const Hero = () => {
   return (
 
     <section id="hero" className={styles.wrapper}>
-      <Threads 
-          amplitude={1.6}
-          distance={0.5}
-          enableMouseInteraction={true}
-          className={styles.threads}
-          color={[0.5, 0.5, 0.5]  }
-          />
+      <div className={styles.threadsContainer}>
+        <Threads 
+            amplitude={1.6}
+            distance={0.5}
+            enableMouseInteraction={true}
+            className={styles.threads}
+            color={[0.5, 0.5, 0.5]}
+            />
+      </div>
 
       <div className={styles.top}>
 
