@@ -213,7 +213,8 @@ padding: 0.5rem 1rem;
     flex-shrink: 0; /* Zapobiega kurczeniu się karty */
     height: auto;
     min-height: auto;
-    transition: height 0.5s ease;
+    transition: all 0.5s ease;
+    overflow: hidden; /* Domyślnie ukrywamy nadmiar */
     
     &:hover {
       transform: none;
@@ -221,8 +222,10 @@ padding: 0.5rem 1rem;
     }
     
     &.expanded {
-      height: auto;
+      height: auto !important; /* Wymuszamy auto height gdy rozwinięte */
       min-height: auto;
+      max-height: none !important; /* Bez limitu maksymalnej wysokości */
+      overflow: visible; /* Pokazujemy całą zawartość */
     }
   }
 
@@ -236,6 +239,7 @@ padding: 0.5rem 1rem;
   .featuresSection {
     width: 100%;
     box-sizing: border-box;
+    max-height: none; /* Usunięcie potencjalnych ograniczeń wysokości */
   }
 }
 
