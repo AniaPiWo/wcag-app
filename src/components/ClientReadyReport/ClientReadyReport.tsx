@@ -131,6 +131,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     auditorName: 'Anna Piotrowiak-Wołosiuk',
     auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
     auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
+    evaluationLevel: 'Podstawowy poziom WCAG 2.2 – poziom AA',
     complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
     summary: '',
     problems: [] as ProblemCategory[],
@@ -305,7 +306,11 @@ const ClientReadyReport = ({ id, audit }: Props) => {
       if (auditData.clientReadyAudit) {
         try {
           const savedContent = JSON.parse(auditData.clientReadyAudit);
-          setEditedContent(savedContent);
+          // Ensure evaluationLevel is always defined with a default value if missing
+          setEditedContent({
+            ...savedContent,
+            evaluationLevel: savedContent.evaluationLevel || 'Podstawowy poziom WCAG 2.2 – poziom AA'
+          });
           return;
         } catch (error) {
           console.error('Error parsing clientReadyAudit:', error);
@@ -320,6 +325,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           auditorName: 'Anna Piotrowiak-Wołosiuk',
           auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
           auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
+          evaluationLevel: 'Podstawowy poziom WCAG 2.2 – poziom AA',
           complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
           summary: Array.isArray(parsedSummary.summary) 
             ? parsedSummary.summary.join(' ') 
@@ -396,6 +402,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           auditorName: 'Anna Piotrowiak-Wołosiuk',
           auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
           auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
+          evaluationLevel: 'Podstawowy poziom WCAG 2.2 – poziom AA',
           complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
           updatedAt: auditData.updatedAt.toISOString(),
           summary: Array.isArray(parsedSummary.summary) 
@@ -943,21 +950,17 @@ return (
         )}
       </p>
       
-      <p><strong>Poziom oceny:</strong> Podstawowy poziom WCAG 2.2 – poziom AA</p>
+      <p><strong>Poziom oceny:</strong> {isEditing ? (
+        <input
+          type="text"
+          value={editedContent.evaluationLevel}
+          onChange={(e) => handleInputChange('evaluationLevel', e.target.value)}
+          className={styles.editInput}
+        />
+      ) : (
+        editedContent.evaluationLevel
+      )}</p>
 
-      <h2 className={styles.title}>
-        Poziom zgodności -{' '}
-        {isEditing ? (
-          <input
-            type="text"
-            value={editedContent.complianceLevel}
-            onChange={(e) => handleInputChange('complianceLevel', e.target.value)}
-            className={styles.editInput}
-          />
-        ) : (
-          editedContent.complianceLevel
-        )}
-      </h2>
 
        {(parsedSummary || isEditing) && (
         <div className={styles.aiSummary}>

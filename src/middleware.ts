@@ -12,13 +12,13 @@ async function validateSessionInMiddleware(req: NextRequest): Promise<boolean> {
   const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
   
   // Dodaj szczegółowe debugowanie cookie
-  console.log(`\x1b[35m📝 [Cookie Debug] Sprawdzanie cookie ${SESSION_COOKIE_NAME}: ${token ? token.substring(0, 10) + '...' : 'brak'}\x1b[0m`);
+  //console.log(`\x1b[35m📝 [Cookie Debug] Sprawdzanie cookie ${SESSION_COOKIE_NAME}: ${token ? token.substring(0, 10) + '...' : 'brak'}\x1b[0m`);
   
   // Wyświetl wszystkie cookies dla debugowania
-  console.log('\x1b[35m📝 [Cookie Debug] Wszystkie cookies:\x1b[0m');
-  req.cookies.getAll().forEach(cookie => {
-    console.log(`\x1b[35m📝 [Cookie Debug] - ${cookie.name}: ${cookie.value.substring(0, 10)}...\x1b[0m`);
-  });
+  //console.log('\x1b[35m📝 [Cookie Debug] Wszystkie cookies:\x1b[0m');
+  //req.cookies.getAll().forEach(cookie => {
+  //console.log(`\x1b[35m📝 [Cookie Debug] - ${cookie.name}: ${cookie.value.substring(0, 10)}...\x1b[0m`);
+  //});
   
   if (!token) {
     console.log('\x1b[31m❌ [Auth Debug] Brak tokenu w cookie\x1b[0m');
@@ -46,10 +46,10 @@ export async function middleware(req: NextRequest) {
   console.log(`\x1b[35m🔄 [Middleware] Przetwarzanie ścieżki: ${pathname}\x1b[0m`);
   
   // Wypisujemy wszystkie nagłówki dla celów diagnostycznych
-  console.log('\x1b[36m📡 [Headers Debug] Wszystkie nagłówki:\x1b[0m');
-  req.headers.forEach((value, key) => {
-    console.log(`\x1b[36m - ${key}: ${value}\x1b[0m`);
-  });
+  //  console.log('\x1b[36m📡 [Headers Debug] Wszystkie nagłówki:\x1b[0m');
+  //req.headers.forEach((value, key) => {
+  //  console.log(`\x1b[36m - ${key}: ${value}\x1b[0m`);
+  //});
   
   // Ścieżki wyłącznie API, które mogą mieć specjalne traktowanie
   const apiPaths = [
