@@ -26,11 +26,12 @@ async function validateSessionInMiddleware(req: NextRequest): Promise<boolean> {
   }
   
   try {
-    // Convert secret to Uint8Array for jose
+    // Używamy jose zamiast jsonwebtoken - kompatybilne z Edge Runtime
     const secretKey = new TextEncoder().encode(SESSION_SECRET);
+    const { payload } = await jose.jwtVerify(token, secretKey, {
+      algorithms: ['HS256'],
+    });
     
-    // Verify token using jose instead of jsonwebtoken
-    const { payload } = await jose.jwtVerify(token, secretKey);
     console.log(`\x1b[32m✅ [Auth Debug] Token zweryfikowany pomyślnie: ${JSON.stringify(payload)}\x1b[0m`);
     return true;
   } catch (error) {
