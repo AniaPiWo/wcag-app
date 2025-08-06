@@ -46,7 +46,7 @@ export async function middleware(req: NextRequest) {
   console.log(`\x1b[35m🔄 [Middleware] Przetwarzanie ścieżki: ${pathname}\x1b[0m`);
   
   // Wypisujemy wszystkie nagłówki dla celów diagnostycznych
-  //  console.log('\x1b[36m📡 [Headers Debug] Wszystkie nagłówki:\x1b[0m');
+  //  console.log('\x1b[36m📡 [Headers Debug] TEST Wszystkie nagłówki:\x1b[0m');
   //req.headers.forEach((value, key) => {
   //  console.log(`\x1b[36m - ${key}: ${value}\x1b[0m`);
   //});

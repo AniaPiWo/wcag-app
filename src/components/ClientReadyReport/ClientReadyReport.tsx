@@ -61,7 +61,7 @@ import AuditPDF from './AuditPDF'
 interface Audit {
   id: string;
   url: string;
-  name: string;
+  name?: string;
   email: string;
   createdAt: Date;
   updatedAt: Date;
@@ -83,6 +83,12 @@ interface Audit {
   seriousCount?: number | null;
   auditType: string;
   errorMessage?: string | null;
+  violationsCount?: number | null;
+  pdfAuditData?: string | null;
+  automatedAuditId?: string | null;
+  automatedAuditUrl?: string | null;
+  automatedAuditDate?: string | null;
+  automatedAuditData?: string | null;
 }
 
 type Props = {
@@ -809,7 +815,59 @@ const ClientReadyReport = ({ id, audit }: Props) => {
   };
 
 
-return (
+  // Funkcja do resetowania raportu
+  const handleResetReport = async () => {
+    // Potwierdzenie przed usunięciem
+    if (!window.confirm('Czy na pewno chcesz usunąć/zresetować cały raport? Ta operacja jest nieodwracalna.')) {
+      return;
+    }
+    
+    setIsSaving(true);
+    try {
+      // Usunięcie danych raportu poprzez zapisanie pustego obiektu
+      const response = await fetch('/api/audit/save-client-ready', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          auditId: id,
+          clientReadyAudit: null, // Ustawienie null zamiast danych raportu
+          updatedAt: new Date()
+        })
+      });
+
+      if (response.ok) {
+        console.log('Raport został zresetowany');
+        // Odśwież dane
+        const updatedAudit = await getManualAudit(id);
+        setAuditData(updatedAudit);
+        
+        // Reset stantu edytowanej zawartości
+        setEditedContent({
+          url: updatedAudit.url || '',
+          auditorName: 'Anna Piotrowiak-Wołosiuk',
+          auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
+          auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
+          evaluationLevel: 'Podstawowy poziom WCAG 2.2 – poziom AA',
+          complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
+          summary: '',
+          problems: [],
+          updatedAt: new Date().toISOString()
+        });
+      } else {
+        console.error('Błąd podczas resetowania raportu');
+        alert('Wystąpił błąd podczas resetowania raportu');
+      }
+    } catch (error) {
+      console.error('Błąd podczas resetowania raportu:', error);
+      alert('Wystąpił błąd podczas resetowania raportu');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
   <div className={styles.wrapper}>
     {isEditing && (
       <div className={styles.editSidebar}>
@@ -841,6 +899,9 @@ return (
         <div className={styles.topEditControls}>
           <button onClick={handleEditToggle} className={styles.editButton}>
             Edytuj raport
+          </button>
+          <button onClick={handleResetReport} className={styles.resetButton} title="Usuń/zresetuj raport">
+            Usuń raport
           </button>
           <button
             type="button"

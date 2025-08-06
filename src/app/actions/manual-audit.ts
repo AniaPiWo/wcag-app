@@ -19,6 +19,11 @@ interface UpdateAuditData {
   advancedAuditAISummary?: string;
   consolidatedAuditAISummary?: string;
   readyMadeAudit?: string;
+  aiAnalysis?: string; // Pole używane do przechowywania danych audytu automatycznego
+  automatedAuditId?: string;
+  automatedAuditUrl?: string;
+  automatedAuditDate?: string;
+  automatedAuditData?: string;
 }
 
 // Pobieranie pojedynczego audytu manualnego
@@ -72,6 +77,10 @@ export async function updateManualAudit(id: string, data: UpdateAuditData) {
       consolidatedAuditAISummary?: string;
       aiAnalysis?: string;
       readyMadeAudit?: string;
+      automatedAuditId?: string;
+      automatedAuditUrl?: string;
+      automatedAuditDate?: string;
+      automatedAuditData?: string;
     } = {
       updatedAt: new Date(),
     };
@@ -103,17 +112,62 @@ export async function updateManualAudit(id: string, data: UpdateAuditData) {
     if (data.readyMadeAudit !== undefined) {
       updateData.readyMadeAudit = data.readyMadeAudit;
     }
+    
+    // Dodanie danych audytu automatycznego, jeśli zostały przekazane
+    if (data.automatedAuditId) {
+      updateData.automatedAuditId = data.automatedAuditId;
+    }
+    if (data.automatedAuditUrl) {
+      updateData.automatedAuditUrl = data.automatedAuditUrl;
+    }
+    if (data.automatedAuditDate) {
+      updateData.automatedAuditDate = data.automatedAuditDate;
+    }
+    if (data.automatedAuditData) {
+      updateData.automatedAuditData = data.automatedAuditData;
+    }
 
-    // Aktualizacja audytu w bazie danych
-    const updatedAudit = await prisma.auditRequest.update({
-      where: { id },
-      data: updateData,
-    });
-
-    // Odświeżenie ścieżki po aktualizacji
-    revalidatePath(`/admin/manual-audits/edit/${id}`);
-
-    return updatedAudit;
+    try {
+      // Aktualizacja audytu w bazie danych
+      // Filtrujemy pola updateData, aby uwzględnić tylko te, które faktycznie istnieją w bazie
+      const safeUpdateData: {
+        updatedAt: Date;
+        basicAudit?: string;
+        intermediateAudit?: string;
+        advancedAudit?: string;
+        basicAuditAISummary?: string;
+        intermediateAuditAISummary?: string;
+        advancedAuditAISummary?: string;
+        consolidatedAuditAISummary?: string;
+        aiAnalysis?: string;
+        readyMadeAudit?: string;
+      } = { updatedAt: updateData.updatedAt };
+      
+      // Standardowe pola
+      if ('basicAudit' in updateData) safeUpdateData.basicAudit = updateData.basicAudit;
+      if ('intermediateAudit' in updateData) safeUpdateData.intermediateAudit = updateData.intermediateAudit;
+      if ('advancedAudit' in updateData) safeUpdateData.advancedAudit = updateData.advancedAudit;
+      if ('basicAuditAISummary' in updateData) safeUpdateData.basicAuditAISummary = updateData.basicAuditAISummary;
+      if ('intermediateAuditAISummary' in updateData) safeUpdateData.intermediateAuditAISummary = updateData.intermediateAuditAISummary;
+      if ('advancedAuditAISummary' in updateData) safeUpdateData.advancedAuditAISummary = updateData.advancedAuditAISummary;
+      if ('consolidatedAuditAISummary' in updateData) safeUpdateData.consolidatedAuditAISummary = updateData.consolidatedAuditAISummary;
+      if ('aiAnalysis' in updateData) safeUpdateData.aiAnalysis = updateData.aiAnalysis;
+      if ('readyMadeAudit' in updateData) safeUpdateData.readyMadeAudit = updateData.readyMadeAudit;
+      
+      // Aktualizacja audytu z bezpiecznymi polami
+      const updatedAudit = await prisma.auditRequest.update({
+        where: { id },
+        data: safeUpdateData,
+      });
+      
+      // Odświeżenie ścieżki po aktualizacji
+      revalidatePath(`/admin/manual-audits/edit/${id}`);
+      
+      return updatedAudit;
+    } catch (updateError) {
+      console.error('Błąd podczas aktualizacji audytu manualnego (standardowe pola):', updateError);
+      throw new Error('Wystąpił błąd podczas aktualizacji audytu manualnego');
+    }
   } catch (error) {
     console.error('Błąd podczas aktualizacji audytu manualnego:', error);
     throw new Error('Wystąpił błąd podczas aktualizacji audytu manualnego');

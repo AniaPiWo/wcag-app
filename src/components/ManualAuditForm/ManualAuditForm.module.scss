@@ -40,7 +40,7 @@
   .aiSummary {
     margin-top: 1.5rem;
   }
-  
+
   .summaryContent {
     white-space: pre-line;
     line-height: 1.6;
@@ -167,12 +167,6 @@
     vertical-align: middle;
   }
   
-  .saveSection {
-    display: flex;
-    align-items: center;
-    margin-top: 1.5rem;
-    gap: 1rem;
-  }
   
   .saveMessage {
     padding: 0.5rem 1rem;
@@ -187,7 +181,6 @@
     justify-content: flex-end;
     align-items: center;
     gap: 1rem;
-    position: fixed;
     top: 6rem;
     right: 1rem;
   }
@@ -205,6 +198,24 @@
     align-self: flex-start;
     padding: 0.5rem 1rem;
     background-color: var(--vanilla);
+    color: var(--foreground);
+    font-size: 1.2rem;
+    cursor: pointer;
+    border: 1px solid var(--foreground);
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  
+  .saveBtn {  
+    margin-bottom: 1rem;
+    align-self: flex-start;
+    padding: 0.5rem 1rem;
+    margin-right: 1rem;
+    background-color: var(--accent);
     color: var(--foreground);
     font-size: 1.2rem;
     cursor: pointer;
