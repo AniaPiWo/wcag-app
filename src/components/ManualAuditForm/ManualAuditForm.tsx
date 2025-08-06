@@ -164,6 +164,11 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
   const [showExistingAudit, setShowExistingAudit] = useState<boolean>(false);
   const [showFullViolations, setShowFullViolations] = useState<boolean>(false);
   
+  // Surowe dane audytu automatycznego
+  const [rawViolations, setRawViolations] = useState<string | null>(null);
+  const [rawAiAnalysis, setRawAiAnalysis] = useState<string | null>(null);
+  const [showRawData, setShowRawData] = useState<boolean>(false);
+  
   // Edit mode states for AI summaries
   const [isEditingBasicSummary, setIsEditingBasicSummary] = useState(false);
   const [isEditingIntermediateSummary, setIsEditingIntermediateSummary] = useState(false);
@@ -699,11 +704,19 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
         let hasAutomatedAudit = false;
         let hasAiAnalysis = false;
         
+        // Zachowaj surowe dane violations i aiAnalysis
+        if (auditData.violations) {
+          setRawViolations(auditData.violations);
+        }
+        
+        if (auditData.aiAnalysis) {
+          setRawAiAnalysis(auditData.aiAnalysis);
+        }
+        
         // Sprawdź tekst analizy AI w polu aiAnalysis
         if (auditData.aiAnalysis && auditData.aiAnalysis.trim()) {
           console.log('Znaleziono tekst analizy AI w polu aiAnalysis');
           hasAiAnalysis = true;
-          // Tutaj możesz dodać kod do wyświetlania tekstu analizy, jeśli jest potrzebny
         }
         
         // Sprawdź dane violations w formacie JSON
@@ -737,9 +750,19 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
           }
         }
         
-        // Jeśli nie znaleziono ani tekstu analizy AI, ani danych audytu automatycznego,
-        // dopiero wtedy wyświetl komunikat dla użytkownika
-        if (!hasAutomatedAudit && !hasAiAnalysis) {
+        // Wyświetl odpowiedni komunikat dla użytkownika zależnie od stanu
+        if (hasAutomatedAudit) {
+          setAutomatedAuditMessage({
+            type: 'success', 
+            text: 'Dla tego audytu przeprowadzono już automatyczną analizę. Wyniki są dostępne poniżej.'
+          });
+          setShowExistingAudit(true);
+        } else if (hasAiAnalysis) {
+          setAutomatedAuditMessage({
+            type: 'info', 
+            text: 'Dla tego audytu istnieje analiza AI, ale brak pełnych danych audytu automatycznego.'
+          });
+        } else {
           setAutomatedAuditMessage({
             type: 'info', 
             text: 'Dla tego audytu nie przeprowadzono jeszcze automatycznej analizy. Czy chcesz ją uruchomić?'
@@ -812,6 +835,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
             <p><strong>Data utworzenia:</strong> {new Date(audit.createdAt).toLocaleString()}</p>
             <p><strong>Ostatnia aktualizacja:</strong> {new Date(audit.updatedAt).toLocaleString()}</p>
             <p><strong>Wybrane poziomy:</strong> {renderSelectedLevels()}</p>
+
 
             <ClientReadyReport id={id} audit={audit} />
             
@@ -961,166 +985,88 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
             )}
 
             {/* Sekcja audytu automatycznego */}
-            <div className={styles.automatedAuditSection}>
-              <h3>Audyt automatyczny</h3>
 
-              <Button 
-                variant="secondary"
-                onClick={handleAutomatedAudit}
-                disabled={isRunningAutomatedAudit}
-              >
-                {isRunningAutomatedAudit ? 'Uruchamianie...' : 'Uruchom audyt automatyczny'}
-              </Button>
-              {automatedAuditMessage && (
-                <div className={`${styles.automatedAuditMessage} ${styles[automatedAuditMessage.type]}`}>
-                  {automatedAuditMessage.text}
-                </div>
-              )}
-              
-              {showExistingAudit && existingAudit && (
-                <div className={styles.existingAuditContainer}>
-                <h4>Istniejący audyt automatyczny</h4>
-                <div className={styles.existingAuditDetails}>
-                  <p><strong>ID:</strong> {existingAudit.id}</p>
-                  <p><strong>URL:</strong> {existingAudit.url}</p>
-                  <p><strong>Data utworzenia:</strong> {new Date(existingAudit.createdAt).toLocaleString('pl-PL')}</p>
-                  {existingAudit.completedAt && (
-                    <p><strong>Data zakończenia:</strong> {new Date(existingAudit.completedAt).toLocaleString('pl-PL')}</p>
+            {/* Sekcja wyświetlająca informacje o audycie automatycznym */}
+            {automatedAuditMessage && (
+              <div className={styles.automatedAuditInfo} style={{
+                padding: '15px',
+                marginBottom: '15px',
+                borderRadius: '5px',
+                backgroundColor: automatedAuditMessage.type === 'success' ? '#d4edda' : 
+                                automatedAuditMessage.type === 'error' ? '#f8d7da' : '#cce5ff',
+                color: automatedAuditMessage.type === 'success' ? '#155724' : 
+                       automatedAuditMessage.type === 'error' ? '#721c24' : '#004085',
+              }}>
+                <p>{automatedAuditMessage.text}</p>
+                <div style={{ marginTop: '10px' }}>
+                  {automatedAuditMessage.type === 'info' && !showExistingAudit && (
+                    <Button 
+                      onClick={handleAutomatedAudit}
+                      variant="primary"
+                      disabled={isRunningAutomatedAudit}
+                    >
+                      {isRunningAutomatedAudit ? 'Uruchamianie...' : 'Uruchom audyt automatyczny'}
+                    </Button>
                   )}
-                  <p><strong>Status:</strong> {existingAudit.status}</p>
-                </div>
-                
-                {existingAudit.results && (
-                  <div className={styles.existingAuditResults}>
-                    <h5>Wyniki audytu</h5>
-                    <div className={styles.violationsSummary}>
-                      <p><strong>Liczba naruszeń:</strong> {existingAudit.results?.violations?.length || 0}</p>
-                      <p><strong>Liczba zaliczonych testów:</strong> {existingAudit.results?.passes?.length || 0}</p>
-                      <p><strong>Liczba niekompletnych testów:</strong> {existingAudit.results?.incomplete?.length || 0}</p>
-                      <p><strong>Liczba nieaplikowalnych testów:</strong> {existingAudit.results?.inapplicable?.length || 0}</p>
+                  {(rawViolations || rawAiAnalysis) && (
+                    <div style={{ 
+                      display: 'inline-block',
+                      marginLeft: (automatedAuditMessage.type === 'info' && !showExistingAudit) ? '10px' : '0' 
+                    }}>
+                      <Button 
+                        onClick={() => setShowRawData(!showRawData)} 
+                        variant="secondary"
+                      >
+                        {showRawData ? 'Ukryj surowe dane' : 'Pokaż surowe dane'}
+                      </Button>
                     </div>
-                    
-                    {existingAudit.results?.violations && existingAudit.results.violations.length > 0 && (
-                      <div className={styles.existingAuditViolations}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <h5>Naruszenia ({existingAudit.results?.violations?.length || 0}):</h5>
-                          <button 
-                            className={styles.viewFullAuditButton}
-                            onClick={() => {
-                              console.log('Przełączanie widoku naruszeń, aktualny stan:', showFullViolations);
-                              console.log('Liczba naruszeń:', existingAudit.results?.violations?.length);
-                              setShowFullViolations(!showFullViolations);
-                            }}
-                          >
-                            {showFullViolations ? 'Pokaż skrócony widok' : 'Zobacz pełne naruszenia'}
-                          </button>
-                        </div>
-                        <ul>
-                          {/* Logowanie stanu naruszeń */}
-                          {(() => { console.log('Renderowanie naruszeń, showFullViolations:', showFullViolations); return null; })()}
-                          {!showFullViolations ? (
-                            // Pokazuje tylko pierwsze 5 naruszeń
-                            <>
-                              {(() => { console.log('Renderowanie skróconej listy naruszeń'); return null; })()}
-                              {existingAudit.results?.violations?.slice(0, 5).map((violation, index) => (
-                                <li key={index}>
-                                  <strong>{violation.id}</strong> - {violation.description}
-                                  <span className={styles.impactTag}>{violation.impact}</span>
-                                </li>
-                              ))}
-                              {(existingAudit.results?.violations?.length || 0) > 5 && (
-                                <li>... i {(existingAudit.results?.violations?.length || 0) - 5} więcej</li>
-                              )}
-                            </>
-                          ) : (
-                            // Pokazuje wszystkie naruszenia z pełnymi szczegółami
-                            <>
-                              {(() => { console.log('Renderowanie pełnej listy naruszeń'); return null; })()}
-                              {existingAudit.results?.violations?.map((violation, index) => (
-                                <li key={index} className={styles.fullViolation}>
-                                  <div className={styles.violationHeader}>
-                                    <strong>{violation.id}</strong>
-                                    <span className={`${styles.impactTag} ${styles[violation.impact || 'minor']}`}>
-                                      {violation.impact}
-                                    </span>
-                                  </div>
-                                  <div className={styles.violationDescription}>
-                                    <p><strong>Opis:</strong> {violation.description}</p>
-                                    <p><strong>Pomoc:</strong> {violation.help}</p>
-                                    <p><strong>Wpływ:</strong> {violation.impact}</p>
-                                    <p><strong>Reguła WCAG:</strong> {violation.tags?.filter(tag => tag.startsWith('wcag')).join(', ')}</p>
-                                  </div>
-                                  {violation.nodes && violation.nodes.length > 0 && (
-                                    <div className={styles.violationNodes}>
-                                      <p><strong>Znalezione elementy ({violation.nodes.length}):</strong></p>
-                                      <ul>
-                                        {violation.nodes.map((node, nodeIndex) => (
-                                          <li key={nodeIndex}>
-                                            <code>{node.html}</code>
-                                            {node.failureSummary && (
-                                              <p className={styles.failureSummary}>{node.failureSummary}</p>
-                                            )}
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  )}
-                                </li>
-                              ))}
-                            </>
-                          )}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {existingAudit.results.summary && (
-                      <div className={styles.auditSummary}>
-                        <h6>Podsumowanie audytu:</h6>
-                        <p>{existingAudit.results.summary}</p>
-                      </div>
-                    )}
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Sekcja z surowymi danymi */}
+            {showRawData && (
+              <div className={styles.rawDataSection} style={{ marginBottom: '20px' }}>
+                <h3>Surowe dane audytu automatycznego</h3>
+                
+                {rawViolations && (
+                  <div className={styles.rawViolations} style={{ marginBottom: '15px' }}>
+                    <h4>Violations (JSON)</h4>
+                    <div style={{
+                      backgroundColor: '#f8f9fa',
+                      padding: '10px',
+                      borderRadius: '5px',
+                      overflowX: 'auto',
+                      border: '1px solid #dee2e6'
+                    }}>
+                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{rawViolations}</pre>
+                    </div>
                   </div>
                 )}
                 
-                {existingAudit.aiSummary && (
-                  <div className={styles.aiSummarySection}>
-                    <h5>Podsumowanie AI</h5>
-                    
-                    {existingAudit.aiSummary.basic && (
-                      <div className={styles.aiSummaryItem}>
-                        <h6>Podstawowe podsumowanie:</h6>
-                        <p>{existingAudit.aiSummary.basic}</p>
-                      </div>
-                    )}
-                    
-                    {existingAudit.aiSummary.technical && (
-                      <div className={styles.aiSummaryItem}>
-                        <h6>Techniczne podsumowanie:</h6>
-                        <p>{existingAudit.aiSummary.technical}</p>
-                      </div>
-                    )}
-                    
-                    {existingAudit.aiSummary.consolidated && (
-                      <div className={styles.aiSummaryItem}>
-                        <h6>Skonsolidowane podsumowanie:</h6>
-                        <p>{existingAudit.aiSummary.consolidated}</p>
-                      </div>
-                    )}
+                {rawAiAnalysis && (
+                  <div className={styles.rawAiAnalysis}>
+                    <h4>AI Analysis (tekst)</h4>
+                    <div style={{
+                      backgroundColor: '#f8f9fa',
+                      padding: '10px',
+                      borderRadius: '5px',
+                      overflowX: 'auto',
+                      border: '1px solid #dee2e6'
+                    }}>
+                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{rawAiAnalysis}</pre>
+                    </div>
                   </div>
                 )}
                 
-                <div className={styles.existingAuditActions}>
-  
-                  <button 
-                    onClick={() => setShowFullViolations(!showFullViolations)}
-                    className={styles.viewFullAuditButton}
-                  >
-                    {showFullViolations ? 'Ukryj szczegóły naruszeń' : 'Zobacz pełne naruszenia'}
-                  </button>
-                </div>
-                </div>
-              )}
-            </div>
+                {!rawViolations && !rawAiAnalysis && (
+                  <p>Brak danych do wyświetlenia</p>
+                )}
+              </div>
+            )}
+
+
           </div>
           
           <table className={styles.table}>
