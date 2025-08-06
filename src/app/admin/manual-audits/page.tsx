@@ -166,13 +166,15 @@ export default function ManualAuditsPage() {
                                   // Pobierz wartość poziomu (string lub obiekt z polem label)
                                   const levelValue = typeof level === 'object' && level !== null && level.label ? level.label : String(level);
                                   
-                                  // Określ klucz na podstawie wartości poziomu
+                                  // Określ klucz na podstawie wartości poziomu - ignoruj wielkość liter
                                   let levelKey: string | undefined;
-                                  if (levelValue === 'podstawowy') levelKey = 'basicAudit';
-                                  else if (levelValue === 'średni') levelKey = 'intermediateAudit';
-                                  else if (levelValue === 'zaawansowany') levelKey = 'advancedAudit';
+                                  const levelValueLower = levelValue.toLowerCase();
+                                  if (levelValueLower === 'podstawowy') levelKey = 'basicAudit';
+                                  else if (levelValueLower === 'średni') levelKey = 'intermediateAudit';
+                                  else if (levelValueLower === 'zaawansowany') levelKey = 'advancedAudit';
                                   
-                                  console.log('Level debug:', { level, levelValue, levelKey, auditData: levelKey ? audit[levelKey] : null });
+                                  console.log(`Mapowanie poziomu: ${levelValue} -> ${levelValueLower} -> ${levelKey || 'undefined'}`);
+                                  
                                   
                                   if (levelKey && audit[levelKey] && typeof audit[levelKey] === 'string') {
                                     try {
@@ -181,15 +183,44 @@ export default function ManualAuditsPage() {
                                         // Jeśli są jakiekolwiek odpowiedzi, to poziom jest przynajmniej częściowo ukończony
                                         completionStatus = 'partiallyCompleted';
                                         
-                                        // Sprawdź, czy wszystkie elementy mają ocenę (evaluation)
-                                        const allHaveEvaluation = responses.every((item: AuditItemResponse) => 
-                                          item && item.evaluation && 
-                                          ['positive', 'negative', 'notApplicable'].includes(item.evaluation)
-                                        );
+                                        // Dogłębne logowanie pierwszych kilku elementów
+                                        console.log(`Dogłębne logowanie dla poziomu ${levelValue}:`);
+                                        console.log('Pierwsze 3 elementy:', JSON.stringify(responses.slice(0, 3), null, 2));
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                        console.log('Typy ewaluacji:', responses.slice(0, 5).map((r: { evaluation: string; }, i: any) => {
+                                          return {
+                                            index: i,
+                                            evaluation: r?.evaluation,
+                                            type: r?.evaluation ? typeof r.evaluation : 'undefined',
+                                            isEqual: r?.evaluation === 'positive' || r?.evaluation === 'negative' || r?.evaluation === 'notApplicable',
+                                            stringEqual: String(r?.evaluation) === 'positive' || String(r?.evaluation) === 'negative' || String(r?.evaluation) === 'notApplicable'
+                                          };
+                                        }));
                                         
-                                        // Jeśli wszystkie elementy mają ocenę, to poziom jest ukończony
-                                        if (allHaveEvaluation) {
+                                        // Sprawdź, czy wszystkie elementy mają ocenę (evaluation) - poprawiona wersja
+                                        const allItems = responses.length;
+                                        const validItems = responses.filter((item: { evaluation: boolean; }) => 
+                                          item && item.evaluation && 
+                                          (['positive', 'negative', 'notApplicable'].includes(String(item.evaluation)) ||
+                                           item.evaluation === true || item.evaluation === false)
+                                        ).length;
+                                        
+                                        // Sprawdzanie czy wszystkie elementy zostały odpowiednio ocenione
+                                        // allItems - liczba wszystkich elementów audytu
+                                        // validItems - liczba elementów z poprawną oceną
+                                        console.log(`Statystyki poziomu ${levelValue}: ${validItems}/${allItems} poprawnych odpowiedzi`);
+                                        
+                                        if (validItems === 0) {
+                                          // Brak ocenionych elementów - poziom nie rozpoczęty
+                                          completionStatus = 'notStarted';
+                                        } else if (validItems < allItems) {
+                                          // Niektóre elementy ocenione, ale nie wszystkie - poziom częściowo ukończony
+                                          completionStatus = 'partiallyCompleted';
+                                          console.log(`Poziom ${levelValue} jest CZĘŚCIOWO ukończony: ${validItems}/${allItems}`);
+                                        } else {
+                                          // Wszystkie elementy ocenione - poziom ukończony
                                           completionStatus = 'completed';
+                                          console.log(`Poziom ${levelValue} jest KOMPLETNIE ukończony: ${validItems}/${allItems}`);
                                         }
                                       }
                                     } catch (e) {
@@ -202,8 +233,6 @@ export default function ManualAuditsPage() {
                                     completionStatus === 'completed' ? styles.levelCompleted :
                                     completionStatus === 'partiallyCompleted' ? styles.levelPartial :
                                     styles.levelNotStarted;
-                                    
-                                  console.log('Status debug:', { completionStatus, statusClass, levelKey });
                                   
                                   // Użyj indeksu jako klucza i wyświetl odpowiednią wartość
                                   const displayText = typeof level === 'object' && level !== null && level.label ? level.label : String(level);

@@ -27,6 +27,7 @@ interface AuditData {
 }
 
 interface Audit {
+  violations: string | null;
   id: string;
   url: string;
   name: string;
@@ -187,6 +188,67 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
   const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
   
   /**
+   * Updates a specific audit item with the given value
+   * @param level The audit level ('basic', 'intermediate', or 'advanced')
+   * @param itemId The ID of the audit item to update
+   * @param field The field to update ('evaluation' or 'notes')
+   * @param value The new value for the field
+   */
+  const updateAuditItem = async (level: 'basic' | 'intermediate' | 'advanced', itemId: number, field: 'evaluation' | 'notes', value: string) => {
+    try {
+      // Update local state first
+      switch (level) {
+        case 'basic':
+          setBasicAuditData(prev => prev.map(item => {
+            if (item.itemId === itemId) {
+              return { ...item, [field]: value };
+            }
+            return item;
+          }));
+          break;
+        case 'intermediate':
+          setIntermediateAuditData(prev => prev.map(item => {
+            if (item.itemId === itemId) {
+              return { ...item, [field]: value };
+            }
+            return item;
+          }));
+          break;
+        case 'advanced':
+          setAdvancedAuditData(prev => prev.map(item => {
+            if (item.itemId === itemId) {
+              return { ...item, [field]: value };
+            }
+            return item;
+          }));
+          break;
+      }
+      
+      // If this is a notes field, use debouncing to avoid too many API calls
+      if (field === 'notes') {
+        const timerKey = `${level}-${itemId}-${field}`;
+        
+        if (debounceTimers.current[timerKey]) {
+          clearTimeout(debounceTimers.current[timerKey]);
+        }
+        
+        debounceTimers.current[timerKey] = setTimeout(async () => {
+          try {
+            await updateAuditItemAction(id, level, itemId, field, value);
+          } catch (error) {
+            console.error('Błąd podczas aktualizacji notatek:', error);
+          }
+        }, 500);
+      } else {
+        // For other fields (like evaluation), update immediately
+        await updateAuditItemAction(id, level, itemId, field, value);
+      }
+    } catch (error) {
+      console.error('Błąd podczas aktualizacji elementu audytu:', error);
+    }
+  };
+  
+  /**
    * Handles generating an AI summary report for a specific audit level
    * @param level The audit level ('basic', 'intermediate', or 'advanced')
    */
@@ -278,8 +340,8 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
           
           if (detailedAuditResponse.ok) {
             const detailedAudit = await detailedAuditResponse.json();
-            console.log('Pobrane dane audytu:', detailedAudit);
-            console.log('Naruszenia:', detailedAudit.parsedViolations);
+            //console.log('Pobrane dane audytu:', detailedAudit);
+            //console.log('Naruszenia:', detailedAudit.parsedViolations);
             
             // Przygotowanie danych w oczekiwanej strukturze
             const formattedAudit = {
@@ -575,7 +637,6 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
     } catch (error) {
       console.error('Błąd generowania skonsolidowanego podsumowania AI:', error);
       setConsolidatedAISummary(`Błąd generowania podsumowania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
-    } finally {
       setIsLoadingConsolidatedSummary(false);
     }
   };
@@ -588,13 +649,29 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
         setAudit(data as Audit);
         
         if (data.basicAudit) {
-          setBasicAuditData(JSON.parse(data.basicAudit));
+          try {
+            setBasicAuditData(JSON.parse(data.basicAudit));
+          } catch (e) {
+            console.error('Błąd parsowania basicAudit:', e);
+            // Ustawienie pustej tablicy, aby uniknąć błędów renderowania
+            setBasicAuditData([]);
+          }
         }
         if (data.intermediateAudit) {
-          setIntermediateAuditData(JSON.parse(data.intermediateAudit));
+          try {
+            setIntermediateAuditData(JSON.parse(data.intermediateAudit));
+          } catch (e) {
+            console.error('Błąd parsowania intermediateAudit:', e);
+            setIntermediateAuditData([]);
+          }
         }
         if (data.advancedAudit) {
-          setAdvancedAuditData(JSON.parse(data.advancedAudit));
+          try {
+            setAdvancedAuditData(JSON.parse(data.advancedAudit));
+          } catch (e) {
+            console.error('Błąd parsowania advancedAudit:', e);
+            setAdvancedAuditData([]);
+          }
         }
         
         // Load existing AI summaries if available
@@ -617,88 +694,66 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
         if (auditData.readyMadeAudit) {
           setReadyMadeAudit(auditData.readyMadeAudit);
         }
+        
+        // Sprawdź dane automatycznego audytu (violations i aiAnalysis)
+        let hasAutomatedAudit = false;
+        let hasAiAnalysis = false;
+        
+        // Sprawdź tekst analizy AI w polu aiAnalysis
+        if (auditData.aiAnalysis && auditData.aiAnalysis.trim()) {
+          console.log('Znaleziono tekst analizy AI w polu aiAnalysis');
+          hasAiAnalysis = true;
+          // Tutaj możesz dodać kod do wyświetlania tekstu analizy, jeśli jest potrzebny
+        }
+        
+        // Sprawdź dane violations w formacie JSON
+        if (auditData.violations) {
+          try {
+            // Sprawdź, czy zawartość violations wygląda na JSON przed próbą parsowania
+            const content = auditData.violations.trim();
+            if (!content.startsWith('{') && !content.startsWith('[')) {
+              console.info('Pole violations nie zawiera poprawnego JSON');
+            } else {
+              const automatedAuditInfo = JSON.parse(content);
+              
+              if (automatedAuditInfo && typeof automatedAuditInfo === 'object') {
+                // Sprawdź, czy mamy obiekt automatedAudit lub czy dane są już bezpośrednio obiektem audytu
+                if ('automatedAudit' in automatedAuditInfo && automatedAuditInfo.automatedAudit) {
+                  console.log('Znaleziono zapisany audyt automatyczny w automatedAudit:', automatedAuditInfo.automatedAuditId);
+                  setExistingAudit(automatedAuditInfo.automatedAudit);
+                  setShowExistingAudit(true);
+                  hasAutomatedAudit = true;
+                } else if ('results' in automatedAuditInfo || 'parsedViolations' in automatedAuditInfo) {
+                  // Jeśli sam automatedAuditInfo wygląda jak obiekt audytu
+                  console.log('Znaleziono zapisany audyt automatyczny bezpośrednio w violations');
+                  setExistingAudit(automatedAuditInfo);
+                  setShowExistingAudit(true);
+                  hasAutomatedAudit = true;
+                }
+              }
+            }
+          } catch (parseError) {
+            console.error('Błąd parsowania zapisanych violations:', parseError);
+          }
+        }
+        
+        // Jeśli nie znaleziono ani tekstu analizy AI, ani danych audytu automatycznego,
+        // dopiero wtedy wyświetl komunikat dla użytkownika
+        if (!hasAutomatedAudit && !hasAiAnalysis) {
+          setAutomatedAuditMessage({
+            type: 'info', 
+            text: 'Dla tego audytu nie przeprowadzono jeszcze automatycznej analizy. Czy chcesz ją uruchomić?'
+          });
+        }
       } catch (error) {
         console.error('Błąd podczas pobierania audytu:', error);
       } finally {
         setIsLoading(false);
       }
     };
+    
     fetchAudit();
   }, [id]);
-  
-  const updateAuditItem = async (level: 'basic' | 'intermediate' | 'advanced', itemId: number, field: 'evaluation' | 'notes', value: string) => {
-    try {
-      if (level === 'basic') {
-        setBasicAuditData(prev => {
-          const itemIndex = prev.findIndex(item => item.itemId === itemId);
-          if (itemIndex === -1) {
-            const newItem: {itemId: number, evaluation: string, notes: string} = {
-              itemId,
-              evaluation: field === 'evaluation' ? value : '',
-              notes: field === 'notes' ? value : ''
-            };
-            return [...prev, newItem];
-          } else {
-            const newData = [...prev];
-            newData[itemIndex] = { ...newData[itemIndex], [field]: value };
-            return newData;
-          }
-        });
-      } else if (level === 'intermediate') {
-        setIntermediateAuditData(prev => {
-          const itemIndex = prev.findIndex(item => item.itemId === itemId);
-          if (itemIndex === -1) {
-            const newItem: {itemId: number, evaluation: string, notes: string} = {
-              itemId,
-              evaluation: field === 'evaluation' ? value : '',
-              notes: field === 'notes' ? value : ''
-            };
-            return [...prev, newItem];
-          } else {
-            const newData = [...prev];
-            newData[itemIndex] = { ...newData[itemIndex], [field]: value };
-            return newData;
-          }
-        });
-      } else if (level === 'advanced') {
-        setAdvancedAuditData(prev => {
-          const itemIndex = prev.findIndex(item => item.itemId === itemId);
-          if (itemIndex === -1) {
-            const newItem: {itemId: number, evaluation: string, notes: string} = {
-              itemId,
-              evaluation: field === 'evaluation' ? value : '',
-              notes: field === 'notes' ? value : ''
-            };
-            return [...prev, newItem];
-          } else {
-            const newData = [...prev];
-            newData[itemIndex] = { ...newData[itemIndex], [field]: value };
-            return newData;
-          }
-        });
-      }
-      
-      if (field === 'notes') {
-        const timerKey = `${level}-${itemId}-${field}`;
-        
-        if (debounceTimers.current[timerKey]) {
-          clearTimeout(debounceTimers.current[timerKey]);
-        }
-        
-        debounceTimers.current[timerKey] = setTimeout(async () => {
-          try {
-            await updateAuditItemAction(id, level, itemId, field, value);
-          } catch (error) {
-            console.error('not ok', error);
-          }
-        }, 500);
-      } else {
-        await updateAuditItemAction(id, level, itemId, field, value);
-      }
-    } catch (error) {
-      console.error('not ok', error);
-    }
-  };
 
   const handleSave = async () => {
     if (!audit) return;
@@ -761,7 +816,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
             <ClientReadyReport id={id} audit={audit} />
             
             {/* Sekcja gotowego audytu */}
-           <div className={styles.aiSummary}>
+{/*            <div className={styles.aiSummary}>
               <div className={styles.summaryHeader}>
                 <h3>Gotowy audyt</h3>
                 {!isEditingReadyMadeAudit ? (
@@ -803,7 +858,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                   placeholder="Wprowadź tekst gotowego audytu..."
                 />
               )}
-            </div>
+            </div> */}
             
             {/* Sekcja raportu podsumowujący AI */}
             {!consolidatedAISummary && (
@@ -1134,6 +1189,11 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
             </table>
             {/* AI review button */}
             <div className={styles.AIreviewSection}>
+              <div>
+            <button type="button" className={styles.saveBtn} onClick={handleSave} disabled={isSaving}>
+                {isSaving ? 'Zapisywanie...' : 'Zapisz'}
+              </button>
+   
               <button 
                 type="button" 
                 className={styles.AIreviewBtn} 
@@ -1142,6 +1202,11 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
               >
                 {isLoadingBasicSummary ? 'Generowanie...' : 'Wygeneruj raport AI'}
               </button>
+              </div>
+                          <div className={styles.saveSection}>
+     
+              <div className={styles.saveMessage}>{saveMessage?.text}</div>
+            </div>
               {basicAduditAISummary && (
                 <div className={styles.aiSummaryContainer}>
                   <div className={styles.summaryHeader}>
@@ -1247,6 +1312,11 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
             </table>
             
             <div className={styles.AIreviewSection}>
+              <div>
+                            <button type="button" className={styles.saveBtn} onClick={handleSave} disabled={isSaving}>
+                {isSaving ? 'Zapisywanie...' : 'Zapisz'}
+              </button>
+      
               <button 
                 type="button" 
                 className={styles.AIreviewBtn} 
@@ -1255,6 +1325,11 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
               >
                 {isLoadingIntermediateSummary ? 'Generowanie...' : 'Wygeneruj raport AI'}
               </button>
+              </div>
+              <div className={styles.saveSection}>
+
+              <div className={styles.saveMessage}>{saveMessage?.text}</div>
+            </div>
               {intermediateAduditAISummary && (
                 <div className={styles.aiSummaryContainer}>
                   <div className={styles.summaryHeader}>
@@ -1360,7 +1435,12 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
               </table>
             
             <div className={styles.AIreviewSection}>
-              <button 
+              <div>
+              <button type="button" className={styles.saveBtn} onClick={handleSave} disabled={isSaving}>
+                {isSaving ? 'Zapisywanie...' : 'Zapisz'}
+              </button>
+
+                <button 
                 type="button" 
                 className={styles.AIreviewBtn} 
                 onClick={() => handleAIReview('advanced')}
@@ -1368,6 +1448,11 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
               >
                 {isLoadingAdvancedSummary ? 'Generowanie...' : 'Wygeneruj raport AI'}
               </button>
+              </div>
+              <div className={styles.saveSection}>
+
+              <div className={styles.saveMessage}>{saveMessage?.text}</div>
+            </div>
               {advancedAduditAISummary && (
                 <div className={styles.aiSummaryContainer}>
                   <div className={styles.summaryHeader}>
@@ -1421,12 +1506,6 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
               )}
             </div>
           
-            <div className={styles.saveSection}>
-              <Button variant="primary" onClick={handleSave} disabled={isSaving}>
-                {isSaving ? 'Zapisywanie...' : 'Zapisz'}
-              </Button>
-              <div className={styles.saveMessage}>{saveMessage?.text}</div>
-            </div>
           
 
           </>

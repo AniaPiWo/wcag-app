@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 // import { chromium } from 'playwright'; // zakomentowane, ponieważ nie używamy już Playwright
 
@@ -41,13 +42,15 @@ export async function POST(request: NextRequest) {
       
       if (!isAccessible) {
         return NextResponse.json(
-          { success: false, error: `Podany URL nie jest dostępny. Kod odpowiedzi: ${statusCode}` },
+    /*       { success: false, error: `Podany URL nie jest dostępny. Kod odpowiedzi: ${statusCode}` }, */
+          { success: false, error: `Podany URL nie jest dostępny` },
           { status: 400, headers }
         );
       }
     } catch (urlError) {
       return NextResponse.json(
-        { success: false, error: `Nie można połączyć się z podanym URL: ${urlError instanceof Error ? urlError.message : String(urlError)}` },
+  /*       { success: false, error: `Nie można połączyć się z podanym URL: ${urlError instanceof Error ? urlError.message : String(urlError)}` }, */
+        { success: false, error: `Nie można połączyć się z podanym URL` },
         { status: 400, headers }
       );
     }

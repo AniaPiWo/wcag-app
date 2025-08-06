@@ -61,7 +61,7 @@ import AuditPDF from './AuditPDF'
 interface Audit {
   id: string;
   url: string;
-  name: string;
+  name?: string;
   email: string;
   createdAt: Date;
   updatedAt: Date;
@@ -83,6 +83,12 @@ interface Audit {
   seriousCount?: number | null;
   auditType: string;
   errorMessage?: string | null;
+  violationsCount?: number | null;
+  pdfAuditData?: string | null;
+  automatedAuditId?: string | null;
+  automatedAuditUrl?: string | null;
+  automatedAuditDate?: string | null;
+  automatedAuditData?: string | null;
 }
 
 type Props = {
@@ -131,6 +137,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     auditorName: 'Anna Piotrowiak-Wołosiuk',
     auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
     auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
+    evaluationLevel: 'Podstawowy poziom WCAG 2.2 – poziom AA',
     complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
     summary: '',
     problems: [] as ProblemCategory[],
@@ -305,7 +312,11 @@ const ClientReadyReport = ({ id, audit }: Props) => {
       if (auditData.clientReadyAudit) {
         try {
           const savedContent = JSON.parse(auditData.clientReadyAudit);
-          setEditedContent(savedContent);
+          // Ensure evaluationLevel is always defined with a default value if missing
+          setEditedContent({
+            ...savedContent,
+            evaluationLevel: savedContent.evaluationLevel || 'Podstawowy poziom WCAG 2.2 – poziom AA'
+          });
           return;
         } catch (error) {
           console.error('Error parsing clientReadyAudit:', error);
@@ -320,6 +331,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           auditorName: 'Anna Piotrowiak-Wołosiuk',
           auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
           auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
+          evaluationLevel: 'Podstawowy poziom WCAG 2.2 – poziom AA',
           complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
           summary: Array.isArray(parsedSummary.summary) 
             ? parsedSummary.summary.join(' ') 
@@ -396,6 +408,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           auditorName: 'Anna Piotrowiak-Wołosiuk',
           auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
           auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
+          evaluationLevel: 'Podstawowy poziom WCAG 2.2 – poziom AA',
           complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
           updatedAt: auditData.updatedAt.toISOString(),
           summary: Array.isArray(parsedSummary.summary) 
@@ -802,7 +815,59 @@ const ClientReadyReport = ({ id, audit }: Props) => {
   };
 
 
-return (
+  // Funkcja do resetowania raportu
+  const handleResetReport = async () => {
+    // Potwierdzenie przed usunięciem
+    if (!window.confirm('Czy na pewno chcesz usunąć/zresetować cały raport? Ta operacja jest nieodwracalna.')) {
+      return;
+    }
+    
+    setIsSaving(true);
+    try {
+      // Usunięcie danych raportu poprzez zapisanie pustego obiektu
+      const response = await fetch('/api/audit/save-client-ready', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          auditId: id,
+          clientReadyAudit: null, // Ustawienie null zamiast danych raportu
+          updatedAt: new Date()
+        })
+      });
+
+      if (response.ok) {
+        console.log('Raport został zresetowany');
+        // Odśwież dane
+        const updatedAudit = await getManualAudit(id);
+        setAuditData(updatedAudit);
+        
+        // Reset stantu edytowanej zawartości
+        setEditedContent({
+          url: updatedAudit.url || '',
+          auditorName: 'Anna Piotrowiak-Wołosiuk',
+          auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
+          auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
+          evaluationLevel: 'Podstawowy poziom WCAG 2.2 – poziom AA',
+          complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
+          summary: '',
+          problems: [],
+          updatedAt: new Date().toISOString()
+        });
+      } else {
+        console.error('Błąd podczas resetowania raportu');
+        alert('Wystąpił błąd podczas resetowania raportu');
+      }
+    } catch (error) {
+      console.error('Błąd podczas resetowania raportu:', error);
+      alert('Wystąpił błąd podczas resetowania raportu');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
   <div className={styles.wrapper}>
     {isEditing && (
       <div className={styles.editSidebar}>
@@ -834,6 +899,9 @@ return (
         <div className={styles.topEditControls}>
           <button onClick={handleEditToggle} className={styles.editButton}>
             Edytuj raport
+          </button>
+          <button onClick={handleResetReport} className={styles.resetButton} title="Usuń/zresetuj raport">
+            Usuń raport
           </button>
           <button
             type="button"
@@ -943,21 +1011,17 @@ return (
         )}
       </p>
       
-      <p><strong>Poziom oceny:</strong> Podstawowy poziom WCAG 2.2 – poziom AA</p>
+      <p><strong>Poziom oceny:</strong> {isEditing ? (
+        <input
+          type="text"
+          value={editedContent.evaluationLevel}
+          onChange={(e) => handleInputChange('evaluationLevel', e.target.value)}
+          className={styles.editInput}
+        />
+      ) : (
+        editedContent.evaluationLevel
+      )}</p>
 
-      <h2 className={styles.title}>
-        Poziom zgodności -{' '}
-        {isEditing ? (
-          <input
-            type="text"
-            value={editedContent.complianceLevel}
-            onChange={(e) => handleInputChange('complianceLevel', e.target.value)}
-            className={styles.editInput}
-          />
-        ) : (
-          editedContent.complianceLevel
-        )}
-      </h2>
 
        {(parsedSummary || isEditing) && (
         <div className={styles.aiSummary}>
