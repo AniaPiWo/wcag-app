@@ -232,16 +232,18 @@ const ClientReadyReport = ({ id, audit }: Props) => {
         const problemsByCategory: Record<string, AuditIssue[]> = {};
         
         parsedJson.problems.forEach((item: any) => {
-          const category = item.wcag || 'Nieokreślone kryterium';
-          if (!problemsByCategory[category]) {
-            problemsByCategory[category] = [];
+          // Sprawdź najpierw pole category (nowy format z AI), potem wcag (stary format), lub użyj domyślnej wartości
+          const categoryName = item.category || item.wcag || 'Nieokreślone kryterium';
+          if (!problemsByCategory[categoryName]) {
+            problemsByCategory[categoryName] = [];
           }
           
-          problemsByCategory[category].push({
-            description: item.problem || '',
-            severity: item.severity || '',
-            recommendation: item.recommendation || '',
-            wcagCriterion: item.wcag || ''
+          problemsByCategory[categoryName].push({
+            // Obsługa pól zarówno w nowym jak i starym formacie
+            description: item.problem || item.description || '',
+            severity: item.severity || item.waga || '',
+            recommendation: item.recommendation || item.rekomendacja || '',
+            wcagCriterion: item.wcagCriterion || categoryName.includes('WCAG') ? categoryName : ''
           });
         });
         
@@ -900,9 +902,9 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           <button onClick={handleEditToggle} className={styles.editButton}>
             Edytuj raport
           </button>
-          <button onClick={handleResetReport} className={styles.resetButton} title="Usuń/zresetuj raport">
+{/*           <button onClick={handleResetReport} className={styles.resetButton} title="Usuń/zresetuj raport">
             Usuń raport
-          </button>
+          </button> */}
           <button
             type="button"
             className={styles.editButton}
