@@ -183,6 +183,14 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
   const [editedConsolidatedSummary, setEditedConsolidatedSummary] = useState<string>('');
   const [editedReadyMadeAudit, setEditedReadyMadeAudit] = useState<string>('');
 
+  // States for editable fields
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [isEditingUrl, setIsEditingUrl] = useState(false);
+  const [isEditingLevels, setIsEditingLevels] = useState(false);
+  const [editedEmail, setEditedEmail] = useState<string>('');
+  const [editedUrl, setEditedUrl] = useState<string>('');
+  const [editedLevels, setEditedLevels] = useState<string>('');
+
   // Selected audit levels for consolidated report
   const [selectedLevelsForReport, setSelectedLevelsForReport] = useState({
     basic: true,
@@ -300,6 +308,104 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
     }
   };
   
+  // Functions to handle editable fields
+  // Dostępne poziomy audytu
+  const availableLevels = [
+    { id: "basic", label: "podstawowy" },
+    { id: "intermediate", label: "średni" },
+    { id: "advanced", label: "zaawansowany" }
+  ];
+  
+  const handleEditField = (field: 'email' | 'url' | 'levels') => {
+    if (!audit) return;
+    
+    switch (field) {
+      case 'email':
+        setIsEditingEmail(true);
+        setEditedEmail(audit.email || '');
+        break;
+      case 'url':
+        setIsEditingUrl(true);
+        setEditedUrl(audit.url || '');
+        break;
+      case 'levels':
+        setIsEditingLevels(true);
+        setEditedLevels(audit.selectedLevels || '[]');
+        break;
+    }
+  };
+
+  const handleSaveField = async (field: 'email' | 'url' | 'levels') => {
+    if (!audit) return;
+    
+    try {
+      setIsSaving(true);
+      type FieldUpdateData = {
+        email?: string;
+        url?: string;
+        selectedLevels?: string;
+      };
+      
+      let updateData: FieldUpdateData = {};
+      
+      switch (field) {
+        case 'email':
+          updateData = { email: editedEmail };
+          setIsEditingEmail(false);
+          setAudit(prev => prev ? { ...prev, email: editedEmail } : null);
+          break;
+        case 'url':
+          updateData = { url: editedUrl };
+          setIsEditingUrl(false);
+          setAudit(prev => prev ? { ...prev, url: editedUrl } : null);
+          break;
+        case 'levels':
+          updateData = { selectedLevels: editedLevels };
+          setIsEditingLevels(false);
+          setAudit(prev => prev ? { ...prev, selectedLevels: editedLevels } : null);
+          break;
+      }
+      
+      // Wywołanie API do aktualizacji pola
+      await fetch(`/api/manual-audit/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      });
+      
+      setSaveMessage({ type: 'success', text: 'Pole zaktualizowane' });
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (error) {
+      console.error(`Błąd podczas zapisywania pola ${field}:`, error);
+      setSaveMessage({ type: 'error', text: 'Błąd podczas zapisywania' });
+      setTimeout(() => setSaveMessage(null), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent, field: 'email' | 'url' | 'levels') => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSaveField(field);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      switch (field) {
+        case 'email':
+          setIsEditingEmail(false);
+          break;
+        case 'url':
+          setIsEditingUrl(false);
+          break;
+        case 'levels':
+          setIsEditingLevels(false);
+          break;
+      }
+    }
+  };
+
   // Function to run automated audit
   const handleAutomatedAudit = async () => {
     if (!audit?.url) {
@@ -815,7 +921,20 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
     
     try {
       const levels: AuditLevel[] = JSON.parse(audit.selectedLevels);
-      return levels.map((level: AuditLevel) => level.label).join(", ");
+      
+      // Zdefiniuj porządek wyświetlania poziomów
+      const orderMap: Record<string, number> = {
+        'basic': 1,
+        'intermediate': 2,
+        'advanced': 3
+      };
+      
+      // Posortuj poziomy według zdefiniowanego porządku
+      const sortedLevels = [...levels].sort((a, b) => {
+        return (orderMap[a.id] || 999) - (orderMap[b.id] || 999);
+      });
+      
+      return sortedLevels.map((level: AuditLevel) => level.label).join(", ");
     } catch (error) {
       return audit.selectedLevels;
     }
@@ -829,7 +948,6 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
       ) : audit ? (
         <>
           <div className={styles.auditDetails}>
-            <h3>Informacje podstawowe</h3>
             <table className={styles.infoTable}>
               <tbody>
                 <tr>
@@ -838,11 +956,49 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                 </tr>
                 <tr>
                   <th>URL:</th>
-                  <td>{audit.url}</td>
+                  <td>
+                    {isEditingUrl ? (
+                      <input 
+                        type="text" 
+                        value={editedUrl} 
+                        onChange={(e) => setEditedUrl(e.target.value)} 
+                        onKeyDown={(e) => handleKeyDown(e, 'url')}
+                        autoFocus
+                        className={styles.editableField}
+                      />
+                    ) : (
+                      <div 
+                        className={styles.editableText} 
+                        onClick={() => handleEditField('url')}
+                        title="Kliknij, aby edytować"
+                      >
+                        {audit.url}
+                      </div>
+                    )}
+                  </td>
                 </tr>
                 <tr>
                   <th>Email:</th>
-                  <td>{audit.email || '-'}</td>
+                  <td>
+                    {isEditingEmail ? (
+                      <input 
+                        type="text" 
+                        value={editedEmail} 
+                        onChange={(e) => setEditedEmail(e.target.value)} 
+                        onKeyDown={(e) => handleKeyDown(e, 'email')}
+                        autoFocus
+                        className={styles.editableField}
+                      />
+                    ) : (
+                      <div 
+                        className={styles.editableText} 
+                        onClick={() => handleEditField('email')}
+                        title="Kliknij, aby edytować"
+                      >
+                        {audit.email || '-'}
+                      </div>
+                    )}
+                  </td>
                 </tr>
                 <tr>
                   <th>Data utworzenia:</th>
@@ -854,7 +1010,79 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                 </tr>
                 <tr>
                   <th>Wybrane poziomy:</th>
-                  <td>{renderSelectedLevels()}</td>
+                  <td>
+                    {isEditingLevels ? (
+                      <div className={styles.checkboxContainer}>
+                        <div className={styles.checkboxRow}>
+                          {availableLevels.map(level => {
+                            // Parsujemy aktualne wybrany poziom aby sprawdzić, czy ten poziom jest już wybrany
+                            let selectedLevels: Array<{id: string, label: string}> = [];
+                            try {
+                              selectedLevels = JSON.parse(editedLevels);
+                            } catch (e) {
+                              // Ignorujemy błędy parsowania i zakładamy, że nie ma wybranych poziomów
+                            }
+                            
+                            const isChecked = selectedLevels.some(sel => sel.id === level.id);
+                            
+                            return (
+                              <label key={level.id} className={styles.checkboxLabel}>
+                                <input 
+                                  type="checkbox" 
+                                  checked={isChecked}
+                                  onChange={(e) => {
+                                    // Aktualizacja wybranych poziomów
+                                    let updatedLevels = [...selectedLevels];
+                                    
+                                    if (e.target.checked) {
+                                      // Dodaj poziom, jeśli nie istnieje
+                                      if (!isChecked) {
+                                        updatedLevels.push(level);
+                                      }
+                                    } else {
+                                      // Usuń poziom
+                                      updatedLevels = updatedLevels.filter(l => l.id !== level.id);
+                                    }
+                                    
+                                    setEditedLevels(JSON.stringify(updatedLevels));
+                                  }}
+                                  className={styles.checkbox}
+                                />
+                                {level.label}
+                              </label>
+                            );
+                          })}
+                        </div>
+                        <div className={styles.checklistButtons}>
+                          <button 
+                            type="button" 
+                            onClick={() => handleSaveField('levels')} 
+                            className={styles.saveButton}
+                            disabled={isSaving}
+                          >
+                            {isSaving ? 'Zapisywanie...' : 'Zapisz'}
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => {
+                              setIsEditingLevels(false);
+                            }} 
+                            className={styles.cancelButton}
+                          >
+                            Anuluj
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div 
+                        className={styles.editableText} 
+                        onClick={() => handleEditField('levels')}
+                        title="Kliknij, aby edytować"
+                      >
+                        {renderSelectedLevels()}
+                      </div>
+                    )}
+                  </td>
                 </tr>
               </tbody>
             </table>
