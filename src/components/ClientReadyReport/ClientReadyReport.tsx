@@ -994,15 +994,13 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           >
             Pokaż JSON
           </button>
-          {editedContent && editedContent.problems && editedContent.problems.length > 0 && (
-          
+          {editedContent && (
               <button
                 className={styles.editButton}
                 onClick={handleGeneratePDF}
               >
                 Generuj i pobierz PDF
               </button>
-          
           )}
           <button
             type="button"
