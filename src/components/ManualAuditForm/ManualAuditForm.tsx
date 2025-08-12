@@ -829,14 +829,36 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
       ) : audit ? (
         <>
           <div className={styles.auditDetails}>
-            <p><strong>ID audytu:</strong> {id}</p>
-            <p><strong>URL:</strong> {audit.url}</p>
-            <p><strong>Email:</strong> {audit.email}</p>
-            <p><strong>Data utworzenia:</strong> {new Date(audit.createdAt).toLocaleString()}</p>
-            <p><strong>Ostatnia aktualizacja:</strong> {new Date(audit.updatedAt).toLocaleString()}</p>
-            <p><strong>Wybrane poziomy:</strong> {renderSelectedLevels()}</p>
-
-
+            <h3>Informacje podstawowe</h3>
+            <table className={styles.infoTable}>
+              <tbody>
+                <tr>
+                  <th>ID audytu:</th>
+                  <td>{id}</td>
+                </tr>
+                <tr>
+                  <th>URL:</th>
+                  <td>{audit.url}</td>
+                </tr>
+                <tr>
+                  <th>Email:</th>
+                  <td>{audit.email || '-'}</td>
+                </tr>
+                <tr>
+                  <th>Data utworzenia:</th>
+                  <td>{new Date(audit.createdAt).toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <th>Ostatnia aktualizacja:</th>
+                  <td>{new Date(audit.updatedAt).toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <th>Wybrane poziomy:</th>
+                  <td>{renderSelectedLevels()}</td>
+                </tr>
+              </tbody>
+            </table>
+            
             <ClientReadyReport id={id} audit={audit} />
             
             {/* Sekcja gotowego audytu */}
