@@ -1315,6 +1315,61 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                 )}
               </div>
             )}
+            
+            {/* Sekcja wyświetlająca istniejący audyt automatyczny */}
+            {showExistingAudit && existingAudit && (
+              <div className={styles.existingAuditSection} style={{ marginBottom: '20px', border: '1px solid #dee2e6', borderRadius: '5px', padding: '15px' }}>
+                <h3>Wyniki istniejącego audytu automatycznego</h3>
+                
+                {existingAudit.results?.violations && existingAudit.results.violations.length > 0 ? (
+                  <div>
+                    <h4>Wykryte naruszenia (JSON): {existingAudit.results.violations.length}</h4>
+                    <div style={{
+                      backgroundColor: '#f8f9fa',
+                      padding: '10px',
+                      borderRadius: '5px',
+                      overflowX: 'auto',
+                      border: '1px solid #dee2e6'
+                    }}>
+                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', maxHeight: '500px', overflowY: 'auto' }}>
+                        {JSON.stringify(existingAudit.results.violations, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                ) : (
+                  <p>Brak naruszeń lub dane są niekompletne</p>
+                )}
+                
+                {existingAudit.aiAnalysis && (
+                  <div style={{ marginTop: '15px' }}>
+                    <h4>Analiza AI</h4>
+                    <div style={{
+                      backgroundColor: '#f8f9fa',
+                      padding: '10px',
+                      borderRadius: '5px',
+                      border: '1px solid #dee2e6'
+                    }}>
+                      <div style={{ whiteSpace: 'pre-line' }}>{existingAudit.aiAnalysis}</div>
+                    </div>
+                  </div>
+                )}
+                
+                <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'space-between' }}>
+                  <Button 
+                    onClick={() => setShowExistingAudit(false)}
+                    variant="secondary"
+                  >
+                    Ukryj szczegóły audytu automatycznego
+                  </Button>
+                  <Button 
+                    onClick={handleAutomatedAudit}
+                    variant="primary"
+                  >
+                    Uruchom nowy audyt automatyczny
+                  </Button>
+                </div>
+              </div>
+            )}
 
 
           </div>

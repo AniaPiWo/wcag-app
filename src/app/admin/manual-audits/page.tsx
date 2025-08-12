@@ -6,6 +6,7 @@ import { Button } from '@/components/atoms/Button/Button';
 import Loader from '@/components/Loader/Loader';
 import Link from 'next/link';
 import { GoBackBtn } from '@/components/GoBackBtn/GoBackBtn';
+import { NewManualAuditButton } from '@/components/NewManualAuditButton/NewManualAuditButton';
 
 // Interfejs dla poziomu audytu
 interface AuditLevel {
@@ -124,9 +125,9 @@ export default function ManualAuditsPage() {
               className={styles.searchInput}
             />
           </div>
-          <Link href="/admin/manual-audits/new" className={styles.newAuditLink}>
-            <Button className={styles.newAuditButton}>Nowy audyt manualny</Button>
-          </Link>
+          <div className={styles.newAuditLink}>
+            <NewManualAuditButton className={styles.newAuditButton} />
+          </div>
         </div>
         <div className={styles.auditTableContainer}>
           <table className={styles.auditTable}>
