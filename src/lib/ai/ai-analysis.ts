@@ -81,8 +81,8 @@ Jeśli wykryto naruszenia:
 Użyj poniższych danych jako danych wejściowych:
 ${JSON.stringify(compactViolations, null, 2)}
  - nie dawaj tytułu (Raport z automatycznego audytu dostępności strony internetowej itp), tytuł jest już w treści maila przed twoim tekstem
- - opisz krótko PO POLSKU zaliczone reguły w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj fragmentów kodu, użyj emotki ✅, po emotce daj spacje.
- - opisz krótko PO POLSKU wykryte błędy w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj fragmentów kodu, używaj w podsumowaniu wagi naruszenia (krytyczny-‼️, poważny-❗, umiarkowany-⚠️,  drobne - ⚡), po emotce daj spacje.
+ - opisz krótko PO POLSKU zaliczone reguły w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj fragmentów kodu,
+ - opisz krótko PO POLSKU wykryte błędy w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj fragmentów kodu,
  - dopisz także, które elementy WYMAGAJĄ audytu manualnego
  - nie używaj ozdobników **
  - jeśli wykryto 
