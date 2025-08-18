@@ -210,7 +210,7 @@ Specjalista ds. dostępności cyfrowej
             subject: emailSubject,
             text: emailContent,
           });
-          
+           if (auditRequest.email !== "biuro@wcag.co") {
           // Wysyłamy kopię do biura
           await transporter.sendMail({
             from: `"Audyt Dostępności" <${process.env.OVH_EMAIL}>`,
@@ -218,6 +218,7 @@ Specjalista ds. dostępności cyfrowej
             subject: `Kopia: ${emailSubject}`,
             text: emailContent,
           });
+          }
 
           console.log('\x1b[32m%s\x1b[0m', `✅ Wysłano wyniki audytu na adres ${auditRequest.email}`);
         } catch (emailError) {
