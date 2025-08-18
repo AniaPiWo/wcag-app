@@ -85,7 +85,7 @@ ${JSON.stringify(compactViolations, null, 2)}
  - opisz krótko PO POLSKU wykryte błędy w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj kodu z błędami
  - nie używaj ozdobników **
  - jeśli wykryto 
- - nienachalnie zachęć do zakupu dokładniejszego testu manualnego.
+ - nienachalnie zachęć do zakupu dokładniejszego testu manualnego, po którym zostanie przesłany raport z pełnymi informacjami o błedach oraz instrukcją naprawy.
 
 `;
     

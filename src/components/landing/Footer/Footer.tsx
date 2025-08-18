@@ -49,12 +49,19 @@ export const Footer = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-const handleContactClick = useCallback(() => {
+  const handleContactClick = useCallback(() => {
     setTimeout(() => {
       const emailParts = ['biuro', 'wcag.co'];
-      window.location.href = `mailto:${emailParts[0]}@${emailParts[1]}`;
+  
+      const subject = encodeURIComponent("Zapytanie o audyt WCAG");
+      const body = encodeURIComponent(
+        "Dzień dobry,\n\nProszę o kontakt w sprawie audytu dostępności mojej strony internetowej.\n\nAdres strony: \n\nPozdrawiam,\n"
+      );
+  
+      window.location.href = `mailto:${emailParts[0]}@${emailParts[1]}?subject=${subject}&body=${body}`;
     }, 500);
   }, []);
+  
   
 
   return (
