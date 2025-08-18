@@ -15,14 +15,14 @@
   position: relative;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  box-shadow: 0.25rem 0.25rem 0 #000000;
+  box-shadow: 0.25rem 0.25rem 0 var(--button-shadow);
   transform: translate(-0.15rem, -0.15rem);
   margin: 0.5rem 0.5rem 1rem 0;
   font-family: inherit;
   
   &:hover {
     transform: translate(0, 0);
-    box-shadow: 0 0 0 #000000;
+    box-shadow: 0 0 0 var(--button-shadow);
   }
   
   

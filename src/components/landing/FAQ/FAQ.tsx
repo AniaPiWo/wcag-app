@@ -18,7 +18,8 @@ export const FAQ = () => {
       if (prev.includes(id)) {
         return prev.filter(itemId => itemId !== id);
       } else {
-        return [...prev, id];
+        // Only allow one expanded item at a time for better performance
+        return [id];
       }
     });
   };

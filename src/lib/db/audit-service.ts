@@ -180,6 +180,16 @@ export const auditService = {
            ${aiAnalysis}   
   
             Dziękujemy za skorzystanie z naszego narzędzia!
+
+            --
+Pozdrawiam serdecznie,  
+Anna Piotrowiak  
+Specjalistka ds. dostępności cyfrowej  
+
+📞 123 456 789  
+🌐 https://wcag.co  
+✉️ ${process.env.OVH_EMAIL}
+
           `.trim().replace(/^ +/gm, '');
           
           // Tworzymy transporter

@@ -11,6 +11,7 @@
   background-color: var(--background);
   border-bottom: 1px solid var(--border);
   color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 
 
   .container {
@@ -24,6 +25,55 @@
 
   @media (max-width: 48rem) { /* 768px */
     padding: 0.75rem; /* 12px */
+  }
+}
+
+.scrolled {
+  background-color: #ffffff;
+  color: #0a0a0a;
+  border-bottom: 1px solid #e0e0e0;
+  
+  .navLink, .logo, .mobilebutton {
+    color: #0a0a0a;
+  }
+  
+  .mobilebutton {
+    border-color: #0a0a0a;
+  }
+  
+  .mobileMenuContent {
+    background-color: #ffffff;
+    color: #0a0a0a;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .mobileNavLink {
+    color: #0a0a0a;
+  }
+}
+
+/* For dark theme when scrolled - changes to light colors */
+.scrolledDark {
+  background-color: #ffffff;
+  color: #0a0a0a;
+  border-bottom: 1px solid #e0e0e0;
+  
+  .navLink, .logoLink, .mobilebutton {
+    color: #0a0a0a;
+  }
+  
+  .mobilebutton {
+    border-color: #0a0a0a;
+  }
+  
+  .mobileMenuContent {
+    background-color: #ffffff;
+    color: #0a0a0a;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .mobileNavLink {
+    color: #0a0a0a;
   }
 }
 

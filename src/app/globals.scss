@@ -7,6 +7,7 @@
   --black: #000000;
   //--vanilla: #CFFF85;
   --link: #540ffb;
+  --button-shadow: #000000;
 
   --font-weight-thin: 100;
   --font-weight-extralight: 200;
@@ -29,16 +30,15 @@ html[data-theme="dark"] {
   --accent: #CFFF85;
   --black: #000000;
   --vanilla: #CFFF85;
-}
-
-/* * {
-  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
-} */
+  --button-shadow: #2d3640;
+} 
 
 html,
 body {
   max-width: 100dvw;
   overflow-x: hidden;
+  // transition dla łagodnej zmiany theme
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 body {

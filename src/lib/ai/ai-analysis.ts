@@ -87,7 +87,6 @@ ${JSON.stringify(compactViolations, null, 2)}
  - jeśli wykryto 
  - nienachalnie zachęć do zakupu dokładniejszego testu manualnego.
 
-
 `;
     
     try {

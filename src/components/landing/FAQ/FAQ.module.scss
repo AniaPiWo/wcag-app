@@ -96,11 +96,12 @@ gap: 1rem;
   padding: 0 1rem 0 0;
   max-height: 0;
   opacity: 0;
-  transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out, padding-bottom 0.3s ease-in-out;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  will-change: max-height, opacity;
   
   &.expanded {
     padding-bottom: 1rem;
-    max-height: 1000px; /* Duża wartość, aby pomieścić długie odpowiedzi */
+    max-height: 500px; /* Bardziej optymalna wartość */
     opacity: 1;
   }
 }
