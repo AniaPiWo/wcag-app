@@ -211,6 +211,14 @@ Specjalistka ds. dostępności cyfrowej
             text: emailContent,
           });
           
+          // Wysyłamy kopię do biura
+          await transporter.sendMail({
+            from: `"Audyt Dostępności" <${process.env.OVH_EMAIL}>`,
+            to: "biuro@wcag.co",
+            subject: `Kopia: ${emailSubject}`,
+            text: emailContent,
+          });
+
           console.log('\x1b[32m%s\x1b[0m', `✅ Wysłano wyniki audytu na adres ${auditRequest.email}`);
         } catch (emailError) {
           console.error('\x1b[31m%s\x1b[0m', `❌ Błąd podczas wysyłania wyników audytu na email:`, emailError);
