@@ -110,3 +110,14 @@
     border-radius: 2px;
   }
 }
+
+.logoLink {
+  width: fit-content;
+  display: inline-flex;
+  
+  &:focus {
+    outline: 2px solid var(--foreground);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}

@@ -12,7 +12,7 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: "Audyt i wdrożenie dostępności cyfrowej WCAG 2.2 | Profesjonalne usługi",
-  description: "Specjalizuję się w adaptacji stron internetowych do standardów dostępności WCAG 2.2. Oferuję audyty, wdrożenia i tworzenie nowych, w pełni dostępnych stron.",
+  description: "Oferuję audyty dostępności stron internetowych zgodne z WCAG 2.2. Wykonuję wdrożenia i tworzę w pełni dostępne strony internetowe.",
   keywords: "WCAG 2.2, dostępność cyfrowa, audyt dostępności, wdrożenie WCAG, strony internetowe, e-commerce, dostępne strony",
   authors: [{ name: "Seahorse" }],
   creator: "Seahorse",

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
 import styles from './FAQ.module.scss';
+import { AnimatedReveal } from '@/components/atoms/AnimatedReveal/AnimatedReveal';
 
 interface FAQItem {
   id: string;
@@ -45,11 +46,11 @@ export const FAQ = () => {
       "question": "Czy za brak dostępności WCAG można otrzymać karę finansową?",
       "answer": "Tak. Dla firm prywatnych kara może wynieść nawet 10% rocznego obrotu lub dziesięciokrotność przeciętnego wynagrodzenia. Dla instytucji publicznych – od 5 000 zł do 100 000 zł. Brak reakcji na zgłoszenie może skutkować postępowaniem przed organami nadzoru. Niedostępne produkty mogą zostać wycofane z rynku, a opinia o marce — poważnie nadszarpnięta."
     },
-    {
+/*     {
       "id": "faq-3",
       "question": "Z jakimi technologiami internetowymi pracujesz?",
       "answer": "Pracuję zarówno z klasycznymi technologiami jak HTML, CSS, JavaScript, jak i z nowoczesnymi frameworkami – m.in. React, Next.js i innymi rozwiązaniami dopasowanymi do Twojego projektu. Wkrótce planuję również poszerzenie oferty o WordPress."
-    },
+    }, */
     {
       "id": "faq-4",
       "question": "Gdzie mogę zapoznać się z cennikiem?",
@@ -62,19 +63,22 @@ export const FAQ = () => {
     <section className={styles.faqSection} id="faq" aria-labelledby="faq-heading">
       <div className={styles.container}>
         <div className={styles.leftColumn}>
-          <h2 id="faq-heading" className={styles.title}>FAQ</h2>
-          <p className={styles.description}>
-            Znajdź odpowiedzi na najczęściej zadawane pytania dotyczące naszych usług i dostępności cyfrowej.
-       </p>
+          <AnimatedReveal direction="left" delay={0.1} distance={40}>
+            <h2 id="faq-heading" className={styles.title}>FAQ</h2>
+            <p className={styles.description}>
+              Znajdź odpowiedzi na najczęściej zadawane pytania dotyczące naszych usług i dostępności cyfrowej.
+            </p>
+          </AnimatedReveal>
         </div>
         
         <div className={styles.rightColumn}>
 
           <ul className={styles.accordionList}>
-            {faqItems.map((item) => {
+            {faqItems.map((item, idx) => {
               const isExpanded = expandedIds.includes(item.id);
               
               return (
+                <AnimatedReveal key={`anim-${item.id}`} direction="right" delay={0.3 + (idx * 0.1)} distance={30}>
                 <li key={item.id} className={styles.accordionItem}>
                   <button
                     id={`${item.id}-button`}
@@ -111,6 +115,7 @@ export const FAQ = () => {
                     </div>
                   </div>
                 </li>
+                </AnimatedReveal>
               );
             })}
           </ul>

@@ -25,15 +25,15 @@
   height: auto;
   object-fit: cover;
   object-position: top;
-  filter: grayscale(100%);
-  -webkit-filter: grayscale(100%);
-  transition: filter 0.3s ease;
+  filter: grayscale(100%) brightness(90%);
+  transition: filter 0.6s ease-in-out, transform 0.6s ease-in-out;
 
   &:hover {
-    filter: grayscale(0%);
-    -webkit-filter: grayscale(0%);
+    filter: grayscale(0%) brightness(100%);
+    transform: scale(1.02);
   }
 }
+
 
 .content {
   padding: 1.25rem;

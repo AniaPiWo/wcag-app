@@ -2,16 +2,69 @@
 //import Image from 'next/image';
 import styles from './Hero.module.scss';
 import { Button } from '@/components/atoms/Button/Button';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Threads } from '@/components/atoms/Threads/Threads.jsx';
+import { motion, useAnimation, Variants } from 'framer-motion';
 
 export const Hero = () => {
-  const [isContactLoading, setIsContactLoading] = useState(false);
+  //const [isContactLoading, setIsContactLoading] = useState(false);
+  const controls = useAnimation();
+
+  // Definicje animacji
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.15,
+        delayChildren: 0.2 
+      }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: { 
+        type: "spring", 
+        stiffness: 60, 
+        damping: 12 
+      }
+    }
+  };
+
+  const buttonVariants: Variants = {
+    hidden: { scale: 0.95, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 80,
+        delay: 0.5
+      }
+    },
+    hover: { 
+      scale: 1.05,
+      transition: { 
+        type: "spring", 
+        stiffness: 400, 
+        damping: 10 
+      }
+    },
+    tap: { scale: 0.98 }
+  };
+
+  // Uruchamianie animacji po załadowaniu
+  useEffect(() => {
+    controls.start('visible');
+  }, [controls]);
 
   const handleAuditClick = useCallback(() => {
     const formSection = document.getElementById('form');
     if (formSection) {
-
       const formRect = formSection.getBoundingClientRect();
       const formTop = formRect.top + window.pageYOffset;
       
@@ -27,7 +80,7 @@ export const Hero = () => {
   }, []);
 
   // spam protection
-  const handleContactClick = useCallback(() => {
+/*   const handleContactClick = useCallback(() => {
     setIsContactLoading(true);
     setTimeout(() => {
       const emailParts = ['biuro', 'wcag.co'];
@@ -36,40 +89,71 @@ export const Hero = () => {
         setIsContactLoading(false);
       }, 2000);
     }, 500);
-  }, []);
+  }, []); */
   
   return (
-
     <section id="hero" className={styles.wrapper}>
       <div className={styles.threadsContainer}>
         <Threads 
-            amplitude={1.6}
-            distance={0.5}
-            enableMouseInteraction={true}
-            className={styles.threads}
-            color={[0.5, 0.5, 0.5]}
-            />
+          amplitude={1.6}
+          distance={0.5}
+          enableMouseInteraction={true}
+          className={styles.threads}
+          color={[0.5, 0.5, 0.5]}
+        />
       </div>
 
-      <div className={styles.top}>
+      <motion.div 
+        className={styles.top}
+        initial="hidden"
+        animate={controls}
+        variants={containerVariants}
+      >
+        <motion.h1 
+          className={styles.title} 
+          variants={itemVariants}
+        >
+          Popraw dostępność, zwiększ sprzedaż i widoczność – dzięki WCAG 2.2
+        </motion.h1>
+        
+        <motion.p 
+          className={styles.desc}
+          variants={itemVariants}
+        >
+          Zadbam o to, by Twoja strona była naprawdę dostępna – pomogę Ci stworzyć miejsce, które działa lepiej, sprzedaje więcej i nie wyklucza nikogo.
+        </motion.p>
 
-<h1 className={styles.title}>Popraw dostępność, zwiększ sprzedaż i widoczność – dzięki WCAG 2.2</h1>
-<p className={styles.desc}>
-  Zadbam o to, by Twoja strona była naprawdę dostępna – pomogę Ci stworzyć miejsce, które działa lepiej, sprzedaje więcej i nie wyklucza nikogo.
-</p>
-
-        <div className={styles.buttonContainer}>
-          <Button variant="primary" onClick={handleAuditClick}>Bezpłatny audyt strony</Button>
-          <Button 
-            variant="secondary" 
-            onClick={handleContactClick}
-            isLoading={isContactLoading}
-            aria-label="Wyślij email"
+        <motion.div 
+          className={styles.buttonContainer}
+          variants={containerVariants}
+        >
+          <motion.div
+            variants={buttonVariants}
+            whileTap="tap"
           >
-            Kontakt
-          </Button>
-        </div>
-      </div>
+            <Button 
+              variant="primary" 
+              onClick={handleAuditClick}
+            >
+              Bezpłatny audyt strony
+            </Button>
+          </motion.div>
+          
+{/*           <motion.div
+            variants={buttonVariants}
+            whileTap="tap"
+          >
+            <Button 
+              variant="secondary" 
+              onClick={handleContactClick}
+              isLoading={isContactLoading}
+              aria-label="Wyślij email"
+            >
+              Kontakt
+            </Button>
+          </motion.div> */}
+        </motion.div>
+      </motion.div>
      
     </section>
 

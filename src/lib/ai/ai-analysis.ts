@@ -82,7 +82,7 @@ Użyj poniższych danych jako danych wejściowych:
 ${JSON.stringify(compactViolations, null, 2)}
  - nie dawaj tytułu (Raport z automatycznego audytu dostępności strony internetowej itp), tytuł jest już w treści maila przed twoim tekstem
  - użyj emotek podkreślenia wagi naruszenia (krytyczny-‼️, poważny-❗, umiarkowany-⚠️,  drobne - ⚡, zaliczony-✅), po emotce daj spacje.
- - opisz krótko PO POLSKU wykryte błedy i jakie są za nie kary, nie pokazuj kodu z błędami
+ - opisz krótko PO POLSKU wykryte błędy w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj kodu z błędami
  - nie używaj ozdobników **
  - jeśli wykryto 
  - nienachalnie zachęć do zakupu dokładniejszego testu manualnego.

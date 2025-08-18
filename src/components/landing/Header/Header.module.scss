@@ -125,12 +125,14 @@
     bottom: 0;
     left: 0;
     width: 0;
-    height: 2px;
-    transition: width 0.3s ease;
+    height: 3px;
+    background-color: var(--accent);
+    transition: width 0.5s ease-in-out;
   }
   
-  &:hover::after {
+  &:hover::after, &:focus::after {
     width: 100%;
+    transition: width 0.5s ease-in-out;
   }
 }
 
@@ -246,6 +248,23 @@ html[data-theme="dark"] .switchKnob {
   width: 100%;
   transition: color 0.2s ease, background-color 0.2s ease;
   border-radius: 0.25rem;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background-color: var(--accent);
+    transition: width 0.3s ease-in-out;
+  }
+  
+  &:hover::after, &:focus::after {
+    width: 80%;
+  }
   
   &:hover, &:focus {
     color: var(--primary);

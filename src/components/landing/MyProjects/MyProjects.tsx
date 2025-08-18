@@ -1,7 +1,8 @@
 import React from 'react';
-import styles from './MyProjects.module.scss';
-import { ProjectCard } from '../atoms/ProjectCard/ProjectCard';
-import { Container } from '../atoms/Container/Container';
+import styles from '@/components/landing/MyProjects/MyProjects.module.scss';
+import { ProjectCard } from '../../atoms/ProjectCard/ProjectCard';
+import { Container } from '../../atoms/Container/Container';
+import { AnimatedReveal } from '../../atoms/AnimatedReveal/AnimatedReveal';
 
 
 export const projects = [
@@ -36,7 +37,7 @@ export const projects = [
   },
   {
     id: '4',
-    image: '/images/wcag.png',
+    image: '/images/wcag.jpg',
     title: 'wcag.co',
     imageAlt: 'Strona główna portalu wcag.co z nowoczesnym designem i czytelną nawigacją',
     description: 'To ta strona – mój najnowszy projekt 🙂 Przejrzysta, estetyczna i w pełni dostępna strona główna, pod którą kryje się narzędzie do automatycznego wykrywania niezgodności z wytycznymi dostępności cyfrowej. Umożliwia przetestowanie dowolnej domeny i otrzymanie szczegółowego raportu na wskazany adres e-mail. Wyniki audytu są interpretowane przez podłączoną AI, która przekształca je w zrozumiały i praktyczny raport wysyłany bezpośrednio do użytkownika.',
@@ -51,26 +52,34 @@ export const MyProjects = () => {
   return (
     <section id="projects" className={styles.wrapper}>
       <Container>
-        <div className={styles.top}>
-          <h2 className={styles.title}>Moje ostatnie projekty</h2>
-          <p className={styles.desc}>
-          Pracując nad tymi projektami, zadbałam o każdy szczegół — od zgodności z wytycznymi dostępności (WCAG), przez optymalizację wydajności, aż po dopracowane SEO. To realizacje, w których liczy się nie tylko wygląd, ale przede wszystkim funkcjonalność, szybkość działania i komfort użytkownika – niezależnie od jego urządzenia czy możliwości.
-          </p>
-        </div>
+        <AnimatedReveal direction="up" delay={0.1} distance={30}>
+          <div className={styles.top}>
+            <h2 className={styles.title}>Moje ostatnie projekty</h2>
+            <p className={styles.desc}>
+            Pracując nad tymi projektami, zadbałam o każdy szczegół — od zgodności z wytycznymi dostępności (WCAG), przez optymalizację wydajności, aż po dopracowane SEO. To realizacje, w których liczy się nie tylko wygląd, ale przede wszystkim funkcjonalność, szybkość działania i komfort użytkownika – niezależnie od jego urządzenia czy możliwości.
+            </p>
+          </div>
+        </AnimatedReveal>
         
         <div className={styles.projectsGrid}>
-          {projects.map((project) => (
-            <ProjectCard
+          {projects.map((project, idx) => (
+            <AnimatedReveal 
               key={project.id}
-              id={project.id}
-              image={project.image}
-              title={project.title}
-              description={project.description}
-              technologies={project.technologies}
-              url={project.url}
-              isLink={project.isLink}
-              imageAlt={project.imageAlt}
-            />
+              direction={idx % 2 !== 0 ? "left" : "right"} 
+              delay={0.3 + (idx * 0.1)} 
+              distance={40}
+            >
+              <ProjectCard
+                id={project.id}
+                image={project.image}
+                title={project.title}
+                description={project.description}
+                technologies={project.technologies}
+                url={project.url}
+                isLink={project.isLink}
+                imageAlt={project.imageAlt}
+              />
+            </AnimatedReveal>
           ))}
         </div>
       </Container>
