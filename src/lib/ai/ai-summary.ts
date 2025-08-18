@@ -4,6 +4,10 @@ export interface AuditDataItem {
   itemId: string;
   evaluation?: 'positive' | 'negative' | 'notApplicable' | string;
   notes?: string;
+  title?: string;
+  description?: string;
+  wcag?: string;
+  level?: string;
 }
 
 /**
@@ -24,8 +28,19 @@ export async function generateManualAuditSummary(
   const formattedAuditData = auditData.map(item => ({
     itemId: item.itemId,
     evaluation: item.evaluation || 'Not evaluated',
-    notes: item.notes || ''
+    notes: item.notes || '',
+    title: item.title || '',
+    description: item.description || '',
+    wcag: item.wcag || '',
+    level: item.level || ''
   }));
+  
+  // Log przykładowych negatywnych elementów do debugowania
+  const negativeItems = formattedAuditData.filter(item => item.evaluation === 'negative');
+  if (negativeItems.length > 0) {
+    console.log(`Liczba negatywnych elementów w AI-summary: ${negativeItems.length}`);
+    console.log('Przykładowy element negatywny:', JSON.stringify(negativeItems[0], null, 2));
+  }
 
   // Create a different prompt based on whether this is a single level or consolidated report
   let prompt: string;
@@ -38,7 +53,13 @@ export async function generateManualAuditSummary(
     
     Na podstawie tych danych odpowiedź przygotuj analize wyników audytu, odpowiedź zwróc w formacie JSON bez tytułu, wynik podziel na dwie czesci:
     1.  Wygeneruj opisową analizę pozytywnie zaliczonych kryteriów dostępności "summary". Nie podawaj ogólnego tytułu. Stwórz jeden spójny, ciągły tekst, w którym w naturalny sposób przedstawisz, które reguły zostały spełnione, na czym one polegają oraz co to oznacza dla użytkownika końcowego. W tekście uwzględnij nazwy ocenionych elementów (jeśli są dostępne), ale nie stosuj list punktowanych i numerów elementów na liście audytu. Utrzymaj długość tekstu na poziomie około 30 zdań. Nie opisuj reguł, które zostały ocenione negatywnie lub jako "not applicable". Jeśli występują "problems" to na końcu dopisz, że w kolejnej sekcji znajduje się lista głównych problemów dostępności.
-    2. Wypisz główne problemy dostępności "problems" (jeśli występują) do kazdego problemu dodaj: kategorie WCAG, severity (krytyczny, poważny, umiarkowany, drobny), opis problemu i rekomendacje naprawy - wg schematu: problem, recommendation. 
+    2. Wypisz WSZYSTKIE problemy dostępności "problems" - KAŻDY element oznaczony jako "negative" w ewaluacji musi być opisany jako problem. Dla każdego problemu dodaj: 
+       - kategorie WCAG (sprawdź dokładnie pole "wcag" w danych elementu)
+       - severity (krytyczny, poważny, umiarkowany, drobny - określ na podstawie opisu i kryterium WCAG)
+       - opis problemu (na podstawie informacji zawartych w polach "title", "description" i "notes")
+       - rekomendacje naprawy 
+    
+    BARDZO WAŻNE: Upewnij się, że każdy element, który ma evaluation="negative" jest uwzględniony w sekcji "problems". Nie pomijaj żadnego negatywnego wyniku, nawet jeśli wydaje się mało istotny.
     
     Odpowiedź przygotuj w języku polskim. Format odpowiedzi powinien być czytelny, z odpowiednimi nagłówkami dla każdej sekcji. Nie używaj * i # w nagłówkach. nie zaczynaj i nie kończ JSONA potrójnymi backtickami i slowem json.
     Pamiętaj, że jest to raport zbiorczy, więc powinien zawierać kompleksową analizę wszystkich poziomów.
@@ -69,7 +90,7 @@ export async function generateManualAuditSummary(
   try {
     const aiSummary = await createChatCompletion(messages, {
       temperature: 0.5,
-      max_tokens: 1500,
+      max_tokens: 4000, // Zwiększamy limit tokenów, aby uniknąć ucinania odpowiedzi
     });
     console.log("\x1b[33m%s\x1b[0m", "AI summary generation completed");
     return aiSummary || '';

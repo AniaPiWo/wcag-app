@@ -68,7 +68,7 @@ export async function analyzeAccessibilityResults(
     occurrences: v.nodes?.length || 0
   }))
   
-  //console.log("\x1b[33m%s\x1b[0m", "compactViolations ====>", compactViolations);
+  console.log("\x1b[33m%s\x1b[0m", "compactViolations ====>", compactViolations);
 
     const prompt = `
 Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej i przygotuj raport w całości jedynie w JĘZYKU POLSKIM.

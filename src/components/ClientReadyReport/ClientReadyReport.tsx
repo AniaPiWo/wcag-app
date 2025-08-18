@@ -249,11 +249,19 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           
           problemsByCategory[categoryName].push({
             // Obsługa pól zarówno w nowym jak i starym formacie
-            description: item.problem || item.description || '',
+            description: item.problem || item.description || item.opis || '',
             severity: item.severity || item.waga || '',
-            recommendation: item.recommendation || item.rekomendacja || '',
+            recommendation: item.recommendation || item.rekomendacja || item.rekomendacje || '',
             wcagCriterion: item.wcagCriterion || categoryName.includes('WCAG') ? categoryName : ''
           });
+          
+          // Debugging dla problematycznych elementów
+          if (!item.problem && !item.description && !item.opis) {
+            console.log('Brak opisu problemu w elemencie:', item);
+          }
+          if (!item.recommendation && !item.rekomendacja && !item.rekomendacje) {
+            console.log('Brak rekomendacji w elemencie:', item);
+          }
         });
         
         // Convert categories to our format

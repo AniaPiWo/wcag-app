@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, ReactNode } from 'react';
 import styles from './ManualAuditForm.module.scss';
 import { auditBasic } from '@/lib/wcag_checklist/basic';
 import { auditIntermediate } from '@/lib/wcag_checklist/intermediate';
@@ -99,6 +99,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
   const [automatedAuditMessage, setAutomatedAuditMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   // Definicja typu dla istniejącego audytu
   type ExistingAuditType = {
+    aiAnalysis: ReactNode;
     id: string;
     url: string;
     email: string;
@@ -247,14 +248,56 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
         
         debounceTimers.current[timerKey] = setTimeout(async () => {
           try {
-            await updateAuditItemAction(id, level, itemId, field, value);
+            // Zapisz do bazy danych i ponownie załaduj stan audytu aby synchronizować interfejs
+            const updatedAudit = await updateAuditItemAction(id, level, itemId, field, value);
+            
+            // Wypełnij dane audytu po zapisie, aby mieć pewność, że UI odzwierciedla stan z bazy danych
+            if (updatedAudit) {
+              setAudit(updatedAudit);
+              
+              // Aktualizuj odpowiednie dane audytu w zależności od poziomu
+              try {
+                if (level === 'basic' && updatedAudit.basicAudit) {
+                  setBasicAuditData(JSON.parse(updatedAudit.basicAudit));
+                } else if (level === 'intermediate' && updatedAudit.intermediateAudit) {
+                  setIntermediateAuditData(JSON.parse(updatedAudit.intermediateAudit));
+                } else if (level === 'advanced' && updatedAudit.advancedAudit) {
+                  setAdvancedAuditData(JSON.parse(updatedAudit.advancedAudit));
+                }
+              } catch (parseError) {
+                console.error('Błąd parsowania danych audytu po zapisie:', parseError);
+              }
+            }
           } catch (error) {
             console.error('Błąd podczas aktualizacji notatek:', error);
           }
         }, 500);
       } else {
         // For other fields (like evaluation), update immediately
-        await updateAuditItemAction(id, level, itemId, field, value);
+        try {
+          // Zapisz do bazy danych i ponownie załaduj stan audytu aby synchronizować interfejs
+          const updatedAudit = await updateAuditItemAction(id, level, itemId, field, value);
+          
+          // Wypełnij dane audytu po zapisie, aby mieć pewność, że UI odzwierciedla stan z bazy danych
+          if (updatedAudit) {
+            setAudit(updatedAudit);
+            
+            // Aktualizuj odpowiednie dane audytu w zależności od poziomu
+            try {
+              if (level === 'basic' && updatedAudit.basicAudit) {
+                setBasicAuditData(JSON.parse(updatedAudit.basicAudit));
+              } else if (level === 'intermediate' && updatedAudit.intermediateAudit) {
+                setIntermediateAuditData(JSON.parse(updatedAudit.intermediateAudit));
+              } else if (level === 'advanced' && updatedAudit.advancedAudit) {
+                setAdvancedAuditData(JSON.parse(updatedAudit.advancedAudit));
+              }
+            } catch (parseError) {
+              console.error('Błąd parsowania danych audytu po zapisie:', parseError);
+            }
+          }
+        } catch (error) {
+          console.error('Błąd podczas aktualizacji elementu audytu:', error);
+        }
       }
     } catch (error) {
       console.error('Błąd podczas aktualizacji elementu audytu:', error);
@@ -681,27 +724,63 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
     setConsolidatedAISummary('Generowanie podsumowania AI dla wybranych poziomów...');
     
     try {
-      // Prepare data for all selected levels
+      // Prepare data for all selected levels with full audit question context
       const consolidatedData = [];
       
       if (selectedLevelsForReport.basic && basicAuditData.length > 0) {
+        // Wzbogacamy dane audytu o pełne informacje z pytań audytowych
+        const enhancedBasicData = basicAuditData.map(auditItem => {
+          const fullQuestionInfo = auditBasic.find(question => question.id.toString() === auditItem.itemId.toString());
+          return {
+            ...auditItem,
+            title: fullQuestionInfo?.title || '',
+            description: fullQuestionInfo?.description || '',
+            wcag: fullQuestionInfo?.wcag || '',
+            level: 'basic'
+          };
+        });
+        
         consolidatedData.push({
           level: 'basic',
-          data: basicAuditData
+          data: enhancedBasicData
         });
       }
       
       if (selectedLevelsForReport.intermediate && intermediateAuditData.length > 0) {
+        // Wzbogacamy dane audytu o pełne informacje z pytań audytowych
+        const enhancedIntermediateData = intermediateAuditData.map(auditItem => {
+          const fullQuestionInfo = auditIntermediate.find(question => question.id.toString() === auditItem.itemId.toString());
+          return {
+            ...auditItem,
+            title: fullQuestionInfo?.title || '',
+            description: fullQuestionInfo?.description || '',
+            wcag: fullQuestionInfo?.wcag || '',
+            level: 'intermediate'
+          };
+        });
+        
         consolidatedData.push({
           level: 'intermediate',
-          data: intermediateAuditData
+          data: enhancedIntermediateData
         });
       }
       
       if (selectedLevelsForReport.advanced && advancedAuditData.length > 0) {
+        // Wzbogacamy dane audytu o pełne informacje z pytań audytowych
+        const enhancedAdvancedData = advancedAuditData.map(auditItem => {
+          const fullQuestionInfo = auditAdvanced.find(question => question.id.toString() === auditItem.itemId.toString());
+          return {
+            ...auditItem,
+            title: fullQuestionInfo?.title || '',
+            description: fullQuestionInfo?.description || '',
+            wcag: fullQuestionInfo?.wcag || '',
+            level: 'advanced'
+          };
+        });
+        
         consolidatedData.push({
           level: 'advanced',
-          data: advancedAuditData
+          data: enhancedAdvancedData
         });
       }
       
@@ -711,25 +790,53 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
         return;
       }
       
-      // Call API to generate consolidated summary
+      // Policz ilość negatywnych ocen dla debugowania
+      const negativeCount = consolidatedData.flatMap(item => item.data)
+        .filter(item => item.evaluation === 'negative').length;
+      
+      // Przygotuj dane do wysłania
+      const dataToSend = consolidatedData.flatMap(item => item.data);
+      
+      // Loguj przykładowe dane negatywne dla debugowania
+      const exampleNegativeItems = dataToSend
+        .filter(item => item.evaluation === 'negative')
+        .slice(0, 3); // Pokaż maksymalnie 3 przykłady
+      
+      console.log(`Wysyłanie danych do analizy - znaleziono ${negativeCount} negatywnych elementów`);
+      console.log('Przykładowe elementy negatywne:', JSON.stringify(exampleNegativeItems, null, 2));
+      
+      // Call API to generate consolidated summary with enhanced data
       const response = await fetch('/api/ai-summary', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          auditData: consolidatedData.flatMap(item => item.data), 
+          auditData: dataToSend, 
           level: 'consolidated',
           selectedLevels: consolidatedData.map(item => item.level)
         }),
       });
       
+      // Loguj odpowiedź od API, aby zobaczyć, co otrzymujemy
+      const apiResponse = await response.json();
+      console.log('Odpowiedź API - pierwsze 200 znaków:', apiResponse.summary?.substring(0, 200));
+      
+      // Sprawdź, czy summary jest w formacie JSON i zawiera sekcję problems
+      try {
+        const parsedSummary = JSON.parse(apiResponse.summary || '{}');
+        if (parsedSummary.problems) {
+          console.log(`Liczba problemów w odpowiedzi: ${parsedSummary.problems.length} z ${negativeCount} negatywnych elementów`);
+        }
+      } catch(e) {
+        console.log('Odpowiedź nie jest w formacie JSON lub wystąpił problem z parsowaniem:', e);
+      }
+      
       if (!response.ok) {
         throw new Error(`Błąd HTTP: ${response.status}`);
       }
       
-      const data = await response.json();
-      const aiSummary = data.summary;
+      const aiSummary = apiResponse.summary;
       setConsolidatedAISummary(aiSummary);
       
       // Save the consolidated AI summary to the database
