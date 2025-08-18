@@ -184,7 +184,7 @@ export const auditService = {
             --
 Pozdrawiam serdecznie,  
 Anna Piotrowiak  
-Specjalistka ds. dostępności cyfrowej  
+Specjalista ds. dostępności cyfrowej  
 
 📞 123 456 789  
 🌐 https://wcag.co  
