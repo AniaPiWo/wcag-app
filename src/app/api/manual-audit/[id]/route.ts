@@ -81,3 +81,46 @@ export async function PUT(
     );
   }
 }
+
+// PATCH /api/manual-audit/[id] - Aktualizacja pojedynczych pól audytu manualnego
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    if (!id) {
+      return NextResponse.json({ error: 'Brak ID audytu' }, { status: 400 });
+    }
+
+    // Sprawdzenie czy audyt istnieje
+    const existingAudit = await prisma.auditRequest.findUnique({
+      where: { id, auditType: 'manual' },
+    });
+
+    if (!existingAudit) {
+      return NextResponse.json({ error: 'Audyt nie został znaleziony' }, { status: 404 });
+    }
+
+    // Pobranie danych z żądania
+    const data = await request.json();
+    console.log('PATCH data:', data);
+
+    // Aktualizacja tylko określonych pól
+    const updatedAudit = await prisma.auditRequest.update({
+      where: { id },
+      data: {
+        ...data,
+        updatedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json(updatedAudit);
+  } catch (error) {
+    console.error('Błąd podczas aktualizacji pól audytu manualnego:', error);
+    return NextResponse.json(
+      { error: 'Wystąpił błąd podczas aktualizacji pól audytu manualnego' },
+      { status: 500 }
+    );
+  }
+}

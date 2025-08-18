@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Saves PDF data to the database with retry logic
@@ -55,7 +53,7 @@ async function savePdfToDatabase(auditId: string, pdfData: unknown): Promise<boo
 import React, { useEffect, useState } from 'react'
 import styles from './ClientReadyReport.module.scss'
 import { getManualAudit } from '@/app/actions/manual-audit'
-import { PDFDownloadLink, pdf } from '@react-pdf/renderer'
+import { pdf } from '@react-pdf/renderer';
 import AuditPDF from './AuditPDF'
 
 interface Audit {
@@ -154,14 +152,25 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     });
   };
 
-  function getDomainOnly(url: string): string {
+  /**
+   * Extracts and formats domain name from a full URL
+   * @param url - Full URL to process
+   * @returns Formatted domain name or the original URL if parsing fails
+   */
+  const getDomainOnly = (url: string) => {
+    if (!url) return 'Brak adresu URL';
+    
     try {
-      const { hostname } = new URL(url);
+      // Dodaj protokół jeśli go nie ma, aby URL constructor działał poprawnie
+      const urlWithProtocol = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
+      const { hostname } = new URL(urlWithProtocol);
       return hostname.replace(/^www\./, '');
     } catch (e) {
-      return '';
+      console.error('Error parsing URL:', e, 'URL value:', url);
+      // Jeśli parsowanie nie działa, zwróć oryginalny URL bez próby parsowania
+      return url;
     }
-  }
+  };
 
   // Funkcja do parsowania JSON z odpowiedzi AI
   const parseJsonFromMarkdown = (text: string | null | undefined): ParsedAuditSummary | null => {
@@ -240,11 +249,19 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           
           problemsByCategory[categoryName].push({
             // Obsługa pól zarówno w nowym jak i starym formacie
-            description: item.problem || item.description || '',
+            description: item.problem || item.description || item.opis || '',
             severity: item.severity || item.waga || '',
-            recommendation: item.recommendation || item.rekomendacja || '',
+            recommendation: item.recommendation || item.rekomendacja || item.rekomendacje || '',
             wcagCriterion: item.wcagCriterion || categoryName.includes('WCAG') ? categoryName : ''
           });
+          
+          // Debugging dla problematycznych elementów
+          if (!item.problem && !item.description && !item.opis) {
+            console.log('Brak opisu problemu w elemencie:', item);
+          }
+          if (!item.recommendation && !item.rekomendacja && !item.rekomendacje) {
+            console.log('Brak rekomendacji w elemencie:', item);
+          }
         });
         
         // Convert categories to our format
@@ -314,11 +331,16 @@ const ClientReadyReport = ({ id, audit }: Props) => {
       if (auditData.clientReadyAudit) {
         try {
           const savedContent = JSON.parse(auditData.clientReadyAudit);
+          
           // Ensure evaluationLevel is always defined with a default value if missing
-          setEditedContent({
+          // Aktualizuj URL z najnowszych danych audytu, zachowując resztę zapisanej zawartości
+          const newEditedContent = {
             ...savedContent,
+            url: auditData.url || savedContent.url || '',  // Priorytetyzuj najnowszy URL z auditData
             evaluationLevel: savedContent.evaluationLevel || 'Podstawowy poziom WCAG 2.2 – poziom AA'
-          });
+          };
+          
+          setEditedContent(newEditedContent);
           return;
         } catch (error) {
           console.error('Error parsing clientReadyAudit:', error);
@@ -328,8 +350,8 @@ const ClientReadyReport = ({ id, audit }: Props) => {
       
       // Use parsedSummary as fallback if no clientReadyAudit or parsing failed
       if (parsedSummary) {
-        setEditedContent({
-          url: auditData.url || '',
+        const newContent = {
+          url: auditData.url || '',  // Zawsze pobieraj najnowszy URL z auditData
           auditorName: 'Anna Piotrowiak-Wołosiuk',
           auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
           auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
@@ -340,7 +362,9 @@ const ClientReadyReport = ({ id, audit }: Props) => {
             : parsedSummary.summary || '',
           problems: parsedSummary.problems || [],
           updatedAt: new Date().toISOString()
-        });
+        };
+        
+        setEditedContent(newContent);
       }
     }
   }, [auditData, parsedSummary]);
@@ -355,9 +379,13 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     try {
       const currentDate = new Date();
       
-      // Dodaj datę aktualizacji do obiektu editedContent
+      // Pobierz najnowsze dane audytu przed zapisem, aby mieć pewność, że mamy aktualny URL
+      const freshAudit = await getManualAudit(id);
+      
+      // Dodaj datę aktualizacji do obiektu editedContent i aktualizuj URL
       const updatedContent = {
         ...editedContent,
+        url: freshAudit?.url || editedContent.url, // Używaj najnowszego URL z bazy danych
         updatedAt: currentDate.toISOString() // Używamy ISO formatu dla lepszej kompatybilności
       };
       
@@ -376,9 +404,10 @@ const ClientReadyReport = ({ id, audit }: Props) => {
       if (response.ok) {
         console.log('Audit saved successfully');
         setIsEditing(false);
-        // Optionally refresh audit data
-        const updatedAudit = await getManualAudit(id);
-        setAuditData(updatedAudit);
+        // Aktualizuj dane audytu po zapisie
+        setAuditData(freshAudit);
+        // Aktualizuj również edytowaną zawartość, aby mieć aktualny URL
+        setEditedContent(updatedContent);
       } else {
         console.error('Failed to save audit');
       }
@@ -389,36 +418,47 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     }
   };
 
-  const handleCancel = () => {
-    // Reset to original values - prioritize clientReadyAudit if available
-    if (auditData) {
-      if (auditData.clientReadyAudit) {
-        try {
-          const savedContent = JSON.parse(auditData.clientReadyAudit);
-          setEditedContent(savedContent);
-          setIsEditing(false);
-          return;
-        } catch (error) {
-          console.error('Error parsing clientReadyAudit in cancel:', error);
+  const handleCancel = async () => {
+    // Pobierz najnowsze dane audytu przed anulowaniem edycji
+    try {
+      const freshAudit = await getManualAudit(id);
+      setAuditData(freshAudit);
+      
+      // Reset to original values - prioritize clientReadyAudit if available
+      if (freshAudit) {
+        if (freshAudit.clientReadyAudit) {
+          try {
+            const savedContent = JSON.parse(freshAudit.clientReadyAudit);
+            setEditedContent({
+              ...savedContent,
+              url: freshAudit.url || savedContent.url || '' // Zawsze używaj najnowszego URL
+            });
+            setIsEditing(false);
+            return;
+          } catch (error) {
+            console.error('Error parsing clientReadyAudit in cancel:', error);
+          }
+        }
+        
+        // Fallback to parsedSummary
+        if (parsedSummary) {
+          setEditedContent({
+            url: freshAudit.url || '', // Zawsze używaj najnowszego URL
+            auditorName: 'Anna Piotrowiak-Wołosiuk',
+            auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
+            auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
+            evaluationLevel: 'Podstawowy poziom WCAG 2.2 – poziom AA',
+            complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
+            updatedAt: freshAudit.updatedAt.toISOString(),
+            summary: Array.isArray(parsedSummary.summary) 
+              ? parsedSummary.summary.join(' ') 
+              : parsedSummary.summary || '',
+            problems: parsedSummary.problems || []
+          });
         }
       }
-      
-      // Fallback to parsedSummary
-      if (parsedSummary) {
-        setEditedContent({
-          url: auditData.url || '',
-          auditorName: 'Anna Piotrowiak-Wołosiuk',
-          auditGoal: 'Ocena zgodności serwisu z wymaganiami WCAG 2.2 na poziomie AA',
-          auditScope: 'Strona główna oraz przykładowe podstrony (np. kontakt, FAQ)',
-          evaluationLevel: 'Podstawowy poziom WCAG 2.2 – poziom AA',
-          complianceLevel: 'Niepełna zgodność z WCAG 2.2 AA',
-          updatedAt: auditData.updatedAt.toISOString(),
-          summary: Array.isArray(parsedSummary.summary) 
-            ? parsedSummary.summary.join(' ') 
-            : parsedSummary.summary || '',
-          problems: parsedSummary.problems || []
-        });
-      }
+    } catch (error) {
+      console.error('Error fetching updated audit data during cancel:', error);
     }
     setIsEditing(false);
   };
@@ -596,6 +636,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     return severityMap[lowerSeverity] || severity || 'lekki';
   };
   
+  
   // Function to sort issues by severity
   const sortIssuesBySeverity = (issues: AuditIssue[]): AuditIssue[] => {
     const severityOrder: Record<string, number> = {
@@ -646,25 +687,54 @@ const ClientReadyReport = ({ id, audit }: Props) => {
   /**
    * Opens the email dialog to send the report
    */
-  const handleSendReport = () => {
-    // Generate default filename
-    const defaultFilename = `Raport_WCAG22_${editedContent.url ? getDomainOnly(editedContent.url).replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30) : 'strona_internetowa'}.pdf`;
-    
-    // Format current date for the email
-    const currentDate = new Date().toLocaleDateString('pl-PL');
-    
-    // Set default values based on audit data
-    setEmailData({
-      recipient: auditData?.email || '',
-      subject: `Raport dostępności WCAG 2.2 - ${editedContent.url ? getDomainOnly(editedContent.url) : 'strona internetowa'}`,
-      message: `Dzień dobry,\n\nW załączeniu przesyłam raport z audytu dostępności WCAG 2.2 dla strony ${editedContent.url}.\n\nData wykonania audytu: ${currentDate}\n\nZ poważaniem,\n${editedContent.auditorName}`,
-      filename: defaultFilename,
-      sending: false,
-      error: '',
-      success: false,
-      showPreview: false
-    });
-    setShowEmailDialog(true);
+  const handleSendReport = async () => {
+    // Pobierz najnowsze dane audytu przed wysłaniem raportu
+    try {
+      const freshAudit = await getManualAudit(id);
+      // Aktualizuj URL w editedContent, jeśli się zmienił
+      if (freshAudit && freshAudit.url !== editedContent.url) {
+        setEditedContent(prev => ({ ...prev, url: freshAudit.url || prev.url }));
+      }
+      
+      // Używamy najbardziej aktualnego URL
+      const currentUrl = freshAudit?.url || editedContent.url;
+      
+      // Generate default filename
+      const defaultFilename = `Raport_WCAG22_${currentUrl ? getDomainOnly(currentUrl).replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30) : 'strona_internetowa'}.pdf`;
+      
+      // Format current date for the email
+      const currentDate = new Date().toLocaleDateString('pl-PL');
+      
+      // Set default values based on audit data
+      setEmailData({
+        recipient: freshAudit?.email || auditData?.email || '',
+        subject: `Raport dostępności WCAG 2.2 - ${currentUrl ? getDomainOnly(currentUrl) : 'strona internetowa'}`,
+        message: `Dzień dobry,\n\nW załączeniu przesyłam raport z audytu dostępności WCAG 2.2 dla strony ${currentUrl}.\n\nData wykonania audytu: ${currentDate}\n\nZ poważaniem,\n${editedContent.auditorName}`,
+        filename: defaultFilename,
+        sending: false,
+        error: '',
+        success: false,
+        showPreview: false
+      });
+      setShowEmailDialog(true);
+    } catch (error) {
+      console.error('Error fetching updated audit data before sending report:', error);
+      // Fallback to using current data if fetch fails
+      const defaultFilename = `Raport_WCAG22_${editedContent.url ? getDomainOnly(editedContent.url).replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30) : 'strona_internetowa'}.pdf`;
+      const currentDate = new Date().toLocaleDateString('pl-PL');
+      
+      setEmailData({
+        recipient: auditData?.email || '',
+        subject: `Raport dostępności WCAG 2.2 - ${editedContent.url ? getDomainOnly(editedContent.url) : 'strona internetowa'}`,
+        message: `Dzień dobry,\n\nW załączeniu przesyłam raport z audytu dostępności WCAG 2.2 dla strony ${editedContent.url}.\n\nData wykonania audytu: ${currentDate}\n\nZ poważaniem,\n${editedContent.auditorName}`,
+        filename: defaultFilename,
+        sending: false,
+        error: '',
+        success: false,
+        showPreview: false
+      });
+      setShowEmailDialog(true);
+    }
   };
   
   /**
@@ -767,12 +837,25 @@ const ClientReadyReport = ({ id, audit }: Props) => {
   /**
    * Generates a PDF, saves it to the database, and triggers download
    */
-  const handleGeneratePDF = () => {
+  const handleGeneratePDF = async () => {
     try {
-      const filename = `Raport_WCAG22_${editedContent?.url ? editedContent.url.replace(/^https?:\/\/(?:www\.)?/, '').replace(/[\/:*?"<>|]/g, '_').substring(0, 30) : ''}.pdf`;
+      // Pobierz najnowsze dane audytu przed generowaniem PDF
+      let updatedContent = { ...editedContent };
+      try {
+        const freshAudit = await getManualAudit(id);
+        if (freshAudit && freshAudit.url !== editedContent.url) {
+          updatedContent = { ...editedContent, url: freshAudit.url || editedContent.url };
+          setEditedContent(updatedContent);
+        }
+      } catch (error) {
+        console.error('Error fetching updated audit data before PDF generation:', error);
+        // Kontynuuj z obecnymi danymi jeśli pobranie nie powiodło się
+      }
+      
+      const filename = `Raport_WCAG22_${updatedContent?.url ? updatedContent.url.replace(/^https?:\/\/(?:www\.)?/, '').replace(/[\/:*?"<>|]/g, '_').substring(0, 30) : ''}.pdf`;
       
       // Generate PDF, save to database, and download
-      pdf(<AuditPDF data={editedContent} />)
+      pdf(<AuditPDF data={updatedContent} />)
         .toBlob()
         .then((blobData: Blob) => {
           // Create download URL
@@ -869,6 +952,10 @@ const ClientReadyReport = ({ id, audit }: Props) => {
     }
   };
 
+  // Debugowanie wartości URL
+  console.log('Rendering with editedContent.url:', editedContent.url);
+  console.log('Rendering with auditData?.url:', auditData?.url);
+
   return (
   <div className={styles.wrapper}>
     {isEditing && (
@@ -915,15 +1002,13 @@ const ClientReadyReport = ({ id, audit }: Props) => {
           >
             Pokaż JSON
           </button>
-          {editedContent && editedContent.problems && editedContent.problems.length > 0 && (
-          
+          {editedContent && (
               <button
                 className={styles.editButton}
                 onClick={handleGeneratePDF}
               >
                 Generuj i pobierz PDF
               </button>
-          
           )}
           <button
             type="button"
@@ -947,7 +1032,7 @@ const ClientReadyReport = ({ id, audit }: Props) => {
             className={styles.editInput}
           />
         ) : (
-          auditData?.url ? getDomainOnly(auditData.url) : 'Brak adresu URL'
+          editedContent.url ? getDomainOnly(editedContent.url) : 'Brak adresu URL'
         )}
       </p>
       
@@ -1170,7 +1255,19 @@ const ClientReadyReport = ({ id, audit }: Props) => {
                 </ul>
               </div>
             
-          )) : <p>Brak szczegółowego opisu problemów dostępności.</p>}
+          )) : (
+            <div className={styles.emptyProblemsContainer}>
+              <p>Brak szczegółowego opisu problemów dostępności.</p>
+              {isEditing && (
+                <button
+                  className={styles.addCategoryButton}
+                  onClick={handleAddCategory}
+                >
+                  Dodaj kategorię problemów
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
       

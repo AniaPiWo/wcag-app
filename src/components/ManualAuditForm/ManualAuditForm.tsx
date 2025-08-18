@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, ReactNode } from 'react';
 import styles from './ManualAuditForm.module.scss';
 import { auditBasic } from '@/lib/wcag_checklist/basic';
 import { auditIntermediate } from '@/lib/wcag_checklist/intermediate';
@@ -99,6 +99,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
   const [automatedAuditMessage, setAutomatedAuditMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   // Definicja typu dla istniejącego audytu
   type ExistingAuditType = {
+    aiAnalysis: ReactNode;
     id: string;
     url: string;
     email: string;
@@ -183,6 +184,14 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
   const [editedConsolidatedSummary, setEditedConsolidatedSummary] = useState<string>('');
   const [editedReadyMadeAudit, setEditedReadyMadeAudit] = useState<string>('');
 
+  // States for editable fields
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [isEditingUrl, setIsEditingUrl] = useState(false);
+  const [isEditingLevels, setIsEditingLevels] = useState(false);
+  const [editedEmail, setEditedEmail] = useState<string>('');
+  const [editedUrl, setEditedUrl] = useState<string>('');
+  const [editedLevels, setEditedLevels] = useState<string>('');
+
   // Selected audit levels for consolidated report
   const [selectedLevelsForReport, setSelectedLevelsForReport] = useState({
     basic: true,
@@ -239,14 +248,56 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
         
         debounceTimers.current[timerKey] = setTimeout(async () => {
           try {
-            await updateAuditItemAction(id, level, itemId, field, value);
+            // Zapisz do bazy danych i ponownie załaduj stan audytu aby synchronizować interfejs
+            const updatedAudit = await updateAuditItemAction(id, level, itemId, field, value);
+            
+            // Wypełnij dane audytu po zapisie, aby mieć pewność, że UI odzwierciedla stan z bazy danych
+            if (updatedAudit) {
+              setAudit(updatedAudit);
+              
+              // Aktualizuj odpowiednie dane audytu w zależności od poziomu
+              try {
+                if (level === 'basic' && updatedAudit.basicAudit) {
+                  setBasicAuditData(JSON.parse(updatedAudit.basicAudit));
+                } else if (level === 'intermediate' && updatedAudit.intermediateAudit) {
+                  setIntermediateAuditData(JSON.parse(updatedAudit.intermediateAudit));
+                } else if (level === 'advanced' && updatedAudit.advancedAudit) {
+                  setAdvancedAuditData(JSON.parse(updatedAudit.advancedAudit));
+                }
+              } catch (parseError) {
+                console.error('Błąd parsowania danych audytu po zapisie:', parseError);
+              }
+            }
           } catch (error) {
             console.error('Błąd podczas aktualizacji notatek:', error);
           }
         }, 500);
       } else {
         // For other fields (like evaluation), update immediately
-        await updateAuditItemAction(id, level, itemId, field, value);
+        try {
+          // Zapisz do bazy danych i ponownie załaduj stan audytu aby synchronizować interfejs
+          const updatedAudit = await updateAuditItemAction(id, level, itemId, field, value);
+          
+          // Wypełnij dane audytu po zapisie, aby mieć pewność, że UI odzwierciedla stan z bazy danych
+          if (updatedAudit) {
+            setAudit(updatedAudit);
+            
+            // Aktualizuj odpowiednie dane audytu w zależności od poziomu
+            try {
+              if (level === 'basic' && updatedAudit.basicAudit) {
+                setBasicAuditData(JSON.parse(updatedAudit.basicAudit));
+              } else if (level === 'intermediate' && updatedAudit.intermediateAudit) {
+                setIntermediateAuditData(JSON.parse(updatedAudit.intermediateAudit));
+              } else if (level === 'advanced' && updatedAudit.advancedAudit) {
+                setAdvancedAuditData(JSON.parse(updatedAudit.advancedAudit));
+              }
+            } catch (parseError) {
+              console.error('Błąd parsowania danych audytu po zapisie:', parseError);
+            }
+          }
+        } catch (error) {
+          console.error('Błąd podczas aktualizacji elementu audytu:', error);
+        }
       }
     } catch (error) {
       console.error('Błąd podczas aktualizacji elementu audytu:', error);
@@ -300,6 +351,104 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
     }
   };
   
+  // Functions to handle editable fields
+  // Dostępne poziomy audytu
+  const availableLevels = [
+    { id: "basic", label: "podstawowy" },
+    { id: "intermediate", label: "średni" },
+    { id: "advanced", label: "zaawansowany" }
+  ];
+  
+  const handleEditField = (field: 'email' | 'url' | 'levels') => {
+    if (!audit) return;
+    
+    switch (field) {
+      case 'email':
+        setIsEditingEmail(true);
+        setEditedEmail(audit.email || '');
+        break;
+      case 'url':
+        setIsEditingUrl(true);
+        setEditedUrl(audit.url || '');
+        break;
+      case 'levels':
+        setIsEditingLevels(true);
+        setEditedLevels(audit.selectedLevels || '[]');
+        break;
+    }
+  };
+
+  const handleSaveField = async (field: 'email' | 'url' | 'levels') => {
+    if (!audit) return;
+    
+    try {
+      setIsSaving(true);
+      type FieldUpdateData = {
+        email?: string;
+        url?: string;
+        selectedLevels?: string;
+      };
+      
+      let updateData: FieldUpdateData = {};
+      
+      switch (field) {
+        case 'email':
+          updateData = { email: editedEmail };
+          setIsEditingEmail(false);
+          setAudit(prev => prev ? { ...prev, email: editedEmail } : null);
+          break;
+        case 'url':
+          updateData = { url: editedUrl };
+          setIsEditingUrl(false);
+          setAudit(prev => prev ? { ...prev, url: editedUrl } : null);
+          break;
+        case 'levels':
+          updateData = { selectedLevels: editedLevels };
+          setIsEditingLevels(false);
+          setAudit(prev => prev ? { ...prev, selectedLevels: editedLevels } : null);
+          break;
+      }
+      
+      // Wywołanie API do aktualizacji pola
+      await fetch(`/api/manual-audit/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      });
+      
+      setSaveMessage({ type: 'success', text: 'Pole zaktualizowane' });
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (error) {
+      console.error(`Błąd podczas zapisywania pola ${field}:`, error);
+      setSaveMessage({ type: 'error', text: 'Błąd podczas zapisywania' });
+      setTimeout(() => setSaveMessage(null), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent, field: 'email' | 'url' | 'levels') => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSaveField(field);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      switch (field) {
+        case 'email':
+          setIsEditingEmail(false);
+          break;
+        case 'url':
+          setIsEditingUrl(false);
+          break;
+        case 'levels':
+          setIsEditingLevels(false);
+          break;
+      }
+    }
+  };
+
   // Function to run automated audit
   const handleAutomatedAudit = async () => {
     if (!audit?.url) {
@@ -575,27 +724,63 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
     setConsolidatedAISummary('Generowanie podsumowania AI dla wybranych poziomów...');
     
     try {
-      // Prepare data for all selected levels
+      // Prepare data for all selected levels with full audit question context
       const consolidatedData = [];
       
       if (selectedLevelsForReport.basic && basicAuditData.length > 0) {
+        // Wzbogacamy dane audytu o pełne informacje z pytań audytowych
+        const enhancedBasicData = basicAuditData.map(auditItem => {
+          const fullQuestionInfo = auditBasic.find(question => question.id.toString() === auditItem.itemId.toString());
+          return {
+            ...auditItem,
+            title: fullQuestionInfo?.title || '',
+            description: fullQuestionInfo?.description || '',
+            wcag: fullQuestionInfo?.wcag || '',
+            level: 'basic'
+          };
+        });
+        
         consolidatedData.push({
           level: 'basic',
-          data: basicAuditData
+          data: enhancedBasicData
         });
       }
       
       if (selectedLevelsForReport.intermediate && intermediateAuditData.length > 0) {
+        // Wzbogacamy dane audytu o pełne informacje z pytań audytowych
+        const enhancedIntermediateData = intermediateAuditData.map(auditItem => {
+          const fullQuestionInfo = auditIntermediate.find(question => question.id.toString() === auditItem.itemId.toString());
+          return {
+            ...auditItem,
+            title: fullQuestionInfo?.title || '',
+            description: fullQuestionInfo?.description || '',
+            wcag: fullQuestionInfo?.wcag || '',
+            level: 'intermediate'
+          };
+        });
+        
         consolidatedData.push({
           level: 'intermediate',
-          data: intermediateAuditData
+          data: enhancedIntermediateData
         });
       }
       
       if (selectedLevelsForReport.advanced && advancedAuditData.length > 0) {
+        // Wzbogacamy dane audytu o pełne informacje z pytań audytowych
+        const enhancedAdvancedData = advancedAuditData.map(auditItem => {
+          const fullQuestionInfo = auditAdvanced.find(question => question.id.toString() === auditItem.itemId.toString());
+          return {
+            ...auditItem,
+            title: fullQuestionInfo?.title || '',
+            description: fullQuestionInfo?.description || '',
+            wcag: fullQuestionInfo?.wcag || '',
+            level: 'advanced'
+          };
+        });
+        
         consolidatedData.push({
           level: 'advanced',
-          data: advancedAuditData
+          data: enhancedAdvancedData
         });
       }
       
@@ -605,25 +790,53 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
         return;
       }
       
-      // Call API to generate consolidated summary
+      // Policz ilość negatywnych ocen dla debugowania
+      const negativeCount = consolidatedData.flatMap(item => item.data)
+        .filter(item => item.evaluation === 'negative').length;
+      
+      // Przygotuj dane do wysłania
+      const dataToSend = consolidatedData.flatMap(item => item.data);
+      
+      // Loguj przykładowe dane negatywne dla debugowania
+      const exampleNegativeItems = dataToSend
+        .filter(item => item.evaluation === 'negative')
+        .slice(0, 3); // Pokaż maksymalnie 3 przykłady
+      
+      console.log(`Wysyłanie danych do analizy - znaleziono ${negativeCount} negatywnych elementów`);
+      console.log('Przykładowe elementy negatywne:', JSON.stringify(exampleNegativeItems, null, 2));
+      
+      // Call API to generate consolidated summary with enhanced data
       const response = await fetch('/api/ai-summary', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          auditData: consolidatedData.flatMap(item => item.data), 
+          auditData: dataToSend, 
           level: 'consolidated',
           selectedLevels: consolidatedData.map(item => item.level)
         }),
       });
       
+      // Loguj odpowiedź od API, aby zobaczyć, co otrzymujemy
+      const apiResponse = await response.json();
+      console.log('Odpowiedź API - pierwsze 200 znaków:', apiResponse.summary?.substring(0, 200));
+      
+      // Sprawdź, czy summary jest w formacie JSON i zawiera sekcję problems
+      try {
+        const parsedSummary = JSON.parse(apiResponse.summary || '{}');
+        if (parsedSummary.problems) {
+          console.log(`Liczba problemów w odpowiedzi: ${parsedSummary.problems.length} z ${negativeCount} negatywnych elementów`);
+        }
+      } catch(e) {
+        console.log('Odpowiedź nie jest w formacie JSON lub wystąpił problem z parsowaniem:', e);
+      }
+      
       if (!response.ok) {
         throw new Error(`Błąd HTTP: ${response.status}`);
       }
       
-      const data = await response.json();
-      const aiSummary = data.summary;
+      const aiSummary = apiResponse.summary;
       setConsolidatedAISummary(aiSummary);
       
       // Save the consolidated AI summary to the database
@@ -815,7 +1028,20 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
     
     try {
       const levels: AuditLevel[] = JSON.parse(audit.selectedLevels);
-      return levels.map((level: AuditLevel) => level.label).join(", ");
+      
+      // Zdefiniuj porządek wyświetlania poziomów
+      const orderMap: Record<string, number> = {
+        'basic': 1,
+        'intermediate': 2,
+        'advanced': 3
+      };
+      
+      // Posortuj poziomy według zdefiniowanego porządku
+      const sortedLevels = [...levels].sort((a, b) => {
+        return (orderMap[a.id] || 999) - (orderMap[b.id] || 999);
+      });
+      
+      return sortedLevels.map((level: AuditLevel) => level.label).join(", ");
     } catch (error) {
       return audit.selectedLevels;
     }
@@ -829,14 +1055,145 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
       ) : audit ? (
         <>
           <div className={styles.auditDetails}>
-            <p><strong>ID audytu:</strong> {id}</p>
-            <p><strong>URL:</strong> {audit.url}</p>
-            <p><strong>Email:</strong> {audit.email}</p>
-            <p><strong>Data utworzenia:</strong> {new Date(audit.createdAt).toLocaleString()}</p>
-            <p><strong>Ostatnia aktualizacja:</strong> {new Date(audit.updatedAt).toLocaleString()}</p>
-            <p><strong>Wybrane poziomy:</strong> {renderSelectedLevels()}</p>
-
-
+            <table className={styles.infoTable}>
+              <tbody>
+                <tr>
+                  <th>ID audytu:</th>
+                  <td>{id}</td>
+                </tr>
+                <tr>
+                  <th>URL:</th>
+                  <td>
+                    {isEditingUrl ? (
+                      <input 
+                        type="text" 
+                        value={editedUrl} 
+                        onChange={(e) => setEditedUrl(e.target.value)} 
+                        onKeyDown={(e) => handleKeyDown(e, 'url')}
+                        autoFocus
+                        className={styles.editableField}
+                      />
+                    ) : (
+                      <div 
+                        className={styles.editableText} 
+                        onClick={() => handleEditField('url')}
+                        title="Kliknij, aby edytować"
+                      >
+                        {audit.url}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+                <tr>
+                  <th>Email:</th>
+                  <td>
+                    {isEditingEmail ? (
+                      <input 
+                        type="text" 
+                        value={editedEmail} 
+                        onChange={(e) => setEditedEmail(e.target.value)} 
+                        onKeyDown={(e) => handleKeyDown(e, 'email')}
+                        autoFocus
+                        className={styles.editableField}
+                      />
+                    ) : (
+                      <div 
+                        className={styles.editableText} 
+                        onClick={() => handleEditField('email')}
+                        title="Kliknij, aby edytować"
+                      >
+                        {audit.email || '-'}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+                <tr>
+                  <th>Data utworzenia:</th>
+                  <td>{new Date(audit.createdAt).toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <th>Ostatnia aktualizacja:</th>
+                  <td>{new Date(audit.updatedAt).toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <th>Wybrane poziomy:</th>
+                  <td>
+                    {isEditingLevels ? (
+                      <div className={styles.checkboxContainer}>
+                        <div className={styles.checkboxRow}>
+                          {availableLevels.map(level => {
+                            // Parsujemy aktualne wybrany poziom aby sprawdzić, czy ten poziom jest już wybrany
+                            let selectedLevels: Array<{id: string, label: string}> = [];
+                            try {
+                              selectedLevels = JSON.parse(editedLevels);
+                            } catch (e) {
+                              // Ignorujemy błędy parsowania i zakładamy, że nie ma wybranych poziomów
+                            }
+                            
+                            const isChecked = selectedLevels.some(sel => sel.id === level.id);
+                            
+                            return (
+                              <label key={level.id} className={styles.checkboxLabel}>
+                                <input 
+                                  type="checkbox" 
+                                  checked={isChecked}
+                                  onChange={(e) => {
+                                    // Aktualizacja wybranych poziomów
+                                    let updatedLevels = [...selectedLevels];
+                                    
+                                    if (e.target.checked) {
+                                      // Dodaj poziom, jeśli nie istnieje
+                                      if (!isChecked) {
+                                        updatedLevels.push(level);
+                                      }
+                                    } else {
+                                      // Usuń poziom
+                                      updatedLevels = updatedLevels.filter(l => l.id !== level.id);
+                                    }
+                                    
+                                    setEditedLevels(JSON.stringify(updatedLevels));
+                                  }}
+                                  className={styles.checkbox}
+                                />
+                                {level.label}
+                              </label>
+                            );
+                          })}
+                        </div>
+                        <div className={styles.checklistButtons}>
+                          <button 
+                            type="button" 
+                            onClick={() => handleSaveField('levels')} 
+                            className={styles.saveButton}
+                            disabled={isSaving}
+                          >
+                            {isSaving ? 'Zapisywanie...' : 'Zapisz'}
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => {
+                              setIsEditingLevels(false);
+                            }} 
+                            className={styles.cancelButton}
+                          >
+                            Anuluj
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div 
+                        className={styles.editableText} 
+                        onClick={() => handleEditField('levels')}
+                        title="Kliknij, aby edytować"
+                      >
+                        {renderSelectedLevels()}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            
             <ClientReadyReport id={id} audit={audit} />
             
             {/* Sekcja gotowego audytu */}
@@ -1063,6 +1420,61 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                 {!rawViolations && !rawAiAnalysis && (
                   <p>Brak danych do wyświetlenia</p>
                 )}
+              </div>
+            )}
+            
+            {/* Sekcja wyświetlająca istniejący audyt automatyczny */}
+            {showExistingAudit && existingAudit && (
+              <div className={styles.existingAuditSection} style={{ marginBottom: '20px', border: '1px solid #dee2e6', borderRadius: '5px', padding: '15px' }}>
+                <h3>Wyniki istniejącego audytu automatycznego</h3>
+                
+                {existingAudit.results?.violations && existingAudit.results.violations.length > 0 ? (
+                  <div>
+                    <h4>Wykryte naruszenia (JSON): {existingAudit.results.violations.length}</h4>
+                    <div style={{
+                      backgroundColor: '#f8f9fa',
+                      padding: '10px',
+                      borderRadius: '5px',
+                      overflowX: 'auto',
+                      border: '1px solid #dee2e6'
+                    }}>
+                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', maxHeight: '500px', overflowY: 'auto' }}>
+                        {JSON.stringify(existingAudit.results.violations, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                ) : (
+                  <p>Brak naruszeń lub dane są niekompletne</p>
+                )}
+                
+                {existingAudit.aiAnalysis && (
+                  <div style={{ marginTop: '15px' }}>
+                    <h4>Analiza AI</h4>
+                    <div style={{
+                      backgroundColor: '#f8f9fa',
+                      padding: '10px',
+                      borderRadius: '5px',
+                      border: '1px solid #dee2e6'
+                    }}>
+                      <div style={{ whiteSpace: 'pre-line' }}>{existingAudit.aiAnalysis}</div>
+                    </div>
+                  </div>
+                )}
+                
+                <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'space-between' }}>
+                  <Button 
+                    onClick={() => setShowExistingAudit(false)}
+                    variant="secondary"
+                  >
+                    Ukryj szczegóły audytu automatycznego
+                  </Button>
+                  <Button 
+                    onClick={handleAutomatedAudit}
+                    variant="primary"
+                  >
+                    Uruchom nowy audyt automatyczny
+                  </Button>
+                </div>
               </div>
             )}
 

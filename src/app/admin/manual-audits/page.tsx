@@ -6,6 +6,7 @@ import { Button } from '@/components/atoms/Button/Button';
 import Loader from '@/components/Loader/Loader';
 import Link from 'next/link';
 import { GoBackBtn } from '@/components/GoBackBtn/GoBackBtn';
+import { NewManualAuditButton } from '@/components/NewManualAuditButton/NewManualAuditButton';
 
 // Interfejs dla poziomu audytu
 interface AuditLevel {
@@ -35,15 +36,20 @@ export default function ManualAuditsPage() {
   const [search, setSearch] = useState('');
 
   const handleDelete = async (id: string) => {
-    try {
-      const res = await fetch(`/api/admin-audits/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        setAudits(audits => audits.filter(a => a.id !== id));
-      } else {
-        alert('Nie udało się usunąć rekordu.');
+    // Add confirmation dialog
+    const isConfirmed = window.confirm('Czy na pewno chcesz usunąć ten audyt?');
+    
+    if (isConfirmed) {
+      try {
+        const res = await fetch(`/api/admin-audits/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          setAudits(audits => audits.filter(a => a.id !== id));
+        } else {
+          alert('Nie udało się usunąć rekordu.');
+        }
+      } catch {
+        alert('Błąd sieci przy usuwaniu rekordu.');
       }
-    } catch {
-      alert('Błąd sieci przy usuwaniu rekordu.');
     }
   }
 
@@ -119,9 +125,9 @@ export default function ManualAuditsPage() {
               className={styles.searchInput}
             />
           </div>
-          <Link href="/admin/manual-audits/new" className={styles.newAuditLink}>
-            <Button className={styles.newAuditButton}>Nowy audyt manualny</Button>
-          </Link>
+          <div className={styles.newAuditLink}>
+            <NewManualAuditButton className={styles.newAuditButton} />
+          </div>
         </div>
         <div className={styles.auditTableContainer}>
           <table className={styles.auditTable}>
