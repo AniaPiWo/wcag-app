@@ -11,13 +11,13 @@ const benefits = [
   },
   {
     index: "2",
-    headline: 'Lepsze wyniki w Google',
-    description: 'Dostępna strona ma lepszą strukturę kodu, co przekłada się na wyższe pozycje w wyszukiwarkach i większy ruch organiczny.'
+    headline: 'Dla każdego użytkownika',
+    description: 'Twoja strona będzie dostępna dla osób z niepełnosprawnościami, seniorów i użytkowników mobilnych – bez barier, bez wykluczenia.'
   },
   {
     index: "3",
-    headline: 'Dla każdego użytkownika',
-    description: 'Twoja strona będzie dostępna dla osób z niepełnosprawnościami, seniorów i użytkowników mobilnych – bez barier, bez wykluczenia.'
+    headline: 'Lepsze wyniki w Google',
+    description: 'Dostępna strona ma lepszą strukturę kodu, co przekłada się na wyższe pozycje w wyszukiwarkach i większy ruch organiczny.'
   },
   {
     index: "4",

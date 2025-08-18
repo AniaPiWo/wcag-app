@@ -94,11 +94,14 @@ gap: 1rem;
 .accordionContent {
   overflow: hidden;
   padding: 0 1rem 0 0;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out, padding-bottom 0.3s ease-in-out;
   
   &.expanded {
     padding-bottom: 1rem;
-    height: auto !important; /* Wymuszenie pełnej wysokości */
     max-height: 1000px; /* Duża wartość, aby pomieścić długie odpowiedzi */
+    opacity: 1;
   }
 }
 

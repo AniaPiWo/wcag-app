@@ -2,7 +2,7 @@
 'use client'
 import styles from './Footer.module.scss'
 import {  CookiesConsent } from "@/components";
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Logo } from '@/components/Logo/Logo';
 import Link from 'next/link';
 
@@ -48,6 +48,13 @@ export const Footer = () => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+const handleContactClick = useCallback(() => {
+    setTimeout(() => {
+      const emailParts = ['biuro', 'wcag.co'];
+      window.location.href = `mailto:${emailParts[0]}@${emailParts[1]}`;
+    }, 500);
+  }, []);
   
 
   return (
@@ -62,6 +69,7 @@ export const Footer = () => {
           &copy; {currentYear} Seahorse. All rights reserved.
         </p>
         <div className={styles.footerLinks}>
+          <button className={styles.contactBtn} onClick={handleContactClick}>Kontakt</button>
           <Link href="/terms-of-use" className={styles.footerLink}>Regulamin</Link>
           <button className={styles.cookieSettings} onClick={modifyCookies}>Zarządzaj ustawieniami cookies</button>
         </div>

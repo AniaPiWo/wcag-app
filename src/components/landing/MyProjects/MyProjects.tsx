@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from '@/components/landing/MyProjects/MyProjects.module.scss';
+import styles from './MyProjects.module.scss'
 import { ProjectCard } from '../../atoms/ProjectCard/ProjectCard';
 import { Container } from '../../atoms/Container/Container';
 import { AnimatedReveal } from '../../atoms/AnimatedReveal/AnimatedReveal';

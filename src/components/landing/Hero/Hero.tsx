@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 //import Image from 'next/image';
 import styles from './Hero.module.scss';
@@ -123,21 +124,13 @@ export const Hero = () => {
           Zadbam o to, by Twoja strona była naprawdę dostępna – pomogę Ci stworzyć miejsce, które działa lepiej, sprzedaje więcej i nie wyklucza nikogo.
         </motion.p>
 
-        <motion.div 
-          className={styles.buttonContainer}
-          variants={containerVariants}
-        >
-          <motion.div
-            variants={buttonVariants}
-            whileTap="tap"
-          >
+
             <Button 
               variant="primary" 
               onClick={handleAuditClick}
             >
               Bezpłatny audyt strony
             </Button>
-          </motion.div>
           
 {/*           <motion.div
             variants={buttonVariants}
@@ -152,7 +145,7 @@ export const Hero = () => {
               Kontakt
             </Button>
           </motion.div> */}
-        </motion.div>
+
       </motion.div>
      
     </section>

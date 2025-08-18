@@ -102,10 +102,6 @@ export const FAQ = () => {
                     role="region"
                     aria-labelledby={`${item.id}-button`}
                     aria-hidden={!isExpanded}
-                    style={{ 
-                      height: isExpanded ? 'auto' : '0px',
-        
-                    }}
                   >
                     <div 
                       className={styles.accordionAnswer}
