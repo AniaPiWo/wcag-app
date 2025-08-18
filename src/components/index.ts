@@ -13,7 +13,7 @@ export { FAQ } from './landing/FAQ/FAQ';
 export { Logo } from './Logo/Logo';
 export { CookiesConsent } from './CookiesConsent/CookiesConsent';
 export { NotFound } from './NotFound/NotFound';
-export { MyProjects } from './MyProjects/MyProjects';
+export { MyProjects } from './landing/MyProjects/MyProjects';
 export { SitemapFetcher } from './SitemapFetcher/SitemapFetcher';
 export { AuditForm } from './AuditForm/AuditForm';
 export { ThemeSwitcher } from './atoms/ThemeSwitcher/ThemeSwitcher';

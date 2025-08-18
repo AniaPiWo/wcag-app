@@ -5,12 +5,13 @@ import { Button } from '@/components/atoms/Button/Button';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, SubmitHandler, FieldErrors } from 'react-hook-form';
+import { AnimatedReveal } from '@/components/atoms/AnimatedReveal/AnimatedReveal';
 
 
 async function verifyUrl(url: string): Promise<{ success: boolean; url?: string; title?: string; error?: string }> {
   try {
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'https://' + url;
+      url = 'https://' + url
     }
     
     const response = await fetch('/api/verify-url', {
@@ -75,6 +76,7 @@ interface AuditSummary {
 // walidacja url, akceptuje www i bez www
 const websiteSchema = z.string()
   .nonempty('Podaj adres strony internetowej')
+  .transform(val => val.toLowerCase())
   .refine(
     (val) => {
       const domainPattern = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
@@ -342,22 +344,25 @@ export const Form = () => {
           </div>
         ) : (
           <>
-          <div className={styles.text}>
-          <h2 className={styles.title}>
-            Wykonaj bezpłatny audyt dostępności Twojej strony
-          </h2>
-          <p className={styles.desc}>
-            Sprawdź, czy Twoja strona jest zgodna z standardami dostępności WCAG 2.2. <br/>
-            Audyt jest automatyczny i w ciągu kilku minut otrzymasz raport na podany adres e-mail.
-          </p>
-          <p>   Audyt może chwilkę potrwać, nie odświeżaj strony.</p>
-        </div>
-        
-          <form
-            onSubmit={handleSubmit(onSubmit, onError)}
-            className={styles.form}
-            noValidate={true}
-          >
+          <AnimatedReveal direction="up" delay={0.2}>
+            <div className={styles.text}>
+              <h2 className={styles.title}>
+                Wykonaj bezpłatny audyt dostępności Twojej strony
+              </h2>
+              <p className={styles.desc}>
+                Sprawdź, czy Twoja strona jest zgodna z standardami dostępności WCAG 2.2. <br/>
+                Audyt jest automatyczny i w ciągu kilku minut otrzymasz raport na podany adres e-mail.
+              </p>
+              <p>Audyt może chwilkę potrwać, nie odświeżaj strony.</p>
+            </div>
+          </AnimatedReveal>
+          
+          <AnimatedReveal direction="up" delay={0.3}>
+            <form
+              onSubmit={handleSubmit(onSubmit, onError)}
+              className={styles.form}
+              noValidate={true}
+            >
             <div className={styles.inputWrapper}>
               <div style={{ position: 'relative' }}>
                 <label htmlFor="name" className={styles.srOnly}>Twoje imię</label>
@@ -463,10 +468,11 @@ export const Form = () => {
               </Button>
             </div>
 
-            <p className={styles.info}>
-              Dane wykorzystam wyłącznie do przesłania audytu. Żadnych newsletterów i spamu.
-            </p>
-          </form>
+              <p className={styles.info}>
+                Dane wykorzystam wyłącznie do przesłania audytu. Żadnych newsletterów i spamu.
+              </p>
+            </form>
+          </AnimatedReveal>
           </>
         )}
       </div>

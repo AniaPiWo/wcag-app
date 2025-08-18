@@ -7,13 +7,18 @@ import { Logo } from '@/components/Logo/Logo'
 export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [headerHeight, setHeaderHeight] = useState(0)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [currentTheme, setCurrentTheme] = useState('')
 
   useEffect(() => {
-
     const header = document.querySelector('header')
     if (header) {
       setHeaderHeight(header.offsetHeight)
     }
+    
+    // Get initial theme
+    const initialTheme = document.documentElement.getAttribute('data-theme') || 'light'
+    setCurrentTheme(initialTheme)
 
     const handleResize = () => {
       if (header) {
@@ -21,8 +26,38 @@ export const Header = () => {
       }
     }
 
+    const handleScroll = () => {
+      const scrollThreshold = 50
+      if (window.scrollY > scrollThreshold) {
+        setIsScrolled(true)
+      } else {
+        setIsScrolled(false)
+      }
+    }
+    
+    // Observe theme changes
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        if (mutation.attributeName === 'data-theme') {
+          const newTheme = document.documentElement.getAttribute('data-theme') || 'light'
+          setCurrentTheme(newTheme)
+        }
+      })
+    })
+    
+    observer.observe(document.documentElement, { attributes: true })
+    
+    // Wywołaj funkcję raz, aby ustawić początkowy stan
+    handleScroll()
+    
     window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    window.addEventListener('scroll', handleScroll)
+    
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('scroll', handleScroll)
+      observer.disconnect()
+    }
   }, [])
 
   const toggleMobileMenu = () => {
@@ -55,8 +90,7 @@ export const Header = () => {
   };
 
   return (
-
-      <header className={styles.wrapper}>
+      <header className={`${styles.wrapper} ${isScrolled ? (currentTheme === 'dark' ? styles.scrolledDark : styles.scrolled) : ''}`}>
       <div className={styles.container}>
         <Logo ariaLabel="WCAG by Ania - strona główna" className={styles.logoLink} onClick={scrollToTop} />
 

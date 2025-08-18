@@ -2,6 +2,7 @@
 import React from 'react';
 import styles from './GoToForm.module.scss';
 import { Button } from '@/components/atoms/Button/Button';
+import { AnimatedReveal } from '@/components/atoms/AnimatedReveal/AnimatedReveal';
 
 export const GoToForm = () => {
   // Funkcja do przewijania do formularza
@@ -23,23 +24,29 @@ export const GoToForm = () => {
     <div className={styles.fullBackground}>
       <div className={styles.gridBackground} />
       <div className={styles.wrapper}>
-        <div className={styles.text}>
-          <h2 className={styles.title}>
-            Sprawdź dostępność swojej strony
-          </h2>
-          <p className={styles.desc}>
-            Wykonaj bezpłatny audyt zgodności z WCAG 2.2 i sprawdź, czy Twoja strona jest dostępna dla wszystkich użytkowników.
-          </p>
-          <div className={styles.buttonWrapper}>
-            <Button 
-              onClick={scrollToForm}
-              aria-label="Przejdź do formularza audytu"
-              variant="primary"
-            >
-              Sprawdź dostępność
-            </Button>
+        <AnimatedReveal direction="up" delay={0.2} duration={0.6} distance={30}>
+          <div className={styles.text}>
+            <h2 className={styles.title}>
+              Sprawdź dostępność swojej strony
+            </h2>
+            <AnimatedReveal direction="up" delay={0.4} duration={0.6} distance={30}>
+              <p className={styles.desc}>
+                Wykonaj bezpłatny audyt zgodności z WCAG 2.2 i sprawdź, czy Twoja strona jest dostępna dla wszystkich użytkowników.
+              </p>
+            </AnimatedReveal>
+            <AnimatedReveal direction="up" delay={0.6} duration={0.6} distance={30}>
+              <div className={styles.buttonWrapper}>
+                <Button 
+                  onClick={scrollToForm}
+                  aria-label="Przejdź do formularza audytu"
+                  variant="primary"
+                >
+                  Sprawdź dostępność
+                </Button>
+              </div>
+            </AnimatedReveal>
           </div>
-        </div>
+        </AnimatedReveal>
       </div>
     </div>
   );

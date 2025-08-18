@@ -2,6 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import styles from './Offer.module.scss';
 import { OfferCard } from '@/components/atoms/OfferCard/OfferCard';
+import { AnimatedReveal } from '@/components/atoms/AnimatedReveal/AnimatedReveal';
 
 
 export const offers = [
@@ -20,7 +21,7 @@ export const offers = [
       'Manualny oraz automatyczny audyt dostępności',
       'Analiza kluczowych kryteriów dostępności wskazanych przez Ministerstwo Cyfryzacji',
       'Szczegółowy raport z wykrytymi problemami dostępności',
-      'dostępne poziomy auditu: podstawowy, średni i zaawansowany',
+      'Dostępne poziomy auditu: podstawowy, średni i zaawansowany',
       'Praktyczne rekomendacje naprawcze',
       'Audyt dostępności do 5 podstron serwisu'
     ],
@@ -42,7 +43,7 @@ Pozdrawiam,
     description:
       'Dostosuję Twoją stronę lub aplikację do standardów WCAG 2.2.',
     price: {
-      amount: 'od 499',
+      amount: 'od 999',
       currency: 'zł netto',
       period: 'projekt'
     },
@@ -72,7 +73,7 @@ Pozdrawiam,
     description:
       'Tworzę dostępne serwisy i aplikacje od podstaw – zgodne z WCAG 2.2.',
     price: {
-      amount: 'od 1000',
+      amount: 'od 1999',
       currency: 'zł netto',
       period: 'projekt'
     },
@@ -147,48 +148,64 @@ export const Offer = () => {
 
   return (
     <section id="Offer" className={styles.wrapper}>
-      <div className={styles.top}>
-        <h2 className={styles.title}>Usługi dostępności cyfrowej WCAG 2.2</h2>
-        <p className={styles.desc}>
-          Oferuję profesjonalne rozwiązania w zakresie dostępności cyfrowej zgodne z WCAG 2.2. 
-          Moje usługi zapewniają, że Twoje witryny i aplikacje internetowe będą dostępne dla wszystkich użytkowników, 
-          w tym osób z niepełnosprawnościami wzroku, słuchu, ruchu i poznawczymi. Działam zgodnie z najnowszymi 
-          standardami i regulacjami prawnymi dotyczącymi dostępności cyfrowej.
-        </p>
-      </div>
+      <AnimatedReveal direction="up" delay={0.1}>
+        <div className={styles.top}>
+          <h2 className={styles.title}>Usługi dostępności cyfrowej WCAG 2.2</h2>
+          <p className={styles.desc}>
+            Oferuję profesjonalne rozwiązania w zakresie dostępności cyfrowej zgodne z WCAG 2.2. 
+            Moje usługi zapewniają, że Twoje witryny i aplikacje internetowe będą dostępne dla wszystkich użytkowników, 
+            w tym osób z niepełnosprawnościami wzroku, słuchu, ruchu i poznawczymi. Działam zgodnie z najnowszymi 
+            standardami i regulacjami prawnymi dotyczącymi dostępności cyfrowej.
+          </p>
+        </div>
+      </AnimatedReveal>
       {/*  desktop */}
       <div className={styles.cardsDesktop} ref={cardsDesktopRef}>
-        {offers.map((card) => (
-          <div key={card.id} className={styles.cardWrapper}>
-            <OfferCard
-              title={card.title}
-              subtitle={card.subtitle}
-              description={card.description}
-              price={card.price}
-              features={card.features}
-              buttonText={card.buttonText}
-              emailSubject={card.emailSubject}
-              emailBody={card.emailBody}
-            />
-          </div>
+        {offers.map((card, idx) => (
+          <AnimatedReveal 
+            key={card.id} 
+            direction="right" 
+            delay={0.3 + (idx * 0.15)} 
+            distance={60}
+          >
+            <div className={styles.cardWrapper}>
+              <OfferCard
+                title={card.title}
+                subtitle={card.subtitle}
+                description={card.description}
+                price={card.price}
+                features={card.features}
+                buttonText={card.buttonText}
+                emailSubject={card.emailSubject}
+                emailBody={card.emailBody}
+              />
+            </div>
+          </AnimatedReveal>
         ))}
       </div>
 
       {/*  mobile */}
       <div className={styles.cardsMobile} ref={cardsMobileRef}>
-        {offers.map((card) => (
-          <div key={card.id} className={styles.cardItem}>
-            <OfferCard
-              title={card.title}
-              subtitle={card.subtitle}
-              description={card.description}
-              price={card.price}
-              features={card.features}
-              buttonText={card.buttonText}
-              emailSubject={card.emailSubject}
-              emailBody={card.emailBody}
-            />
-          </div>
+        {offers.map((card, idx) => (
+          <AnimatedReveal 
+            key={card.id} 
+            direction="right" 
+            delay={0.3 + (idx * 0.15)} 
+            distance={60}
+          >
+            <div className={styles.cardItem}>
+              <OfferCard
+                title={card.title}
+                subtitle={card.subtitle}
+                description={card.description}
+                price={card.price}
+                features={card.features}
+                buttonText={card.buttonText}
+                emailSubject={card.emailSubject}
+                emailBody={card.emailBody}
+              />
+            </div>
+          </AnimatedReveal>
         ))}
       </div>
     </section>
