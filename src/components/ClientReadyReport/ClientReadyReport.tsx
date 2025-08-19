@@ -852,13 +852,19 @@ const ClientReadyReport = ({ id, audit }: Props) => {
         // Kontynuuj z obecnymi danymi jeśli pobranie nie powiodło się
       }
       
-      const filename = `Raport_WCAG22_${updatedContent?.url ? updatedContent.url.replace(/^https?:\/\/(?:www\.)?/, '').replace(/[\/:*?"<>|]/g, '_').substring(0, 30) : ''}.pdf`;
+      // Ensure there's a valid updatedAt date before generating the PDF
+      // If updatedAt is missing or invalid, use current date
+      if (!updatedContent.updatedAt || isNaN(new Date(updatedContent.updatedAt).getTime())) {
+        updatedContent.updatedAt = new Date().toISOString();
+      }
       
-      // Generate PDF, save to database, and download
+      // Create filename based on URL
+      const filename = `Raport_WCAG22_${updatedContent?.url ? updatedContent.url.replace(/^https?:\/\/(?:www\.)?/, '').replace(/[\/:\*?"<>|]/g, '_').substring(0, 30) : ''}.pdf`;
+      
+      // Generate PDF
       pdf(<AuditPDF data={updatedContent} />)
         .toBlob()
-        .then((blobData: Blob) => {
-          // Create download URL
+        .then((blobData) => {
           const url = URL.createObjectURL(blobData);
           const link = document.createElement('a');
           link.href = url;

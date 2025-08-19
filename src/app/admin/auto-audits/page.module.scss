@@ -246,20 +246,26 @@
   }
 }
 
-.deleteCell {
+.actionsCell {
   text-align: center;
-  width: 70px;
+  width: 110px;
 }
 
-.deleteBtn {
+.actionButtons {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.deleteBtn, .convertBtn {
   background: transparent;
   border: none;
-  color: #d32f2f;
   font-size: 1.2rem;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
   transition: all 0.2s;
   line-height: 1;
+  border-radius: 4px;
   
   &:hover {
     transform: scale(1.2);
@@ -267,6 +273,22 @@
   
   &:active {
     transform: scale(0.95);
+  }
+}
+
+.deleteBtn {
+  color: #d32f2f;
+  
+  &:hover {
+    background-color: rgba(255, 0, 0, 0.1);
+  }
+}
+
+.convertBtn {
+  color: #0070f3;
+  
+  &:hover {
+    background-color: rgba(0, 112, 243, 0.1);
   }
 }
 
@@ -323,10 +345,17 @@
     color: #666;
   }
 
+.actionsContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
 .searchBar {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 1.5rem;
+  flex: 1;
 }
 
 .searchInput {
@@ -337,7 +366,34 @@
   outline: none;
   transition: all 0.2s;
   box-shadow: 4px 4px 0 #000;
+}
 
+.createManualAuditButton {
+  background-color: #000;
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
+  border: 2px solid #000;
+  
+  &:hover {
+    background-color: white;
+    color: #000;
+    transform: translateY(-2px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 
