@@ -1,0 +1,60 @@
+.cookieManagementButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    opacity: 0.8;
+  }
+  
+  &:focus {
+    outline: 2px solid var(--color-primary, #0066cc);
+    outline-offset: 2px;
+  }
+  
+  &.text {
+    color: var(--color-text-secondary, #666);
+    text-decoration: underline;
+    font-size: 0.875rem;
+    padding: 0.25rem 0;
+    
+    &:hover {
+      color: var(--color-primary, #0066cc);
+    }
+  }
+  
+  &.button {
+    background-color: var(--color-background-secondary, #f5f5f5);
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: var(--color-text, #333);
+    
+    &:hover {
+      background-color: var(--color-background-tertiary, #e9e9e9);
+      border-color: var(--color-border-hover, #bbb);
+    }
+  }
+  
+  &.icon {
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary, #666);
+    
+    &:hover {
+      background-color: var(--color-background-secondary, #f5f5f5);
+      color: var(--color-primary, #0066cc);
+    }
+    
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}

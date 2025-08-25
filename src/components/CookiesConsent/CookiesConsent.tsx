@@ -1,105 +1,71 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './CookiesConsent.module.scss';
 import { Button } from '../atoms/Button/Button';
+import { useCookieConsent } from '@/hooks/useCookieConsent';
+import { cookieCategories, legalInfo } from './cookieCategories';
 
 interface CookiesConsentProps {
   fallback?: React.ReactNode;
-  cookieStates?: {
-    necessary?: boolean;
-    analytics?: boolean;
-    marketing?: boolean;
-  };
-
   onAccept?: () => void;
 }
 
-export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookieStates, onAccept }) => {
+export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, onAccept }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   
-
-  const [necessaryCookies, setNecessaryCookies] = useState(cookieStates?.necessary ?? true); // always enabled
-  const [analyticsCookies, setAnalyticsCookies] = useState(cookieStates?.analytics ?? false);
-  const [marketingCookies, setMarketingCookies] = useState(cookieStates?.marketing ?? false);
+  const { consent, hasConsented, isLoading, updateConsent, acceptAll, rejectAll, saveConsent } = useCookieConsent();
   
-  // Definicja handleAccept z użyciem useCallback
-  const handleAccept = useCallback(() => {
-    try {
-      const cookiesData = {
-        consented: true,
-        consentDate: new Date().toISOString(),
-        preferences: {
-          necessary: true, 
-          analytics: analyticsCookies,
-          marketing: marketingCookies
-        }
-      };
-      
-      localStorage.setItem('wcagCookies', JSON.stringify(cookiesData));
-
-      if (onAccept) {
-        onAccept();
-      }
-      
-      setIsVisible(false);
-    } catch (error) {
-      setIsVisible(false);
-      
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn('Wystąpił problem przy zapisywaniu preferencji cookies');
-      }
+  // Obsługa akceptacji wszystkich cookies
+  const handleAcceptAll = useCallback(() => {
+    acceptAll();
+    if (onAccept) {
+      onAccept();
     }
-  }, [analyticsCookies, marketingCookies, onAccept, setIsVisible]);
+    setIsVisible(false);
+  }, [acceptAll, onAccept]);
+
+  // Obsługa zapisania wybranych preferencji
+  const handleSavePreferences = useCallback(() => {
+    saveConsent(consent);
+    if (onAccept) {
+      onAccept();
+    }
+    setIsVisible(false);
+  }, [consent, saveConsent, onAccept]);
+
+  // Obsługa odrzucenia opcjonalnych cookies
+  const handleRejectAll = useCallback(() => {
+    rejectAll();
+    if (onAccept) {
+      onAccept();
+    }
+    setIsVisible(false);
+  }, [rejectAll, onAccept]);
   
   useEffect(() => {
-    if (cookieStates) {
-      setIsVisible(true);
-      return;
-    }
-
-    try {
-      const cookiesData = localStorage.getItem('wcagCookies');
-      
-      if (!cookiesData) {
+    // Pokaż banner tylko jeśli dane są załadowane i użytkownik nie wyraził jeszcze zgody
+    if (!isLoading) {
+      if (!hasConsented) {
         setIsVisible(true);
       } else {
-        const parsedData = JSON.parse(cookiesData);
-        
-        if (parsedData.consented) {
-          if (parsedData.preferences) {
-            if (parsedData.preferences.analytics !== undefined) {
-              setAnalyticsCookies(parsedData.preferences.analytics);
-            }
-            if (parsedData.preferences.marketing !== undefined) {
-              setMarketingCookies(parsedData.preferences.marketing);
-            }
-          }
-        } else {
-          setIsVisible(true);
-        }
+        setIsVisible(false);
       }
-    } catch (error) {
-      setIsVisible(true);
     }
-  }, [cookieStates]);
+  }, [hasConsented, isLoading]);
   
   useEffect(() => {
     if (isVisible && dialogRef.current) {
-
       dialogRef.current.focus();
       
-      
       const handleKeyDown = (e: KeyboardEvent) => {
-   
         if (e.key === 'Escape') {
           e.preventDefault();
-          handleAccept();
+          handleRejectAll();
           return;
         }
         
-
         if (e.key === 'Tab' && dialogRef.current) {
           const focusableElements = dialogRef.current.querySelectorAll(
             'button, [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -123,38 +89,16 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookie
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [isVisible, handleAccept]);
+  }, [isVisible, handleRejectAll]);
 
-  const handleModify = () => {
-    try {
-      setAnalyticsCookies(prev => !prev);
-      setMarketingCookies(prev => !prev);
-    } catch (error) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn('Wystąpił problem przy modyfikacji ustawień cookies');
-      }
-    }
+  const handleSwitchChange = (type: 'necessary' | 'analytics' /* | 'marketing' */, value: boolean) => {
+    updateConsent(type, value);
   };
 
-  const handleSwitchChange = (type: string, value: boolean) => {
-    switch(type) {
-      case 'analytics':
-        setAnalyticsCookies(value);
-        break;
-      case 'marketing':
-        setMarketingCookies(value);
-        break;
-      default:
-        break;
-    }
+  const toggleDetails = () => {
+    setShowDetails(!showDetails);
   };
   
-  const handleKeyDown = (event: React.KeyboardEvent, type: string, currentValue: boolean) => {
-    if (event.key === ' ' || event.key === 'Enter') {
-      event.preventDefault();
-      handleSwitchChange(type, !currentValue);
-    }
-  };
   
 
   if (!isVisible) {
@@ -178,97 +122,82 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, cookie
         <div className={styles.cookiesContent}>
           <h2 id="cookies-title" className={styles.cookiesTitle}><span className={styles.srOnly}>Wcag - </span>Ustawienia cookies </h2>
           <div id="cookies-description" className={styles.cookiesText}>
-          <p>
-          Korzystając ze strony zgadzasz się na użycie plików cookies.</p>
+            <p>Używamy plików cookies, aby zapewnić najlepsze doświadczenia na naszej stronie. Możesz wybrać, które kategorie cookies chcesz zaakceptować.</p>
+            {!showDetails && (
+              <button 
+                onClick={toggleDetails}
+                className={styles.detailsButton}
+                type="button"
+              >
+                Pokaż szczegóły kategorii
+              </button>
+            )}
           </div>
+          
           <div className={styles.switchesGroup}>
-    
-            <div className={styles.switchItem}>
-              <div className={styles.switchLabel}>
-                <span className={styles.switchTitle} id="necessary-label" aria-hidden="true">Niezbędne</span>
-                <span className={styles.srOnly}>Niezbędne pliki cookie (zawsze włączone)</span>
+            {Object.entries(cookieCategories).map(([key, category]) => (
+              <div key={key} className={styles.switchItem}>
+                <div className={styles.switchLabel}>
+                  <span className={styles.switchTitle} id={`${key}-label`}>{category.title}</span>
+                  {showDetails && (
+                    <div className={styles.categoryDetails}>
+                      <p className={styles.categoryDescription}>{category.description}</p>
+                      <div className={styles.categoryInfo}>
+                        <p><strong>Cel:</strong> {category.purpose}</p>
+                        <p><strong>Okres przechowywania:</strong> {category.retention}</p>
+                        {category.thirdParties.length > 0 && (
+                          <p><strong>Dostawcy zewnętrzni:</strong> {category.thirdParties.join(', ')}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <label className={styles.switch} htmlFor={`${key}-cookies`}>
+                  <input 
+                    id={`${key}-cookies`}
+                    type="checkbox" 
+                    checked={consent[key as keyof typeof consent]} 
+                    disabled={category.required}
+                    onChange={(e) => handleSwitchChange(key as 'necessary' | 'analytics' /* | 'marketing' */, e.target.checked)}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        if (!category.required) {
+                          handleSwitchChange(key as 'necessary' | 'analytics' /* | 'marketing' */, !consent[key as keyof typeof consent]);
+                        }
+                      }
+                    }}
+                    aria-labelledby={`${key}-label`}
+                    tabIndex={category.required ? -1 : 0}
+                    aria-disabled={category.required}
+                    role="switch"
+                    aria-checked={consent[key as keyof typeof consent]}
+                  />
+                  <span className={styles.slider}></span>
+                </label>
               </div>
-              <label className={styles.switch} htmlFor="necessary-cookies">
-                <input 
-                  id="necessary-cookies"
-                  type="checkbox" 
-                  checked={necessaryCookies} 
-                  disabled={true}
-                  aria-labelledby="necessary-label"
-                  tabIndex={-1} 
-                  aria-disabled="true"
-                  role="switch"
-                  aria-checked={necessaryCookies}
-                />
-                <span className={styles.slider}></span>
-    
-              </label>
-            </div>
-            
-
-            <div className={styles.switchItem}>
-              <div className={styles.switchLabel}>
-                <span className={styles.switchTitle} id="analytics-label">Analityczne</span>
-            
-              </div>
-              <label className={styles.switch} htmlFor="analytics-cookies">
-                <input 
-                  id="analytics-cookies"
-                  type="checkbox" 
-                  checked={analyticsCookies} 
-                  onChange={(e) => handleSwitchChange('analytics', e.target.checked)}
-                  onKeyDown={(e) => handleKeyDown(e, 'analytics', analyticsCookies)}
-                  aria-labelledby="analytics-label"
-                  role="switch"
-                  aria-checked={analyticsCookies}
-                  tabIndex={0}
-                />
-                <span className={styles.slider}></span>
-      
-              </label>
-            </div>
-            
-    
-     {/*        <div className={styles.switchItem}>
-              <div className={styles.switchLabel}>
-                <span className={styles.switchTitle} id="marketing-label">Marketingowe</span>
-        
-              </div>
-              <label className={styles.switch} htmlFor="marketing-cookies">
-                <input 
-                  id="marketing-cookies"
-                  type="checkbox" 
-                  checked={marketingCookies} 
-                  onChange={(e) => handleSwitchChange('marketing', e.target.checked)}
-                  onKeyDown={(e) => handleKeyDown(e, 'marketing', marketingCookies)}
-                  aria-labelledby="marketing-label"
-                  role="switch"
-                  aria-checked={marketingCookies}
-                  tabIndex={0}
-                />
-                <span className={styles.slider}></span>
-                <span className={styles.srOnly}>Marketingowe pliki cookie</span>
-              </label>
-            </div> */}
+            ))}
           </div>
+          
           <div className={styles.buttonGroup}>
             <Button 
-            className={styles.button}
+              className={styles.button}
               variant="primary"
-              onClick={handleAccept}
+              onClick={handleAcceptAll}
             >
-              Akceptuję
+              Akceptuj wszystkie
             </Button>
             <Button 
-            className={styles.button}
+              className={styles.button}
               variant="secondary"
-              onClick={handleModify}
+              onClick={handleSavePreferences}
             >
-              Dostosuj
+              Akceptuj wybrane
             </Button>
           </div>
           <div className={styles.privacyLinkContainer}>
-            <p>Możesz przeczytać więcej w <a href="/terms-of-use" target="_blank" rel="noopener noreferrer" className={styles.privacyLink}>Regulaminie</a>.</p>
+            <p>Więcej informacji w <a href={legalInfo.privacyPolicyUrl} className={styles.privacyLink}>Polityce prywatności</a> i <a href={legalInfo.termsUrl} className={styles.privacyLink}>Regulaminie</a>.</p>
+            <p className={styles.legalInfo}>Administrator danych: {legalInfo.dataController} | Kontakt: {legalInfo.contact}</p>
           </div>
         </div>
       </div>

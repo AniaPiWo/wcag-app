@@ -1013,7 +1013,6 @@ export async function runAccessibilityAudit(url: string): Promise<{
       page.evaluate(() => {
         return new Promise<AxeResults | { error: string }>((resolve) => {
           try {
-            // @ts-expect-error - axe is injected at runtime
             window.axe.run(
               document,
               {
