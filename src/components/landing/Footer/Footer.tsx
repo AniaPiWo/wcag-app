@@ -86,7 +86,6 @@ export const Footer = () => {
         <div className={styles.cookiesBannerWrapper}>
           <CookiesConsent 
             fallback={null} 
-            cookieStates={currentCookieStates || undefined}
             onAccept={() => setShowCookiesBanner(false)}
           />
         </div>

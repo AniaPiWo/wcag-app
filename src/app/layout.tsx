@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Footer, Header, CookiesConsent } from "@/components";
+import { ConditionalGoogleAnalytics } from "@/components/ConditionalGoogleAnalytics/ConditionalGoogleAnalytics";
 import "./globals.scss";
 
 
@@ -8,7 +9,6 @@ const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
-
 
 export const metadata: Metadata = {
   title: "Audyt i wdrożenie dostępności cyfrowej WCAG 2.2 | Profesjonalne usługi",
@@ -29,10 +29,6 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-
-  verification: {
-    google: "verification_token",
-  },
 };
 
 export default function RootLayout({
@@ -47,6 +43,7 @@ export default function RootLayout({
         <Header />
         {children}
         <Footer />
+        <ConditionalGoogleAnalytics gaId="G-KXXM92H52S" />
       </body>
     </html>
   );
