@@ -8,9 +8,10 @@ import { cookieCategories, legalInfo } from './cookieCategories';
 interface CookiesConsentProps {
   fallback?: React.ReactNode;
   onAccept?: () => void;
+  forceShow?: boolean;
 }
 
-export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, onAccept }) => {
+export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, onAccept, forceShow = false }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -46,14 +47,15 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, onAcce
   
   useEffect(() => {
     // Pokaż banner tylko jeśli dane są załadowane i użytkownik nie wyraził jeszcze zgody
+    // lub jeśli forceShow jest true (wywołane z footer)
     if (!isLoading) {
-      if (!hasConsented) {
+      if (!hasConsented || forceShow) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
       }
     }
-  }, [hasConsented, isLoading]);
+  }, [hasConsented, isLoading, forceShow]);
   
   useEffect(() => {
     if (isVisible && dialogRef.current) {

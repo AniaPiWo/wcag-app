@@ -184,6 +184,11 @@
     width: 100%;
     transition: width 0.5s ease-in-out;
   }
+  
+  &.active::after {
+    width: 100%;
+    background-color: var(--accent);
+  }
 }
 
 .themeSwitchContainer {
@@ -325,6 +330,11 @@ html[data-theme="dark"] .switchKnob {
   &:focus {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+  }
+  
+  &.activeMobile::after {
+    width: 80%;
+    background-color: var(--accent);
   }
 }
 

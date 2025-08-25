@@ -12,7 +12,6 @@ export const Footer = () => {
   const [currentCookieStates, setCurrentCookieStates] = useState<{
     necessary: boolean;
     analytics: boolean;
-    marketing: boolean;
   } | null>(null);
 
   const modifyCookies = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -25,15 +24,13 @@ export const Footer = () => {
         if (parsedData.preferences) {
           setCurrentCookieStates({
             necessary: true, 
-            analytics: parsedData.preferences.analytics ?? false,
-            marketing: parsedData.preferences.marketing ?? false
+            analytics: parsedData.preferences.analytics ?? false
           });
         }
       } else {
         setCurrentCookieStates({
           necessary: true,
-          analytics: false,
-          marketing: false
+          analytics: false
         });
       }
       
@@ -87,6 +84,7 @@ export const Footer = () => {
           <CookiesConsent 
             fallback={null} 
             onAccept={() => setShowCookiesBanner(false)}
+            forceShow={true}
           />
         </div>
       )}

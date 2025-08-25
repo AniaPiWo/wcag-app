@@ -9,6 +9,7 @@ export const Header = () => {
   const [headerHeight, setHeaderHeight] = useState(0)
   const [isScrolled, setIsScrolled] = useState(false)
   const [currentTheme, setCurrentTheme] = useState('')
+  const [activeSection, setActiveSection] = useState('')
 
   useEffect(() => {
     const header = document.querySelector('header')
@@ -33,6 +34,27 @@ export const Header = () => {
       } else {
         setIsScrolled(false)
       }
+
+      // Scroll spy functionality
+      const sections = ['form', 'Offer', 'aboutMe', 'faq']
+      const scrollPosition = window.scrollY + headerHeight + 100 // Add offset for better detection
+
+      let currentSection = ''
+      
+      for (const sectionId of sections) {
+        const section = document.getElementById(sectionId)
+        if (section) {
+          const sectionTop = section.offsetTop
+          const sectionBottom = sectionTop + section.offsetHeight
+          
+          if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+            currentSection = sectionId
+            break
+          }
+        }
+      }
+      
+      setActiveSection(currentSection)
     }
     
     // Observe theme changes
@@ -58,7 +80,7 @@ export const Header = () => {
       window.removeEventListener('scroll', handleScroll)
       observer.disconnect()
     }
-  }, [])
+  }, [headerHeight])
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen((prev) => !prev)
@@ -98,16 +120,16 @@ export const Header = () => {
           <nav className={styles.navigation}>
             <ul className={styles.navList}>
               <li className={styles.navItem}>
-                <a href="#form" className={styles.navLink} onClick={(e) => scrollToSection(e, 'form')}>Bezpłatny audyt</a>
+                <a href="#form" className={`${styles.navLink} ${activeSection === 'form' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'form')}>Bezpłatny audyt</a>
               </li>
               <li className={styles.navItem}>
-                <a href="#Offer" className={styles.navLink} onClick={(e) => scrollToSection(e, 'Offer')}>Oferta</a>
+                <a href="#Offer" className={`${styles.navLink} ${activeSection === 'Offer' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'Offer')}>Oferta</a>
               </li>     
               <li className={styles.navItem}>
-                <a href="#aboutMe" className={styles.navLink} onClick={(e) => scrollToSection(e, 'aboutMe')}>O mnie</a>
+                <a href="#aboutMe" className={`${styles.navLink} ${activeSection === 'aboutMe' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'aboutMe')}>O mnie</a>
               </li>
               <li className={styles.navItem}>
-                <a href="#faq" className={styles.navLink} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>
+                <a href="#faq" className={`${styles.navLink} ${activeSection === 'faq' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>
               </li>
             </ul>
           </nav>
@@ -128,16 +150,16 @@ export const Header = () => {
             <nav className={styles.mobileNavigation}>
               <ul className={styles.mobileNavList}>
                 <li className={styles.mobileNavItem}>
-                  <a href="#form" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'form')}>Bezpłatny audyt</a>
+                  <a href="#form" className={`${styles.mobileNavLink} ${activeSection === 'form' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'form')}>Bezpłatny audyt</a>
                 </li>
                 <li className={styles.mobileNavItem}>
-                  <a href="#Offer" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'Offer')}>Oferta</a>
+                  <a href="#Offer" className={`${styles.mobileNavLink} ${activeSection === 'Offer' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'Offer')}>Oferta</a>
                 </li>
                 <li className={styles.mobileNavItem}>
-                  <a href="#aboutMe" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'aboutMe')}>O mnie</a>
+                  <a href="#aboutMe" className={`${styles.mobileNavLink} ${activeSection === 'aboutMe' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'aboutMe')}>O mnie</a>
                 </li>
                 <li className={styles.mobileNavItem}>
-                  <a href="#faq" className={styles.mobileNavLink} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>
+                  <a href="#faq" className={`${styles.mobileNavLink} ${activeSection === 'faq' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>
                 </li>
               </ul>
             </nav>
