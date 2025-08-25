@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Footer, Header, CookiesConsent } from "@/components";
-import { GoogleAnalytics } from '@next/third-parties/google'
+import { ConditionalGoogleAnalytics } from "@/components/ConditionalGoogleAnalytics/ConditionalGoogleAnalytics";
 import "./globals.scss";
 
 
@@ -43,7 +43,7 @@ export default function RootLayout({
         <Header />
         {children}
         <Footer />
-        <GoogleAnalytics gaId="G-KXXM92H52S" />
+        <ConditionalGoogleAnalytics gaId="G-KXXM92H52S" />
       </body>
     </html>
   );
