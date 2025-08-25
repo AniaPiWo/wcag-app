@@ -123,15 +123,17 @@ export default function AdminPage() {
     return (
       <div className={styles.page}>
      <GoBackBtn href="/admin" text="Powrót" />
-        <h1 className={styles.title}>Audyty Automatyczne</h1>
-        <div className={styles.searchBar}>
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Szukaj po email, url lub status..."
-            className={styles.searchInput}
-          />
+        <div className={styles.headerContainer}>
+          <h1 className={styles.title}>Audyty Automatyczne</h1>
+          <div className={styles.searchBar}>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Szukaj po email, url lub status..."
+              className={styles.searchInput}
+            />
+          </div>
         </div>
         <div className={styles.auditTableContainer}>
           <table className={styles.auditTable}>
@@ -152,7 +154,7 @@ export default function AdminPage() {
                 <th className={styles.auditCell + ' ' + styles.sortable} onClick={() => handleSort('createdAt')}>
                   Data {sortBy === 'createdAt' && (sortDir === 'asc' ? '▲' : '▼')}
                 </th>
-                <th className={styles.auditCell}>Usuń</th>
+                <th className={styles.auditCell + ' ' + styles.actionsHeader}></th>
               </tr>
             </thead>
             <tbody>
@@ -189,7 +191,7 @@ export default function AdminPage() {
                     audit.status
                   }</td>
                   <td className={styles.auditCell} onClick={() => window.location.href = `/admin/auto-audits/${audit.id}`}>{audit.createdAt ? new Date(audit.createdAt).toLocaleString() : ''}</td>
-                  <td className={styles.auditCell + ' ' + styles.actionsCell}>
+                  <td className={styles.auditCell + ' ' + styles.actionsCell} onClick={(e) => e.stopPropagation()}>
                     <div className={styles.actionButtons}>
                       <button
                         type="button"
@@ -198,7 +200,7 @@ export default function AdminPage() {
                         onClick={e => { e.stopPropagation(); handleConvertToManual(audit.id); }}
                         aria-label={`Wykonaj audyt manualny dla ${audit.url}`}
                       >
-                        📋
+                        📝
                       </button>
                       <button
                         type="button"
