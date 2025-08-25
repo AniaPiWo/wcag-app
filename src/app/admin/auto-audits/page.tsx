@@ -6,10 +6,42 @@ import styles from './page.module.scss';
 import Loader from '@/components/Loader/Loader';
 import Link from 'next/link';
 import { GoBackBtn } from '@/components/GoBackBtn/GoBackBtn';
+import { useRouter } from 'next/navigation';
+import { convertToManualAudit } from '@/app/actions/convert-to-manual-audit';
+
 
 export default function AdminPage() {
+  const router = useRouter();
+
+  const handleConvertToManual = async (id: string) => {
+    try {
+      const confirmConvert = window.confirm('Czy na pewno chcesz utworzyć audyt manualny na podstawie tego audytu automatycznego?');
+      
+      if (!confirmConvert) {
+        return;
+      }
+
+      const result = await convertToManualAudit(id);
+      if (result?.id) {
+        alert('Pomyślnie utworzono audyt manualny');
+        router.push(`/admin/manual-audits/edit/${result.id}`);
+      } else {
+        alert('Wystąpił błąd podczas tworzenia audytu manualnego');
+      }
+    } catch (error) {
+      console.error('Błąd podczas konwersji audytu:', error);
+      alert('Wystąpił błąd podczas tworzenia audytu manualnego');
+    }
+  };
 
   const handleDelete = async (id: string) => {
+    // Ask for confirmation before deleting
+    const confirmDelete = window.confirm('Czy na pewno chcesz usunąć ten audyt?');
+    
+    if (!confirmDelete) {
+      return; // If user cancels, don't proceed with deletion
+    }
+
     try {
       const res = await fetch(`/api/admin-audits/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -91,15 +123,17 @@ export default function AdminPage() {
     return (
       <div className={styles.page}>
      <GoBackBtn href="/admin" text="Powrót" />
-        <h1 className={styles.title}>Audyty Automatyczne</h1>
-        <div className={styles.searchBar}>
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Szukaj po email, url lub status..."
-            className={styles.searchInput}
-          />
+        <div className={styles.headerContainer}>
+          <h1 className={styles.title}>Audyty Automatyczne</h1>
+          <div className={styles.searchBar}>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Szukaj po email, url lub status..."
+              className={styles.searchInput}
+            />
+          </div>
         </div>
         <div className={styles.auditTableContainer}>
           <table className={styles.auditTable}>
@@ -120,7 +154,7 @@ export default function AdminPage() {
                 <th className={styles.auditCell + ' ' + styles.sortable} onClick={() => handleSort('createdAt')}>
                   Data {sortBy === 'createdAt' && (sortDir === 'asc' ? '▲' : '▼')}
                 </th>
-                <th className={styles.auditCell}>Usuń</th>
+                <th className={styles.auditCell + ' ' + styles.actionsHeader}></th>
               </tr>
             </thead>
             <tbody>
@@ -157,14 +191,27 @@ export default function AdminPage() {
                     audit.status
                   }</td>
                   <td className={styles.auditCell} onClick={() => window.location.href = `/admin/auto-audits/${audit.id}`}>{audit.createdAt ? new Date(audit.createdAt).toLocaleString() : ''}</td>
-                  <td className={styles.auditCell + ' ' + styles.deleteCell}>
-                    <button
-                      type="button"
-                      title="Usuń rekord"
-                      className={styles.deleteBtn}
-                      onClick={e => { e.stopPropagation(); handleDelete(audit.id); }}
-                      aria-label={`Usuń audyt ${audit.email}`}
-                    >❌</button>
+                  <td className={styles.auditCell + ' ' + styles.actionsCell} onClick={(e) => e.stopPropagation()}>
+                    <div className={styles.actionButtons}>
+                      <button
+                        type="button"
+                        title="Wykonaj audyt manualny"
+                        className={styles.convertBtn}
+                        onClick={e => { e.stopPropagation(); handleConvertToManual(audit.id); }}
+                        aria-label={`Wykonaj audyt manualny dla ${audit.url}`}
+                      >
+                        📝
+                      </button>
+                      <button
+                        type="button"
+                        title="Usuń rekord"
+                        className={styles.deleteBtn}
+                        onClick={e => { e.stopPropagation(); handleDelete(audit.id); }}
+                        aria-label={`Usuń audyt ${audit.email}`}
+                      >
+                        ❌
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

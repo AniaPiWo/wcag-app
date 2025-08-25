@@ -1475,6 +1475,12 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                     Uruchom nowy audyt automatyczny
                   </Button>
                 </div>
+                <div>
+                  <h4>Istniejący audyt automatyczny</h4>
+                  <pre className={styles.preformatted}>
+                    {typeof existingAudit === 'string' ? existingAudit : JSON.stringify(existingAudit, null, 2)}
+                  </pre>
+                </div>
               </div>
             )}
 
