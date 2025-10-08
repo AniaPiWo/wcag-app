@@ -1,7 +1,7 @@
 import { prisma } from '../prisma';
 import type { AuditSummary, AxeViolation } from '@/app/api/audit/types';
 import { analyzeAccessibilityResults, AccessibilityViolation } from '../ai/ai-analysis';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 export const auditService = {
 
@@ -146,7 +146,7 @@ export const auditService = {
       });
       const aiAnalysis = await Promise.race([aiAnalysisPromise, timeoutPromise]);
       //console.log(aiAnalysis);
-      console.log('\x1b[32m%s\x1b[0m', `✅ Analiza AI dla audytu ${requestId} zakończona`);
+      //console.log('\x1b[32m%s\x1b[0m', `✅ Analiza AI dla audytu ${requestId} zakończona`);
       
       // Zapisujemy analizę AI do bazy danych za pomocą bezpośredniego zapytania SQL
       try {
@@ -159,6 +159,7 @@ export const auditService = {
       
       // Wysyłamy wyniki audytu na email, jeśli adres email jest dostępny
       if (auditRequest && auditRequest.email) {
+        console.log('\x1b[32m%s\x1b[0m', `Wysyłanie wyników audytu na email ${auditRequest.email}...`);
         try {
           const emailSubject = `Wyniki audytu dostępności dla strony ${summary.url}`;
           //⏰ Data i czas audytu: ${summary.timestamp}
@@ -188,36 +189,46 @@ Specjalista ds. dostępności cyfrowej
 
 📞 123 456 789  
 🌐 https://wcag.co  
-✉️ ${process.env.OVH_EMAIL}
+✉️ ${process.env.RESEND_FROM_EMAIL || 'biuro@wcag.co'}
 
           `.trim().replace(/^ +/gm, '');
           
-          // Tworzymy transporter
-          const transporter = nodemailer.createTransport({
-            host: 'ssl0.ovh.net',
-            port: 465,
-            secure: true,
-            auth: {
-              user: process.env.OVH_EMAIL,
-              pass: process.env.OVH_PASSWORD,
-            },
-          });
+          // Validate Resend API key
+          if (!process.env.RESEND_API_KEY) {
+            console.error('📧 [audit-service] Brak RESEND_API_KEY w zmiennych środowiskowych');
+            throw new Error('Brak klucza API do wysyłki emaili');
+          }
+
+          // Initialize Resend client
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
           
           // Wysyłamy email bezpośrednio
-          await transporter.sendMail({
-            from: `"Audyt Dostępności" <${process.env.OVH_EMAIL}>`,
+          const { error: sendError } = await resend.emails.send({
+            from: `Audyt Dostępności <${fromEmail}>`,
             to: auditRequest.email,
             subject: emailSubject,
             text: emailContent,
           });
-           if (auditRequest.email !== "biuro@wcag.co") {
-          // Wysyłamy kopię do biura
-          await transporter.sendMail({
-            from: `"Audyt Dostępności" <${process.env.OVH_EMAIL}>`,
-            to: "biuro@wcag.co",
-            subject: `Kopia: ${emailSubject}`,
-            text: emailContent,
-          });
+
+          if (sendError) {
+            console.error('📧 [audit-service] Błąd Resend przy wysyłce do użytkownika:', sendError);
+            throw new Error(`Resend API error: ${sendError.message}`);
+          }
+
+          // Wysyłamy kopię do biura (jeśli użytkownik nie jest z biura)
+          if (auditRequest.email !== "biuro@wcag.co") {
+            const { error: copyError } = await resend.emails.send({
+              from: `Audyt Dostępności <${fromEmail}>`,
+              to: "biuro@wcag.co",
+              subject: `Kopia: ${emailSubject}`,
+              text: emailContent,
+            });
+
+            if (copyError) {
+              console.warn('📧 [audit-service] Błąd przy wysyłce kopii do biura:', copyError);
+              // Nie rzucamy błędem - kopia to nie jest krytyczne
+            }
           }
 
           console.log('\x1b[32m%s\x1b[0m', `✅ Wysłano wyniki audytu na adres ${auditRequest.email}`);
