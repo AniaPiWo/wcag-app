@@ -8,24 +8,32 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  
-  @media (min-width: 768px) {
-    flex-direction: row;
-    gap: 3rem;
-  }
+  gap: 2.5rem;
+
 }
 
 .leftColumn {
-  flex: 1;
-  margin-bottom: 2rem;
+  width: 100%;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
   
-  @media (min-width: 768px) {
-    margin-bottom: 0;
+  @media (max-width: 768px) {
+    align-items: flex-start;
+    text-align: left;
   }
 }
 
 .rightColumn {
-  flex: 1;
+  max-width: 750px;
+  border-top: 1px solid;
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+
 }
 
 .title {
@@ -34,7 +42,6 @@
     line-height: 100%;
     letter-spacing: -4%;
     margin: 0;
-    margin-bottom: 0.5rem;
 
     @media (max-width: 768px) {
       font-size: 2rem;
@@ -45,7 +52,12 @@
   font-size: 16px;
   font-weight: var(--font-weight-regular);
   line-height: 26px; /* 185.714% */
-  margin-bottom: 1.5rem;
+  margin: 0;
+  max-width: 800px;
+  
+  @media (max-width: 768px) {
+    max-width: 100%;
+  }
 }
 
 .accordionList {
@@ -56,6 +68,8 @@
 
 .accordionItem {
   margin-bottom: 0.5rem;
+  border-bottom: 1px solid;
+
   
   &:last-child {
     margin-bottom: 0;
