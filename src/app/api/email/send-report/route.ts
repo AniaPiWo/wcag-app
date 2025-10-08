@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { prisma } from '@/lib/prisma';
 
 /**
  * API endpoint for sending emails with PDF report attachments
  * This handles converting base64 PDF data to an attachment and sending via email
+ * Uses Resend API for reliable email delivery (works on Railway and other PaaS platforms)
  */
 export async function POST(req: NextRequest) {
   try {
@@ -19,44 +20,44 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate Resend API key
+    if (!process.env.RESEND_API_KEY) {
+      console.error('📧 [send-report] Brak RESEND_API_KEY w zmiennych środowiskowych');
+      return NextResponse.json(
+        { message: 'Konfiguracja serwera: brak klucza API do wysyłki emaili' }, 
+        { status: 500 }
+      );
+    }
+
     // Extract base64 data - remove data URL prefix if present
     let base64Content = pdfData;
     if (pdfData.includes('base64,')) {
       base64Content = pdfData.split('base64,')[1];
     }
 
-    // Create PDF buffer from base64 string
-    const pdfBuffer = Buffer.from(base64Content, 'base64');
+    // Initialize Resend client
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    // Configure email transporter
-    const transporter = nodemailer.createTransport({
-      host: 'ssl0.ovh.net',
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.OVH_EMAIL,
-        pass: process.env.OVH_PASSWORD,
-      },
-    });
-
-    // Set up email data with attachment
-    const emailData = {
-      from: `"Anna Piotrowiak-Wołosiuk" <${process.env.OVH_EMAIL}>`,
+    // Send the email with Resend
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
       to: recipient,
       subject: subject,
       text: message,
       attachments: [
         {
           filename: filename || 'Raport_WCAG22.pdf',
-          content: pdfBuffer,
-          contentType: 'application/pdf'
+          content: Buffer.from(base64Content, 'base64'),
         }
       ]
-    };
-
-    // Send the email
-    const info = await transporter.sendMail(emailData);
-    console.log('📧 [send-report] E-mail wysłany pomyślnie:', info.messageId);
+    });
+    
+    if (error) {
+      console.error('📧 [send-report] Błąd Resend:', error);
+      throw new Error(`Resend API error: ${error.message}`);
+    }
+    
+    console.log('📧 [send-report] E-mail wysłany pomyślnie przez Resend:', data?.id);
     
     // Update audit record if auditId provided - mark it as completed and store timestamp in the status field
     if (auditId) {
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { message: 'Email wysłany pomyślnie', messageId: info.messageId }, 
+      { message: 'Email wysłany pomyślnie', messageId: data?.id }, 
       { status: 200 }
     );
   } catch (error) {

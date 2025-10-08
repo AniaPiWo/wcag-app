@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 export async function POST(req: NextRequest) {
-  //console.log('📧 [send-email] Rozpoczęcie przetwarzania żądania');
+  console.log('📧 [send-email] Rozpoczęcie przetwarzania żądania');
   try {
     const body = await req.json();
     const { to, subject, text } = body;
@@ -13,27 +13,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Missing fields' }, { status: 400 });
     }
 
-    //console.log('📧 [send-email] Konfiguracja transportera');
-    const transporter = nodemailer.createTransport({
-      host: 'ssl0.ovh.net',
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.OVH_EMAIL,
-        pass: process.env.OVH_PASSWORD ? '******' : undefined,
-      },
-    });
+    // Validate Resend API key
+    if (!process.env.RESEND_API_KEY) {
+      console.error('📧 [send-email] Brak RESEND_API_KEY w zmiennych środowiskowych');
+      return NextResponse.json(
+        { message: 'Server configuration error: missing email API key' }, 
+        { status: 500 }
+      );
+    }
 
+    //console.log('📧 [send-email] Inicjalizacja Resend klienta');
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const info = await transporter.sendMail({
-      from: `"Nazwa Nadawcy" <${process.env.OVH_EMAIL}>`,
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
       to,
       subject,
       text,
     });
-    console.log('📧 [send-email] E-mail wysłany pomyślnie:', info.messageId);
 
-    return NextResponse.json({ message: 'Email sent', messageId: info.messageId }, { status: 200 });
+    if (error) {
+      console.error('📧 [send-email] Błąd Resend:', error);
+      throw new Error(`Resend API error: ${error.message}`);
+    }
+
+    console.log('📧 [send-email] E-mail wysłany pomyślnie przez Resend:', data?.id);
+
+    return NextResponse.json({ message: 'Email sent', messageId: data?.id }, { status: 200 });
   } catch (error) {
     console.error('📧 [send-email] Błąd wysyłania e-maila:', error);
 
