@@ -2,7 +2,7 @@
   position: relative;
   width: 100dvw;
   min-height: 83dvh;
-  background-color: #313131;
+  background-color: var(--form-bg-color);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -123,7 +123,7 @@
   align-items: center;
   gap: 0.607rem;
   align-self: stretch;
-  background-color: #313131;
+  background-color: var(--form-bg-color);
   color: white;
 z-index: 1;
 position: relative;
@@ -131,7 +131,7 @@ position: relative;
 
 .input:focus {
   outline: 0.0625rem solid white;
-    background-color: #313131;
+    background-color: var(--form-bg-color);
 }
 
 .inputError {
@@ -161,7 +161,7 @@ position: relative;
 
 /* Styl dla fokusa pola formularza - nie nadpisujemy outline, który jest ustawiony globalnie */
 .input:focus {
-  background-color: #313131;
+  background-color: var(--form-bg-color);
   color: #ffffff;
 }
 

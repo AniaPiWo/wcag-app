@@ -111,6 +111,20 @@ export const Header = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // CTA Button scroll function - zakomentowane, do użycia w przyszłości
+  /* const scrollToForm = () => {
+    const formElement = document.getElementById('form');
+    if (formElement) {
+      const sectionTop = formElement.getBoundingClientRect().top + window.pageYOffset;
+      const offsetTop = sectionTop - headerHeight - 20;
+      
+      window.scrollTo({
+        top: offsetTop,
+        behavior: 'smooth'
+      });
+    }
+  }; */
+
   return (
       <header className={`${styles.wrapper} ${isScrolled ? (currentTheme === 'dark' ? styles.scrolledDark : styles.scrolled) : ''}`}>
       <div className={styles.container}>
@@ -134,6 +148,13 @@ export const Header = () => {
             </ul>
           </nav>
           <div className={styles.accessibilityControls}>
+            {/* <button 
+              onClick={scrollToForm}
+              className={styles.ctaLink}
+              aria-label="Przejdź do formularza audytu WCAG"
+            >
+              Wykonaj audyt
+            </button> */}
             <ThemeSwitcher />
           </div>
         </div>
