@@ -11,13 +11,6 @@ const nextConfig: NextConfig = {
   fontLoaders: {
     localFont: true,
   },
-  // Wyłączenie minifikacji dla lepszego debugowania
-  webpack: (config, { dev, isServer }) => {
-    if (dev && isServer) {
-      config.optimization.minimize = false;
-    }
-    return config;
-  },
 };
 
 export default nextConfig;

@@ -79,40 +79,40 @@ export const FAQ = () => {
               const isExpanded = expandedIds.includes(item.id);
               
               return (
-                <AnimatedReveal key={`anim-${item.id}`} direction="right" delay={0.3 + (idx * 0.1)} distance={30}>
                 <li key={item.id} className={styles.accordionItem}>
-                  <button
-                    id={`${item.id}-button`}
-                    className={styles.accordionButton}
-                    onClick={() => toggleAccordion(item.id)}
-                    onKeyDown={(e) => handleKeyDown(e, item.id)}
-                    aria-expanded={isExpanded}
-                    aria-controls={`${item.id}-content`}
-                  >
-                    {item.question}
-                    <div className={`${styles.iconWrapper} ${isExpanded ? styles.expanded : ''}`}>
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M8 0V16M0 8H16" stroke="currentColor" strokeWidth="2" />
-                      </svg>
-                    </div>
-                  </button>
-                  
-                  <div
-                    id={`${item.id}-content`}
-                    className={`${styles.accordionContent} ${isExpanded ? styles.expanded : ''}`}
-                    role="region"
-                    aria-labelledby={`${item.id}-button`}
-                    aria-hidden={!isExpanded}
-                  >
-                    <div 
-                      className={styles.accordionAnswer}
-                      ref={(el) => { answerRefs.current[item.id] = el; }}
+                  <AnimatedReveal direction="right" delay={0.3 + (idx * 0.1)} distance={30}>
+                    <button
+                      id={`${item.id}-button`}
+                      className={styles.accordionButton}
+                      onClick={() => toggleAccordion(item.id)}
+                      onKeyDown={(e) => handleKeyDown(e, item.id)}
+                      aria-expanded={isExpanded}
+                      aria-controls={`${item.id}-content`}
                     >
-                      {item.answer}
+                      {item.question}
+                      <div className={`${styles.iconWrapper} ${isExpanded ? styles.expanded : ''}`}>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M8 0V16M0 8H16" stroke="currentColor" strokeWidth="2" />
+                        </svg>
+                      </div>
+                    </button>
+                    
+                    <div
+                      id={`${item.id}-content`}
+                      className={`${styles.accordionContent} ${isExpanded ? styles.expanded : ''}`}
+                      role="region"
+                      aria-labelledby={`${item.id}-button`}
+                      aria-hidden={!isExpanded}
+                    >
+                      <div 
+                        className={styles.accordionAnswer}
+                        ref={(el) => { answerRefs.current[item.id] = el; }}
+                      >
+                        {item.answer}
+                      </div>
                     </div>
-                  </div>
+                  </AnimatedReveal>
                 </li>
-                </AnimatedReveal>
               );
             })}
           </ul>
