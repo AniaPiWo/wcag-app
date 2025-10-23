@@ -1,11 +1,20 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import styles from './page.module.scss';
 import { GoBackBtn } from '@/components/GoBackBtn/GoBackBtn';
+
+export const metadata: Metadata = {
+  title: "Warunki korzystania ze strony | WCAG.co",
+  description: "Warunki korzystania z serwisu wcag.co. Informacje o usługach audytu dostępności, przetwarzaniu danych osobowych zgodnie z RODO oraz prawach autorskich.",
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
 
 const TermsOfUse = () => {
   return (
     <main className={`${styles.container} reduced-motion`}>
-
       <div className={styles.termsArticle}>
       <GoBackBtn href="/" text="Powrót" />
         <h1 className={styles.mainTitle}>Warunki korzystania ze strony internetowej wcag.co</h1>

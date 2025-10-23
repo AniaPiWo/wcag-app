@@ -74,6 +74,13 @@
   &:last-child {
     margin-bottom: 0;
   }
+  
+  // Zapewnienie że wrapper animacji nie zakłóca layoutu
+  > div {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
 }
 
 .accordionButton {

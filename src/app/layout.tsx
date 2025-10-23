@@ -13,7 +13,7 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   metadataBase: new URL('https://wcag.co'),
   title: "Audyt i wdrożenie dostępności cyfrowej WCAG 2.2 | Profesjonalne usługi",
-  description: "Oferuję audyty dostępności stron internetowych zgodne z WCAG 2.2. Wykonuję wdrożenia i tworzę w pełni dostępne strony internetowe.",
+  description: "Wykonuję audyty dostępności stron internetowych zgodne z WCAG 2.2. Wykonuję wdrożenia i tworzę w pełni dostępne strony internetowe.",
   keywords: "WCAG 2.2, dostępność cyfrowa, audyt dostępności, wdrożenie WCAG, strony internetowe, e-commerce, dostępne strony",
   authors: [{ name: "Seahorse" }],
   creator: "Seahorse",
@@ -51,6 +51,10 @@ export default function RootLayout({
   return (
     <html lang="pl" data-theme="light" suppressHydrationWarning>
       <head>
+          <meta
+    name="description"
+    content="Przeprowadzam profesjonalne audyty dostępności stron internetowych zgodne z WCAG 2.2. Pomagam wdrożyć rozwiązania, które zapewniają pełną dostępność i zgodność z przepisami."
+  />
         <script
           dangerouslySetInnerHTML={{
             __html: `
