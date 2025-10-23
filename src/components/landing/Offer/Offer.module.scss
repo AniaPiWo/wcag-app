@@ -39,6 +39,7 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  perspective: 1000px;
   
   @media (max-width: 1024px) {
     grid-template-columns: repeat(2, 1fr);
@@ -50,6 +51,7 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
+  transform-style: preserve-3d;
 }
 
 .cardsMobile {
