@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './OfferCard.module.scss';
+import { Button } from '../Button/Button';
 
 type PriceType = {
   amount: string;
@@ -11,6 +12,7 @@ type PriceType = {
 
 type OfferCardProps = {
   title: string;
+  subtitle?: string;
   description?: string;
   price?: PriceType;
   features: string[];
@@ -20,11 +22,11 @@ type OfferCardProps = {
   emailBody?: string;
   popular?: boolean;
   className?: string;
-  color?: 'cyan' | 'lime' | 'purple';
 };
 
 export const OfferCard = ({
   title,
+  subtitle,
   description,
   price,
   features = [],
@@ -32,7 +34,6 @@ export const OfferCard = ({
   buttonUrl = '#',
   emailSubject = '',
   emailBody = '',
-  color = 'lime',
 }: OfferCardProps) => {
   const [showFeatures, setShowFeatures] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -89,9 +90,9 @@ export const OfferCard = ({
   }, [showFeatures, isMobile, updateCardHeight]);
   return (
     <div className={`${styles.card} ${showFeatures ? styles.expanded : ''}`} ref={cardRef}>
-      <div className={styles.header} data-color={color}>
+      <div className={styles.header}>
         <h3 className={styles.title}>{title}</h3>
-
+        {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
       </div>
       
       {price && (
@@ -104,6 +105,27 @@ export const OfferCard = ({
             </div>
           </div>
           {price.limit && <p className={styles.priceLimit}>{price.limit}</p>}
+        </div>
+      )}
+      
+      {buttonText && (
+        <div className={styles.buttonWrapper}>
+          <Button 
+            variant="primary" 
+            onClick={() => {
+              // Sprawdź, czy mamy dane emaila
+              if (emailSubject && emailBody) {
+                // Utworzenie poprawnego linku mailto z encodowanym tytułem i treścią
+                const mailtoUrl = `mailto:biuro@wcag.co?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+                window.location.href = mailtoUrl;
+              } else if (buttonUrl) {
+                // Fallback do zwykłego URL
+                window.location.href = buttonUrl;
+              }
+            }}
+          >
+            {buttonText}
+          </Button>
         </div>
       )}
       
@@ -176,28 +198,6 @@ export const OfferCard = ({
             </div>
           )}
         </>
-      )}
-      
-      {buttonText && (
-        <div className={styles.buttonWrapper}>
-          <button 
-            className={styles.primaryButton}
-            data-color={color}
-            onClick={() => {
-              // Sprawdź, czy mamy dane emaila
-              if (emailSubject && emailBody) {
-                // Utworzenie poprawnego linku mailto z encodowanym tytułem i treścią
-                const mailtoUrl = `mailto:biuro@wcag.co?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-                window.location.href = mailtoUrl;
-              } else if (buttonUrl) {
-                // Fallback do zwykłego URL
-                window.location.href = buttonUrl;
-              }
-            }}
-          >
-            {buttonText}
-          </button>
-        </div>
       )}
     </div>
   );

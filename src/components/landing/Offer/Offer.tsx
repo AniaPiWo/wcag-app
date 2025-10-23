@@ -9,7 +9,6 @@ export const offers = [
   {
     id: '1',
     title: 'Manualny audyt dostępności',
-    subtitle: 'Dla firm z istniejącą stroną internetową',
     description:
       'Szczegółowa analiza Twojej strony pod kątem zgodności z WCAG 2.2.',
     price: {
@@ -21,7 +20,7 @@ export const offers = [
       'Manualny oraz automatyczny audyt dostępności',
       'Analiza kluczowych kryteriów dostępności wskazanych przez Ministerstwo Cyfryzacji',
       'Szczegółowy raport z wykrytymi problemami dostępności',
-      'Dostępne poziomy auditu: podstawowy, średni i zaawansowany',
+    /*   'Dostępne poziomy auditu: podstawowy, średni i zaawansowany', */
       'Praktyczne rekomendacje naprawcze',
       'Audyt dostępności do 5 podstron serwisu'
     ],
@@ -39,7 +38,6 @@ Pozdrawiam,
   {
     id: '2',
     title: 'Dostosowanie do WCAG 2.2',
-    subtitle: 'Dla firm z istniejącą stroną internetową',
     description:
       'Dostosuję Twoją stronę lub aplikację do standardów WCAG 2.2.',
     price: {
@@ -68,8 +66,7 @@ Pozdrawiam,
   },
   {
     id: '3',
-    title: 'Tworzę dostępne rozwiązania',    
-    subtitle: 'Dla firm potrzebujących nowej strony',
+    title: 'Tworzę dostępne rozwiązania',
     description:
       'Tworzę dostępne serwisy i aplikacje od podstaw – zgodne z WCAG 2.2.',
     price: {
@@ -161,52 +158,62 @@ export const Offer = () => {
       </AnimatedReveal>
       {/*  desktop */}
       <div className={styles.cardsDesktop} ref={cardsDesktopRef}>
-        {offers.map((card, idx) => (
-          <AnimatedReveal 
-            key={card.id} 
-            direction="right" 
-            delay={0.3 + (idx * 0.15)} 
-            distance={60}
-          >
-            <div className={styles.cardWrapper}>
-              <OfferCard
-                title={card.title}
-                subtitle={card.subtitle}
-                description={card.description}
-                price={card.price}
-                features={card.features}
-                buttonText={card.buttonText}
-                emailSubject={card.emailSubject}
-                emailBody={card.emailBody}
-              />
-            </div>
-          </AnimatedReveal>
-        ))}
+        {offers.map((card, idx) => {
+          const colors: ('cyan' | 'lime' | 'purple')[] = ['cyan', 'lime', 'purple'];
+          const cardColor = colors[idx % colors.length];
+          
+          return (
+            <AnimatedReveal 
+              key={card.id} 
+              direction="up" 
+              delay={0.2 + (idx * 0.1)} 
+              distance={40}
+            >
+              <div className={styles.cardWrapper}>
+                <OfferCard
+                  title={card.title}
+                  description={card.description}
+                  price={card.price}
+                  features={card.features}
+                  buttonText={card.buttonText}
+                  emailSubject={card.emailSubject}
+                  emailBody={card.emailBody}
+                  color={cardColor}
+                />
+              </div>
+            </AnimatedReveal>
+          );
+        })}
       </div>
 
       {/*  mobile */}
       <div className={styles.cardsMobile} ref={cardsMobileRef}>
-        {offers.map((card, idx) => (
-          <AnimatedReveal 
-            key={card.id} 
-            direction="right" 
-            delay={0.3 + (idx * 0.15)} 
-            distance={60}
-          >
-            <div className={styles.cardItem}>
-              <OfferCard
-                title={card.title}
-                subtitle={card.subtitle}
-                description={card.description}
-                price={card.price}
-                features={card.features}
-                buttonText={card.buttonText}
-                emailSubject={card.emailSubject}
-                emailBody={card.emailBody}
-              />
-            </div>
-          </AnimatedReveal>
-        ))}
+        {offers.map((card, idx) => {
+          const colors: ('cyan' | 'lime' | 'purple')[] = ['cyan', 'lime', 'purple'];
+          const cardColor = colors[idx % colors.length];
+          
+          return (
+            <AnimatedReveal 
+              key={card.id} 
+              direction="right" 
+              delay={0.3 + (idx * 0.15)} 
+              distance={60}
+            >
+              <div className={styles.cardItem}>
+                <OfferCard
+                  title={card.title}
+                  description={card.description}
+                  price={card.price}
+                  features={card.features}
+                  buttonText={card.buttonText}
+                  emailSubject={card.emailSubject}
+                  emailBody={card.emailBody}
+                  color={cardColor}
+                />
+              </div>
+            </AnimatedReveal>
+          );
+        })}
       </div>
     </section>
   );

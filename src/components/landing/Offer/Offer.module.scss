@@ -33,18 +33,23 @@
 }
 
 .cardsDesktop {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  justify-content: center;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
   width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .cardWrapper {
   display: flex;
-  flex: 1;
+  flex-direction: column;
   height: 100%;
+  width: 100%;
 }
 
 .cardsMobile {
@@ -91,7 +96,7 @@
     max-width: 100%;
     box-sizing: border-box;
     padding: 0 16px 20px 16px; // Dodajemy boczne paddingii lepszy padding dolny
-    gap: 16px;
+    gap: 0.5rem;
     flex-wrap: nowrap; // Zapobiega zawijaniu kart
     scrollbar-width: thin;
     position: relative; /* Dodajemy pozycjonowanie */
