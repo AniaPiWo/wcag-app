@@ -6,11 +6,6 @@ const nextConfig: NextConfig = {
   
   // Konfiguracja dla API Routes
   experimental: {},
-  
-  // Konfiguracja dla czcionek
-  fontLoaders: {
-    localFont: true,
-  },
 };
 
 export default nextConfig;

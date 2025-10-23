@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import styles from './Header.module.scss'
 import { ThemeSwitcher } from '@/components/atoms/ThemeSwitcher/ThemeSwitcher'
 import { Logo } from '@/components/Logo/Logo'
@@ -111,6 +111,19 @@ export const Header = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleContactClick = useCallback(() => {
+    setTimeout(() => {
+      const emailParts = ['biuro', 'wcag.co'];
+  
+      const subject = encodeURIComponent("Zapytanie o audyt WCAG");
+      const body = encodeURIComponent(
+        "Dzień dobry,\n\nProszę o kontakt w sprawie audytu dostępności mojej strony internetowej.\n\nAdres strony: \n\nPozdrawiam,\n"
+      );
+  
+      window.location.href = `mailto:${emailParts[0]}@${emailParts[1]}?subject=${subject}&body=${body}`;
+    }, 500);
+  }, []);
+
   // CTA Button scroll function - zakomentowane, do użycia w przyszłości
   /* const scrollToForm = () => {
     const formElement = document.getElementById('form');
@@ -144,6 +157,9 @@ export const Header = () => {
               </li>
               <li className={styles.navItem}>
                 <a href="#faq" className={`${styles.navLink} ${activeSection === 'faq' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>
+              </li>
+              <li className={styles.navItem}>
+                <button className={styles.contactBtn} onClick={handleContactClick}>Kontakt</button>
               </li>
             </ul>
           </nav>
@@ -181,6 +197,9 @@ export const Header = () => {
                 </li>
                 <li className={styles.mobileNavItem}>
                   <a href="#faq" className={`${styles.mobileNavLink} ${activeSection === 'faq' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>
+                </li>
+                <li className={styles.mobileNavItem}>
+                  <button className={styles.mobileContactBtn} onClick={handleContactClick}>Kontakt</button>
                 </li>
               </ul>
             </nav>
