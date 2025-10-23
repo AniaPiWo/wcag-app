@@ -249,6 +249,43 @@ html[data-theme="dark"] .switchKnob {
   gap: 1rem; /* 16px */
 }
 
+/* CTA Button - ukryty na życzenie klienta, do ewentualnego użycia później
+.ctaLink {
+  all: unset;
+  cursor: pointer;
+  background-color: var(--accent);
+  color: var(--black);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(207, 255, 133, 0.3);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.scrolled .ctaLink,
+.scrolledDark .ctaLink {
+  background-color: var(--accent);
+  color: var(--black);
+}
+*/
+
 .logoutButton {
   background-color: var(--accent);
   color: white;
