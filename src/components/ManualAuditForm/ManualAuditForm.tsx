@@ -1,19 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 import React, { useState, useEffect, useRef, ReactNode } from 'react';
-import dynamic from 'next/dynamic';
 import styles from './ManualAuditForm.module.scss';
 import { auditBasic } from '@/lib/wcag_checklist/basic';
 import { auditIntermediate } from '@/lib/wcag_checklist/intermediate';
 import { auditAdvanced } from '@/lib/wcag_checklist/advanced';
 import { Button } from '@/components';
 import { getManualAudit, updateManualAudit, updateAuditItem as updateAuditItemAction } from '@/app/actions/manual-audit';
-
-// Dynamic import dla ClientReadyReport (zawiera react-pdf ~500KB) - ładuje się tylko gdy potrzebny
-const ClientReadyReport = dynamic(() => import('../ClientReadyReport/ClientReadyReport'), {
-  ssr: false,
-  loading: () => <div style={{ padding: '20px', textAlign: 'center' }}>Ładowanie raportu...</div>
-});
+import ClientReadyReport from '../ClientReadyReport/ClientReadyReport';
 
 interface AuditLevel {
   id: string;

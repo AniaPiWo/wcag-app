@@ -147,6 +147,7 @@
 
 .navList {
   display: flex;
+  align-items: center;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -188,6 +189,36 @@
   &.active::after {
     width: 100%;
     background-color: var(--accent);
+  }
+}
+
+.contactBtn {
+  color: var(--foreground);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: color 0.2s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 3px;
+    background-color: var(--accent);
+    transition: width 0.5s ease-in-out;
+  }
+  
+  &:hover::after, &:focus::after {
+    width: 100%;
+    transition: width 0.5s ease-in-out;
   }
 }
 
@@ -372,6 +403,49 @@ html[data-theme="dark"] .switchKnob {
   &.activeMobile::after {
     width: 80%;
     background-color: var(--accent);
+  }
+}
+
+.mobileContactBtn {
+  all: unset;
+  color: var(--foreground);
+  text-decoration: none;
+  font-size: 1.125rem;
+  font-weight: 500;
+  padding: 0.75rem 0;
+  display: block;
+  width: 100%;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  border-radius: 0.25rem;
+  position: relative;
+  cursor: pointer;
+  box-sizing: border-box;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background-color: var(--accent);
+    transition: width 0.3s ease-in-out;
+  }
+  
+  &:hover::after, &:focus::after {
+    width: 80%;
+  }
+  
+  &:hover, &:focus {
+    color: var(--primary);
+    background-color: var(--background-secondary);
+    text-decoration: none;
+  }
+  
+  &:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
   }
 }
 

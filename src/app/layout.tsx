@@ -8,8 +8,6 @@ import "./globals.scss";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-  display: 'swap', // Optymalizacja dla LCP - font swap
-  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -53,14 +51,10 @@ export default function RootLayout({
   return (
     <html lang="pl" data-theme="light" suppressHydrationWarning>
       <head>
-        {/* Preconnect do Google Tag Manager dla lepszego LCP */}
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        
-        <meta
-          name="description"
-          content="Przeprowadzam profesjonalne audyty dostępności stron internetowych zgodne z WCAG 2.2. Pomagam wdrożyć rozwiązania, które zapewniają pełną dostępność i zgodność z przepisami."
-        />
+          <meta
+    name="description"
+    content="Przeprowadzam profesjonalne audyty dostępności stron internetowych zgodne z WCAG 2.2. Pomagam wdrożyć rozwiązania, które zapewniają pełną dostępność i zgodność z przepisami."
+  />
         <script
           dangerouslySetInnerHTML={{
             __html: `
