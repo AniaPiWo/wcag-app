@@ -71,12 +71,23 @@
   justify-content: center;
 }
 
-.technology {
+//ver 1
+/* .technology {
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   background-color: var(--accent);
   color: var(--black);
   border: 2px solid var(--black);
+  font-weight: var(--font-weight-medium);
+} */
+
+.technology {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #00ccc0;
+  color: var(--black);
+  border: 1px solid var(--black);
+  border-radius: 500px;
   font-weight: var(--font-weight-medium);
 }
 
