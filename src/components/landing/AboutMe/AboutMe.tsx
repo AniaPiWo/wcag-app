@@ -19,7 +19,7 @@ export const AboutMe = () => {
                     fill
                     sizes="max-width: 640px"
                     className={styles.imageMain}
-                    priority
+                    loading="lazy"
                   />
                 </div>
                 <div className={styles.name}>

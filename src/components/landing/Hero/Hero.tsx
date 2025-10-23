@@ -3,35 +3,36 @@
 //import Image from 'next/image';
 import styles from './Hero.module.scss';
 import { Button } from '@/components/atoms/Button/Button';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Threads } from '@/components/atoms/Threads/Threads.jsx';
 import { motion, useAnimation, Variants } from 'framer-motion';
 
 export const Hero = () => {
   //const [isContactLoading, setIsContactLoading] = useState(false);
   const controls = useAnimation();
+  const [shouldLoadThreads, setShouldLoadThreads] = useState(false);
 
-  // Definicje animacji
+  // Definicje animacji - zoptymalizowane dla LCP (bez opóźnień)
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: { 
       opacity: 1,
       transition: { 
-        staggerChildren: 0.15,
-        delayChildren: 0.2 
+        staggerChildren: 0.08,
+        delayChildren: 0 
       }
     }
   };
 
   const itemVariants: Variants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 10, opacity: 0 },
     visible: { 
       y: 0, 
       opacity: 1,
       transition: { 
         type: "spring", 
-        stiffness: 60, 
-        damping: 12 
+        stiffness: 120, 
+        damping: 15 
       }
     }
   };
@@ -43,8 +44,8 @@ export const Hero = () => {
       opacity: 1,
       transition: {
         type: "spring",
-        stiffness: 80,
-        delay: 0.5
+        stiffness: 120,
+        delay: 0
       }
     },
     hover: { 
@@ -58,9 +59,16 @@ export const Hero = () => {
     tap: { scale: 0.98 }
   };
 
-  // Uruchamianie animacji po załadowaniu
+  // Uruchamianie animacji po załadowaniu i opóźnione ładowanie Threads dla LCP
   useEffect(() => {
     controls.start('visible');
+    
+    // Opóźnij ładowanie Threads do poprawy LCP
+    const timer = setTimeout(() => {
+      setShouldLoadThreads(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [controls]);
 
   const handleAuditClick = useCallback(() => {
@@ -94,15 +102,17 @@ export const Hero = () => {
   
   return (
     <section id="hero" className={styles.wrapper}>
-      <div className={styles.threadsContainer}>
-        <Threads 
-          amplitude={1.6}
-          distance={0.5}
-          enableMouseInteraction={true}
-          className={styles.threads}
-          color={[0.5, 0.5, 0.5]}
-        />
-      </div>
+      {shouldLoadThreads && (
+        <div className={styles.threadsContainer}>
+          <Threads 
+            amplitude={1.6}
+            distance={0.5}
+            enableMouseInteraction={true}
+            className={styles.threads}
+            color={[0.5, 0.5, 0.5]}
+          />
+        </div>
+      )}
 
       <motion.div 
         className={styles.top}

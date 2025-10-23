@@ -80,15 +80,23 @@ Warto jednak pamiętać, że automat też może coś przeoczyć. Jeśli chcesz m
 Jeśli wykryto naruszenia:
 Użyj poniższych danych jako danych wejściowych:
 ${JSON.stringify(compactViolations, null, 2)}
- - nie dawaj tytułu (Raport z automatycznego audytu dostępności strony internetowej itp), tytuł jest już w treści maila przed twoim tekstem
- - opisz krótko PO POLSKU zaliczone reguły w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj fragmentów kodu,
- - opisz krótko PO POLSKU wykryte błędy w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj fragmentów kodu,
- - dopisz także, które elementy WYMAGAJĄ audytu manualnego
- - nie używaj ozdobników **
- - jeśli wykryto 
- - nienachalnie zachęć do zakupu dokładniejszego testu manualnego, po którym zostanie przesłany raport z pełnymi informacjami o błedach oraz instrukcją naprawy.
+Nie dodawaj tytułu (tytuł maila jest już podany wcześniej).
+Napisz krótkie podsumowanie po polsku (4–5 zdań), opisujące ogólnie wykryte błędy w dostępności.
+Nie pokazuj fragmentów kodu, znaczników HTML ani dokładnych lokalizacji błędów.
+Skup się na ogólnym charakterze problemów, bez sugerowania gotowych rozwiązań.
+Wymień, które elementy strony wymagają dodatkowego audytu manualnego.
+Na końcu dodaj krótkie, nienachalne zdanie zachęcające do zakupu pełnego audytu manualnego, po którym klient otrzyma szczegółowy raport z instrukcją naprawy.
 
 `;
+
+/*  
+PROMPT vol 1
+ - nie dawaj tytułu (Raport z automatycznego audytu dostępności strony internetowej itp), tytuł jest już w treści maila przed twoim tekstem
+ - opisz krótko PO POLSKU wykryte błędy w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj fragmentów kodu ani znaczników HTML, nie wskazuj miejsca występowania i nie opisuj zbyt szczegółowo (nie chcemy dawać gotowych rozwiązań!), 
+ - dopisz także, które elementy WYMAGAJĄ audytu manualnego
+ - nie używaj ozdobników **
+ - nienachalnie zachęć do zakupu dokładniejszego testu manualnego, po którym zostanie przesłany raport z pełnymi informacjami o błedach oraz instrukcją naprawy.
+- opisz krótko PO POLSKU zaliczone reguły w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj fragmentów kodu ani znaczników HTML, */
     
     try {
       const messages = [
