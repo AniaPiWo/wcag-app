@@ -11,14 +11,21 @@ export const ThemeSwitcher = ({ }: ThemeSwitcherProps) => {
   const [theme, setTheme] = useState('light')
 
   useEffect(() => {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light'
-    setTheme(currentTheme)
+    // Ładowanie zapisanego theme z localStorage
+    const savedTheme = localStorage.getItem('theme')
+    const initialTheme = savedTheme || document.documentElement.getAttribute('data-theme') || 'light'
+    
+    document.documentElement.setAttribute('data-theme', initialTheme)
+    setTheme(initialTheme)
   }, [])
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light'
     document.documentElement.setAttribute('data-theme', newTheme)
     setTheme(newTheme)
+    
+    // Zapisywanie wybranego theme w localStorage
+    localStorage.setItem('theme', newTheme)
   }
 
   return (
