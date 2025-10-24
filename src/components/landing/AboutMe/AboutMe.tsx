@@ -45,7 +45,7 @@ export const AboutMe = () => {
    
   </p>
                     <p className={styles.desc}>
-                    Pomagam tworzyć nowoczesne, szybkie i profesjonalnie wyglądające serwisy, które są dostępne dla wszystkich użytkowników, niezależnie od ich możliwości czy ograniczeń. Dbam zarówno o <strong>pełną dostępność WCAG</strong>, jak i <strong>optymalizację SEO</strong>.
+                    Pomagam tworzyć nowoczesne, szybkie i profesjonalnie wyglądające serwisy, które są dostępne dla wszystkich użytkowników, niezależnie od ich możliwości czy ograniczeń.
                     </p>
                   </div>
                 </AnimatedReveal>
@@ -54,13 +54,14 @@ export const AboutMe = () => {
                   <div className={styles.column}>
                     <p className={styles.desc}>
                       Jako freelancer nie utrzymuję działu HR, księgowości ani biura – dzięki temu mogę zaproponować 
-                      <strong> niższą cenę</strong> bez utraty jakości. Skupiam się w 100% na Twoim projekcie, co oznacza 
+                      <strong> niższą cenę</strong> bez utraty jakości.
+                                 Nie przyjmuję nadmiaru zleceń – dzięki temu mogę zaoferować <strong>krótkie terminy realizacji</strong> i pełne 
+                      zaangażowanie.
+                       Skupiam się w 100% na Twoim projekcie, co oznacza 
                       bezpośredni kontakt i indywidualne podejście.
                     </p>
                     <p className={styles.desc}>
-                      Nie przyjmuję nadmiaru zleceń – dzięki temu mogę zaoferować <strong>krótkie terminy realizacji</strong> i pełne 
-                      zaangażowanie. Każdy projekt traktuję kompleksowo – łącząc dostępność WCAG z optymalizacją SEO, 
-                      co zapewnia nie tylko zgodność z przepisami, ale również lepszą widoczność w wyszukiwarkach.
+          
                     </p>
                   </div>
                 </AnimatedReveal>

@@ -193,25 +193,18 @@ export const Offer = () => {
           const cardColor = colors[idx % colors.length];
           
           return (
-            <AnimatedReveal 
-              key={card.id} 
-              direction="right" 
-              delay={0.3 + (idx * 0.15)} 
-              distance={60}
-            >
-              <div className={styles.cardItem}>
-                <OfferCard
-                  title={card.title}
-                  description={card.description}
-                  price={card.price}
-                  features={card.features}
-                  buttonText={card.buttonText}
-                  emailSubject={card.emailSubject}
-                  emailBody={card.emailBody}
-                  color={cardColor}
-                />
-              </div>
-            </AnimatedReveal>
+            <div key={card.id} className={styles.cardItem}>
+              <OfferCard
+                title={card.title}
+                description={card.description}
+                price={card.price}
+                features={card.features}
+                buttonText={card.buttonText}
+                emailSubject={card.emailSubject}
+                emailBody={card.emailBody}
+                color={cardColor}
+              />
+            </div>
           );
         })}
       </div>

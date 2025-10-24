@@ -8,12 +8,12 @@ type ThemeSwitcherProps = {
 }
 
 export const ThemeSwitcher = ({ }: ThemeSwitcherProps) => {
-  const [theme, setTheme] = useState('light')
+  const [theme, setTheme] = useState('dark')
 
   useEffect(() => {
     // Ładowanie zapisanego theme z localStorage
     const savedTheme = localStorage.getItem('theme')
-    const initialTheme = savedTheme || document.documentElement.getAttribute('data-theme') || 'light'
+    const initialTheme = savedTheme || document.documentElement.getAttribute('data-theme') || 'dark'
     
     document.documentElement.setAttribute('data-theme', initialTheme)
     setTheme(initialTheme)

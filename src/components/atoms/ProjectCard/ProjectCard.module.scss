@@ -89,13 +89,18 @@
 
 .technology {
   font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.5rem 1rem;
   background-color: var(--accent);
   color: var(--black);
   border: 1px solid var(--black);
-  border-radius: 0;
+  border-radius: 9999px; /* ładne, pełne zaokrąglenie */
   font-weight: var(--font-weight-medium);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
+
 
 @media (max-width: 768px) {
   .card:hover {
