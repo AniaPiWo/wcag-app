@@ -75,6 +75,7 @@ export const Footer = () => {
         <div className={styles.footerLinks}>
           <button className={styles.contactBtn} onClick={handleContactClick}>Kontakt</button>
           <Link href="/terms-of-use" className={styles.footerLink}>Regulamin</Link>
+          <Link href="/privacy-policy" className={styles.footerLink}>Polityka prywatności</Link>
           <button className={styles.cookieSettings} onClick={modifyCookies}>Zarządzaj ustawieniami cookies</button>
         </div>
         </div>

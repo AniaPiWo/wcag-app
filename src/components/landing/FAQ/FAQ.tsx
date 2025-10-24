@@ -54,8 +54,8 @@ export const FAQ = () => {
     }, */
     {
       "id": "faq-4",
-      "question": "Gdzie mogę zapoznać się z cennikiem?",
-      "answer": "Wyceny dokonuję indywidualnie – zależy ona od zakresu prac, poziomu skomplikowania strony i rodzaju zastosowanych technologii. Cena korekty dostępności zaczyna się od 500 zł netto. Jeśli wcześniej zamówisz audyt, jego koszt zostanie odjęty od finalnej wyceny wdrożenia."
+      "question": "Dlaczego warto zadbać o zgodność z WCAG?",
+      "answer": "Dostępna strona to większy zasięg – docierasz do dodatkowych 5 milionów Polaków z niepełnosprawnościami. To także lepsze pozycjonowanie w Google, bo wyszukiwarki preferują strony zgodne ze standardami dostępności. Zyskujesz wyższe wskaźniki konwersji dzięki lepszemu UX dla wszystkich użytkowników, nie tylko osób z niepełnosprawnościami. Budujesz pozytywny wizerunek marki odpowiedzialnej społecznie i unikasz kar finansowych – nawet do 10% rocznego obrotu. Zgodność z WCAG to inwestycja, która się zwraca."
     }
   
   ];
