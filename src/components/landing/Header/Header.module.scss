@@ -33,7 +33,7 @@
   color: #0a0a0a;
   border-bottom: 1px solid #e0e0e0;
   
-  .navLink, .logo, .mobilebutton {
+  .navLink, .contactBtn, .logo, .mobilebutton {
     color: #0a0a0a;
   }
   
@@ -45,9 +45,10 @@
     background-color: #ffffff;
     color: #0a0a0a;
     border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   }
   
-  .mobileNavLink {
+  .mobileNavLink, .mobileContactBtn {
     color: #0a0a0a;
   }
 }
@@ -58,7 +59,7 @@
   color: #0a0a0a;
   border-bottom: 1px solid #e0e0e0;
   
-  .navLink, .logoLink, .mobilebutton {
+  .navLink, .contactBtn, .logoLink, .mobilebutton {
     color: #0a0a0a;
   }
   
@@ -70,9 +71,10 @@
     background-color: #ffffff;
     color: #0a0a0a;
     border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   }
   
-  .mobileNavLink {
+  .mobileNavLink, .mobileContactBtn {
     color: #0a0a0a;
   }
 }
@@ -123,7 +125,7 @@
   transform: translateX(100%);
   transition: transform 0.3s ease-in-out, background-color 0.1s, color 0.1s;
   visibility: visible;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .menuOpen {

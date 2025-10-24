@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import styles from './Header.module.scss'
 import { ThemeSwitcher } from '@/components/atoms/ThemeSwitcher/ThemeSwitcher'
 import { Logo } from '@/components/Logo/Logo'
@@ -10,6 +10,8 @@ export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [currentTheme, setCurrentTheme] = useState('')
   const [activeSection, setActiveSection] = useState('')
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const mobileButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const header = document.querySelector('header')
@@ -18,7 +20,7 @@ export const Header = () => {
     }
     
     // Get initial theme
-    const initialTheme = document.documentElement.getAttribute('data-theme') || 'light'
+    const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark'
     setCurrentTheme(initialTheme)
 
     const handleResize = () => {
@@ -81,6 +83,29 @@ export const Header = () => {
       observer.disconnect()
     }
   }, [headerHeight])
+
+  // Zamykanie menu po kliknięciu poza nim
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isMobileMenuOpen &&
+        mobileMenuRef.current &&
+        mobileButtonRef.current &&
+        !mobileMenuRef.current.contains(event.target as Node) &&
+        !mobileButtonRef.current.contains(event.target as Node)
+      ) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isMobileMenuOpen])
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen((prev) => !prev)
@@ -176,10 +201,11 @@ export const Header = () => {
         </div>
 
         <div className={styles.menuMobile}>
-          <button className={styles.mobilebutton} onClick={toggleMobileMenu}>
+          <button ref={mobileButtonRef} className={styles.mobilebutton} onClick={toggleMobileMenu}>
             {isMobileMenuOpen ? 'Zamknij' : 'Menu'}
           </button>
           <div
+            ref={mobileMenuRef}
             className={`${styles.mobileMenuContent} ${
               isMobileMenuOpen ? styles.menuOpen : ''
             }`}
