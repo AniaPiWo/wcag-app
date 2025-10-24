@@ -37,7 +37,7 @@ export const projects = [
   },
   {
     id: '4',
-    image: '/images/wcag.jpg',
+    image: '/images/wcag.png',
     title: 'wcag.co',
     imageAlt: 'Strona główna portalu wcag.co z nowoczesnym designem i czytelną nawigacją',
     description: 'To ta strona – mój najnowszy projekt 🙂 Przejrzysta, estetyczna i w pełni dostępna strona główna, pod którą kryje się narzędzie do automatycznego wykrywania niezgodności z wytycznymi dostępności cyfrowej. Umożliwia przetestowanie dowolnej domeny i otrzymanie szczegółowego raportu na wskazany adres e-mail. Wyniki audytu są interpretowane przez podłączoną AI, która przekształca je w zrozumiały i praktyczny raport wysyłany bezpośrednio do użytkownika.',
