@@ -235,6 +235,14 @@ padding: 0.5rem 1rem;
     justify-content: center;
     gap: 0.5rem;
     transition: all 0.3s ease;
+    background: none;
+    border: none;
+    color: var(--foreground);
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     
     &:hover {
       transform: translateY(-2px);
