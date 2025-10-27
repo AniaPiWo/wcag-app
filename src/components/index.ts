@@ -20,3 +20,5 @@ export { ThemeSwitcher } from './atoms/ThemeSwitcher/ThemeSwitcher';
 export { AdminHeader } from './landing/Header/AdminHeader';
 export type { AuditItem, AuditResponse } from './AuditForm/AuditForm';
 export { ManualAuditForm } from './ManualAuditForm/ManualAuditForm';
+export { LazyAnimatedReveal } from './atoms/AnimatedReveal/LazyAnimatedReveal';
+export { AnimatedReveal } from './atoms/AnimatedReveal/AnimatedReveal';

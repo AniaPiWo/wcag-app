@@ -637,6 +637,28 @@ export async function runAccessibilityAudit(url: string): Promise<{
       
       resourcesInitialized = true;
       console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Utworzono nową stronę przeglądarki`);
+      
+      // 🚀 OPTYMALIZACJA RAM: Wyłączenie obrazów, CSS i innych zasobów (-30 MB)
+      console.log(`\x1b[36m%s\x1b[0m`, `[${auditId}] Włączanie optymalizacji RAM - blokowanie zasobów...`);
+      await page.route('**/*', (route) => {
+        const resourceType = route.request().resourceType();
+        const url = route.request().url();
+        
+        // Blokuj obrazy, czcionki, style, media
+        if (
+          resourceType === 'image' ||
+          resourceType === 'stylesheet' ||
+          resourceType === 'font' ||
+          resourceType === 'media' ||
+          url.match(/\.(png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|eot|mp4|mp3|wav|css)$/i)
+        ) {
+          route.abort();
+        } else {
+          route.continue();
+        }
+      });
+      console.log(`\x1b[32m%s\x1b[0m`, `[${auditId}] Optymalizacja RAM włączona - obrazy i CSS zablokowane`);
+      
     } catch (error) {
       console.error(`\x1b[31m%s\x1b[0m`, `[${auditId}] Błąd podczas tworzenia strony:`, error);
       throw new Error(`Nie udało się utworzyć strony: ${error instanceof Error ? error.message : String(error)}`);
@@ -1139,6 +1161,7 @@ export async function runAccessibilityAudit(url: string): Promise<{
       if (browser) {
         await safeClose(browser, 'przeglądarka');
       }
+      
     } catch (finallyError) {
       console.error('\x1b[31m%s\x1b[0m', 'Błąd podczas procedury zamykania zasobów:', 
         finallyError instanceof Error ? finallyError.message : String(finallyError));
