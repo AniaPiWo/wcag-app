@@ -209,7 +209,7 @@ const PrivacyPolicy = () => {
           <p className={styles.paragraph}>
             Zastrzegamy sobie prawo do wprowadzania zmian w niniejszej Polityce Prywatności. O wszelkich zmianach 
             będziemy informować użytkowników poprzez umieszczenie informacji na stronie głównej serwisu oraz aktualizację 
-            daty "Ostatnia aktualizacja" na górze dokumentu.
+            daty Ostatnia aktualizacja na górze dokumentu.
           </p>
         </section>
 
