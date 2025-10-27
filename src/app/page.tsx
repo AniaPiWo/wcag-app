@@ -1,24 +1,6 @@
 import type { Metadata } from "next";
-import dynamic from 'next/dynamic';
 import styles from "./page.module.scss";
-import { Hero, Form, WhyWorth } from "../components/index";
-
-// Lazy load komponentów poniżej fold (below the fold)
-const Offer = dynamic(() => import("../components/index").then(mod => ({ default: mod.Offer })), {
-  loading: () => <div style={{ minHeight: '400px' }} />
-});
-const AboutMe = dynamic(() => import("../components/index").then(mod => ({ default: mod.AboutMe })), {
-  loading: () => <div style={{ minHeight: '400px' }} />
-});
-const MyProjects = dynamic(() => import("../components/index").then(mod => ({ default: mod.MyProjects })), {
-  loading: () => <div style={{ minHeight: '500px' }} />
-});
-const FAQ = dynamic(() => import("../components/index").then(mod => ({ default: mod.FAQ })), {
-  loading: () => <div style={{ minHeight: '400px' }} />
-});
-const GoToForm = dynamic(() => import("../components/index").then(mod => ({ default: mod.GoToForm })), {
-  loading: () => <div style={{ minHeight: '200px' }} />
-});
+import { Hero, Offer, Form, AboutMe, GoToForm, FAQ, MyProjects, WhyWorth } from "../components/index";
 
 export const metadata: Metadata = {
   title: "Audyt i wdrożenie dostępności cyfrowej WCAG 2.2 | Profesjonalne usługi",

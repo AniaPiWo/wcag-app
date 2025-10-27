@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auditService } from '@/lib/db/audit-service';
 import { queueAudit } from '../audit/queue';
 import type { AxeViolation, AuditSummary } from '../audit/types';
-import { MemoryMonitor } from '@/lib/monitoring/memory-monitor';
 
 // Importujemy funkcję runAccessibilityAudit bezpośrednio z pliku
 import { runAccessibilityAudit } from '../audit/route';
@@ -34,11 +33,6 @@ export async function POST(request: NextRequest) {
     // Dodanie do kolejki bez blokowania odpowiedzi HTTP
     // Używamy setTimeout, aby uruchomić proces w tle
     setTimeout(() => {
-      // Rozpocznij monitorowanie pamięci
-      const monitor = new MemoryMonitor();
-      monitor.start();
-      console.log(`[RAM Monitor] Rozpoczęto monitorowanie dla audytu ${auditRequest.id}`);
-      
       auditService.updateAuditRequestStatus(auditRequest.id, 'Audyt w toku', '', 'in-progress')
         .then(() => {
           queueAudit(url, runAccessibilityAudit)
@@ -54,17 +48,6 @@ export async function POST(request: NextRequest) {
                     auditResults.summary
                   ).catch(aiError => {
                     console.error('Błąd analizy AI:', aiError);
-                  }).finally(() => {
-                    // Zatrzymaj monitorowanie i zapisz raport
-                    const report = monitor.stop();
-                    if (report) {
-                      console.log(`[RAM Monitor] Audyt ${auditRequest.id} zakończony:`);
-                      console.log(MemoryMonitor.formatReport(report));
-                      
-                      // Zapisz raport do pliku
-                      MemoryMonitor.saveReport(report, `audit-${auditRequest.id}-${Date.now()}.json`)
-                        .catch(err => console.error('Błąd zapisywania raportu RAM:', err));
-                    }
                   });
                 })
                 .catch(saveError => {

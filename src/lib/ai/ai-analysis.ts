@@ -68,7 +68,7 @@ export async function analyzeAccessibilityResults(
     occurrences: v.nodes?.length || 0
   }))
   
-  //console.log("\x1b[33m%s\x1b[0m", "compactViolations ====>", compactViolations);
+  console.log("\x1b[33m%s\x1b[0m", "compactViolations ====>", compactViolations);
 
     const prompt = `
 Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej i przygotuj raport w całości jedynie w JĘZYKU POLSKIM.
@@ -78,13 +78,14 @@ Jeśli nie wykryto żadnych naruszeń:
 Warto jednak pamiętać, że automat też może coś przeoczyć. Jeśli chcesz mieć pełną pewność, mogę przeprowadzić manualny test z wykorzystaniem profesjonalnych narzędzi.”
 
 Jeśli wykryto naruszenia:
-Na podstawie poniższych danych o wykrytych naruszeniach dostępności: 
+Użyj poniższych danych jako danych wejściowych:
 ${JSON.stringify(compactViolations, null, 2)}
-Napisz krótkie podsumowanie po polsku (4–5 zdań), które:
-- Ogólnie opisuje charakter problemów i trudności, jakie mogą sprawiać użytkownikom strony lub serwisu,
-- NIE ZAWIERA fragmentów kodu, znaczników HTML ani dokładnych lokalizacji błędów,
-- Wymienia elementy strony wymagające dodatkowego audytu manualnego,
-- Na końcu dodaje jedno krótkie, nienachalne zdanie zachęcające do skorzystania z pełnego audytu manualnego, który dostarczy szczegółowy raport z instrukcją naprawy.
+Nie dodawaj tytułu (tytuł maila jest już podany wcześniej).
+Napisz krótkie podsumowanie po polsku (4–5 zdań), opisujące ogólnie wykryte błędy w dostępności.
+Nie pokazuj fragmentów kodu, znaczników HTML ani dokładnych lokalizacji błędów.
+Skup się na ogólnym charakterze problemów, bez sugerowania gotowych rozwiązań.
+Wymień, które elementy strony wymagają dodatkowego audytu manualnego.
+Na końcu dodaj krótkie, nienachalne zdanie zachęcające do zakupu pełnego audytu manualnego, po którym klient otrzyma szczegółowy raport z instrukcją naprawy.
 
 `;
 
@@ -96,20 +97,6 @@ PROMPT vol 1
  - nie używaj ozdobników **
  - nienachalnie zachęć do zakupu dokładniejszego testu manualnego, po którym zostanie przesłany raport z pełnymi informacjami o błedach oraz instrukcją naprawy.
 - opisz krótko PO POLSKU zaliczone reguły w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj fragmentów kodu ani znaczników HTML, */
-
-/*
-PROMPT vol 2
-
-Jeśli wykryto naruszenia:
-Użyj poniższych danych jako danych wejściowych:
-${JSON.stringify(compactViolations, null, 2)}
-Nie dodawaj tytułu (tytuł maila jest już podany wcześniej).
-Napisz krótkie podsumowanie po polsku (4–5 zdań), opisujące ogólnie wykryte błędy w dostępności, NIGDY NIE DAWAJ w podsumowaniu fragmentów kodu, znaczników HTML ani dokładnych lokalizacji błędów.
-Skup się na ogólnym charakterze problemów, bez sugerowania gotowych rozwiązań.
-Wymień, które elementy strony wymagają dodatkowego audytu manualnego.
-Na końcu dodaj krótkie, nienachalne zdanie zachęcające do zakupu pełnego audytu manualnego, po którym klient otrzyma szczegółowy raport z instrukcją naprawy.
-
-*/
     
     try {
       const messages = [
