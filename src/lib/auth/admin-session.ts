@@ -8,17 +8,29 @@ const SESSION_TIMEOUT = 60 * 60 * 2; // 2h w sekundach
 function getJwtSecret(): string {
   const secret = process.env.SESSION_SECRET;
   
-  // W środowisku produkcyjnym wymagamy silnego sekretu
-  if (process.env.NODE_ENV === 'production') {
-    if (!secret || secret.length < 32) {
-      console.error('\x1b[31m⚠️ [Security Warning] SESSION_SECRET powinien być ustawiony w produkcji i mieć co najmniej 32 znaki\x1b[0m');
-    }
+  // KRYTYCZNE: SESSION_SECRET jest wymagany w każdym środowisku
+  if (!secret) {
+    throw new Error(
+      'SESSION_SECRET jest wymagany! Ustaw go w pliku .env\n' +
+      'Wygeneruj: openssl rand -base64 32'
+    );
   }
   
-  // W środowisku deweloperskim ostrzegamy, ale pozwalamy na użycie domyślnego sekretu
-  if (!secret) {
-    console.warn('\x1b[33m⚠️ [Security Warning] Używanie domyślnego sekretu JWT. To jest niebezpieczne w produkcji!\x1b[0m');
-    return 'dev-secret';
+  // Walidacja długości - minimum 32 znaki
+  if (secret.length < 32) {
+    throw new Error(
+      `SESSION_SECRET jest za krótki (${secret.length} znaków). Wymagane minimum: 32 znaki\n` +
+      'Wygeneruj nowy: openssl rand -base64 32'
+    );
+  }
+  
+  // Blokada domyślnych/słabych wartości
+  const weakSecrets = ['dev-secret', 'secret', 'test', 'example', 'changeme', 'password'];
+  if (weakSecrets.some(weak => secret.toLowerCase().includes(weak))) {
+    throw new Error(
+      'SESSION_SECRET nie może zawierać słabych wartości (dev-secret, test, example, etc.)\n' +
+      'Wygeneruj silny sekret: openssl rand -base64 32'
+    );
   }
   
   return secret;

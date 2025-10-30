@@ -1,6 +1,32 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import styles from "./page.module.scss";
-import { Hero, Offer, Form, AboutMe, GoToForm, FAQ, MyProjects, WhyWorth } from "../components/index";
+import { Hero, Form } from "../components/index";
+
+// Lazy load komponentów poniżej fold dla lepszej wydajności
+const WhyWorth = dynamic(() => import("../components/index").then(mod => ({ default: mod.WhyWorth })), {
+  loading: () => <div style={{ minHeight: '400px' }} />,
+});
+
+const Offer = dynamic(() => import("../components/index").then(mod => ({ default: mod.Offer })), {
+  loading: () => <div style={{ minHeight: '500px' }} />,
+});
+
+const AboutMe = dynamic(() => import("../components/index").then(mod => ({ default: mod.AboutMe })), {
+  loading: () => <div style={{ minHeight: '400px' }} />,
+});
+
+const MyProjects = dynamic(() => import("../components/index").then(mod => ({ default: mod.MyProjects })), {
+  loading: () => <div style={{ minHeight: '600px' }} />,
+});
+
+const FAQ = dynamic(() => import("../components/index").then(mod => ({ default: mod.FAQ })), {
+  loading: () => <div style={{ minHeight: '500px' }} />,
+});
+
+const GoToForm = dynamic(() => import("../components/index").then(mod => ({ default: mod.GoToForm })), {
+  loading: () => <div style={{ minHeight: '200px' }} />,
+});
 
 export const metadata: Metadata = {
   title: "Audyt i wdrożenie dostępności cyfrowej WCAG 2.2 | Profesjonalne usługi",
