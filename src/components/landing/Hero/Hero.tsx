@@ -27,8 +27,8 @@ export const Hero = () => {
       window.removeEventListener('touchstart', loadThreads);
     };
 
-    // Ładuj po pierwszej interakcji ALBO po 2 sekundach
-    const timer = setTimeout(() => setShowThreads(true), 2000);
+    // Ładuj po pierwszej interakcji ALBO po 100ms
+    const timer = setTimeout(() => setShowThreads(true), 100);
     
     window.addEventListener('scroll', loadThreads, { once: true, passive: true });
     window.addEventListener('mousemove', loadThreads, { once: true, passive: true });
