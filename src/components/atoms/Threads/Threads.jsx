@@ -226,4 +226,5 @@ export const Threads = ({
   return <div ref={containerRef} className="threads-container" {...rest} />;
 };
 
+export default Threads;
 
