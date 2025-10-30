@@ -9,6 +9,8 @@ const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
   display: 'swap', // Pokazuj fallback font natychmiast, potem swap
+  preload: true, // Preload font dla szybszego ładowania
+  fallback: ['system-ui', 'arial'], // Fallback fonts
 });
 
 export const metadata: Metadata = {
@@ -52,10 +54,15 @@ export default function RootLayout({
   return (
     <html lang="pl" data-theme="dark" suppressHydrationWarning>
       <head>
-          <meta
-    name="description"
-    content="Przeprowadzam profesjonalne audyty dostępności stron internetowych zgodne z WCAG 2.2. Pomagam wdrożyć rozwiązania, które zapewniają pełną dostępność i zgodność z przepisami."
-  />
+        {/* Resource hints dla lepszej wydajności */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        
+        <meta
+          name="description"
+          content="Przeprowadzam profesjonalne audyty dostępności stron internetowych zgodne z WCAG 2.2. Pomagam wdrożyć rozwiązania, które zapewniają pełną dostępność i zgodność z przepisami."
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `

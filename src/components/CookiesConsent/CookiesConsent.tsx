@@ -46,15 +46,20 @@ export const CookiesConsent: React.FC<CookiesConsentProps> = ({ fallback, onAcce
   }, [rejectAll, onAccept]);
   
   useEffect(() => {
-    // Pokaż banner tylko jeśli dane są załadowane i użytkownik nie wyraził jeszcze zgody
-    // lub jeśli forceShow jest true (wywołane z footer)
-    if (!isLoading) {
-      if (!hasConsented || forceShow) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
+    // 🚀 PERFORMANCE: Opóźnij pokazanie bannera o 200ms aby nie blokować renderowania
+    const timer = setTimeout(() => {
+      // Pokaż banner tylko jeśli dane są załadowane i użytkownik nie wyraził jeszcze zgody
+      // lub jeśli forceShow jest true (wywołane z footer)
+      if (!isLoading) {
+        if (!hasConsented || forceShow) {
+          setIsVisible(true);
+        } else {
+          setIsVisible(false);
+        }
       }
-    }
+    }, forceShow ? 0 : 200); // Bez opóźnienia gdy wywołane z footer
+    
+    return () => clearTimeout(timer);
   }, [hasConsented, isLoading, forceShow]);
   
   useEffect(() => {
