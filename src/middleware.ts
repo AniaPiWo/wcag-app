@@ -1,11 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as jose from 'jose';
+import crypto from 'crypto';
 
 // Import session constants from admin-session module
 import { SESSION_COOKIE_NAME } from '@/lib/auth/admin-session';
 
-// Pobierz sekret JWT bezpośrednio z zmiennych środowiskowych
-const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-secret';
+// Walidacja i pobranie sekretu JWT
+function getSessionSecret(): string {
+  const secret = process.env.SESSION_SECRET;
+  
+  if (!secret) {
+    throw new Error('SESSION_SECRET jest wymagany! Ustaw go w pliku .env');
+  }
+  
+  if (secret.length < 32) {
+    throw new Error(`SESSION_SECRET jest za krótki (${secret.length} znaków). Wymagane minimum: 32 znaki`);
+  }
+  
+  if (secret === 'dev-secret' || secret.includes('example')) {
+    throw new Error('SESSION_SECRET nie może być domyślną wartością');
+  }
+  
+  return secret;
+}
+
+const SESSION_SECRET = getSessionSecret();
 
 // Validate session directly in middleware to avoid import issues
 async function validateSessionInMiddleware(req: NextRequest): Promise<boolean> {
@@ -62,9 +81,17 @@ export async function middleware(req: NextRequest) {
     // Uwaga: Nawet dla API wymagamy uwierzytelniania, ale można dodać tutaj specjalną logikę
     // np. sprawdzanie tokenu API zamiast sesji
     const apiKey = req.headers.get('x-api-key');
-    if (apiKey === process.env.API_SECRET_KEY) {
-      console.log('\x1b[32m✅ [API] Uwierzytelnianie przez API Key - dozwolone\x1b[0m');
-      return NextResponse.next();
+    const expectedApiKey = process.env.API_SECRET_KEY;
+    
+    // 🔒 TIMING-SAFE COMPARISON dla API key (zapobiega timing attacks)
+    if (apiKey && expectedApiKey && apiKey.length === expectedApiKey.length) {
+      const apiKeyBuffer = Buffer.from(apiKey);
+      const expectedBuffer = Buffer.from(expectedApiKey);
+      
+      if (crypto.timingSafeEqual(apiKeyBuffer, expectedBuffer)) {
+        console.log('\x1b[32m✅ [API] Uwierzytelnianie przez API Key - dozwolone\x1b[0m');
+        return NextResponse.next();
+      }
     }
   }
   

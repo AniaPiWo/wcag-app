@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSession, SESSION_COOKIE_NAME } from '@/lib/auth/admin-session';
+import { verifyPassword } from '@/lib/auth/password';
 
 // Mapa do śledzenia prób logowania
 const loginAttempts = new Map();
@@ -27,11 +28,45 @@ export async function POST(req: NextRequest) {
     
     const { login, password } = await req.json();
     
+    // 🔒 INPUT VALIDATION
+    if (!login || !password) {
+      return NextResponse.json(
+        { success: false, error: 'Login i hasło są wymagane' },
+        { status: 400 }
+      );
+    }
+    
+    if (typeof login !== 'string' || typeof password !== 'string') {
+      return NextResponse.json(
+        { success: false, error: 'Nieprawidłowy format danych' },
+        { status: 400 }
+      );
+    }
+    
+    if (login.length > 100 || password.length > 100) {
+      return NextResponse.json(
+        { success: false, error: 'Dane wejściowe za długie' },
+        { status: 400 }
+      );
+    }
+    
     // Sprawdź dane logowania
     const adminLogin = process.env.ADMIN_LOGIN;
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
     
-    if (login === adminLogin && password === adminPassword) {
+    if (!adminPasswordHash) {
+      console.error('\x1b[31m⚠️ [Security Error] ADMIN_PASSWORD_HASH nie jest ustawiony!\x1b[0m');
+      return NextResponse.json(
+        { success: false, error: 'Błąd konfiguracji serwera' },
+        { status: 500 }
+      );
+    }
+    
+    // 🔒 TIMING-SAFE COMPARISON dla loginu + bcrypt dla hasła
+    const isValidLogin = login === adminLogin;
+    const isValidPassword = isValidLogin ? await verifyPassword(password, adminPasswordHash) : false;
+    
+    if (isValidLogin && isValidPassword) {
       // Utwórz token sesji
       const sessionId = await createSession();
       
