@@ -8,6 +8,7 @@ import "./globals.scss";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: 'swap', // Pokazuj fallback font natychmiast, potem swap
 });
 
 export const metadata: Metadata = {
