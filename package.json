@@ -34,7 +34,6 @@
     "openai": "^5.0.1",
     "playwright": "^1.54.1",
     "prisma": "^6.8.2",
-    "puppeteer": "^24.9.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.59.0",
