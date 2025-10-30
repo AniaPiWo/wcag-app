@@ -209,6 +209,11 @@
     width: 100%;
     font-size: 2.75rem;
     padding: 0.5rem;
+    
+    // 🚀 MOBILE LCP: Wyłącz animacje - natychmiastowa widoczność
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
   
   .top .desc {
@@ -222,6 +227,10 @@
     padding: 0;
     margin-bottom: 1rem;
     padding: 0.5rem;
+    
+    // 🚀 MOBILE LCP: Wyłącz animacje - natychmiastowa widoczność
+    animation: none !important;
+    transform: none !important;
   }
   
   .bottom {
