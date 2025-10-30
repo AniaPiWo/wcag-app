@@ -1,4 +1,4 @@
-import { ManualAuditForm } from '@/components';
+import { ManualAuditForm } from '@/components/ManualAuditForm/ManualAuditForm';
 import styles from "./page.module.scss"
 import { GoBackBtn } from '@/components/GoBackBtn/GoBackBtn';
 

@@ -19,4 +19,4 @@ export { AuditForm } from './AuditForm/AuditForm';
 export { ThemeSwitcher } from './atoms/ThemeSwitcher/ThemeSwitcher';
 export { AdminHeader } from './landing/Header/AdminHeader';
 export type { AuditItem, AuditResponse } from './AuditForm/AuditForm';
-export { ManualAuditForm } from './ManualAuditForm/ManualAuditForm';
+// ManualAuditForm usunięty - importuj bezpośrednio z '@/components/ManualAuditForm/ManualAuditForm'
