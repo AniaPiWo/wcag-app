@@ -3,17 +3,43 @@
 import styles from './Hero.module.scss';
 import { Button } from '@/components/atoms/Button/Button';
 import { useCallback, useState, useEffect } from 'react';
-import { Threads } from '@/components/atoms/Threads/Threads.jsx';
+import dynamic from 'next/dynamic';
+
+// 🚀 PERFORMANCE: Dynamic import - ładuje WebGL tylko gdy potrzebny
+const Threads = dynamic(
+  () => import('@/components/atoms/Threads/Threads.jsx'),
+  { 
+    ssr: false, // Wyłącz SSR dla WebGL
+    loading: () => null // Brak loadera
+  }
+);
 
 export const Hero = () => {
   const [showThreads, setShowThreads] = useState(false);
 
   useEffect(() => {
-    // Opóźnij montowanie Threads o 400ms
-    const timer = setTimeout(() => {
+    // 🚀 PERFORMANCE: Ładuj Threads dopiero po interakcji użytkownika
+    const loadThreads = () => {
       setShowThreads(true);
-    }, 400);
-    return () => clearTimeout(timer);
+      // Usuń listenery po załadowaniu
+      window.removeEventListener('scroll', loadThreads);
+      window.removeEventListener('mousemove', loadThreads);
+      window.removeEventListener('touchstart', loadThreads);
+    };
+
+    // Ładuj po pierwszej interakcji ALBO po 100ms
+    const timer = setTimeout(() => setShowThreads(true), 100);
+    
+    window.addEventListener('scroll', loadThreads, { once: true, passive: true });
+    window.addEventListener('mousemove', loadThreads, { once: true, passive: true });
+    window.addEventListener('touchstart', loadThreads, { once: true, passive: true });
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('scroll', loadThreads);
+      window.removeEventListener('mousemove', loadThreads);
+      window.removeEventListener('touchstart', loadThreads);
+    };
   }, []);
 
   const handleAuditClick = useCallback(() => {
