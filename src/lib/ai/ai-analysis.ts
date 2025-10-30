@@ -70,7 +70,35 @@ export async function analyzeAccessibilityResults(
   
   console.log("\x1b[33m%s\x1b[0m", "compactViolations ====>", compactViolations);
 
-    const prompt = `
+  const prompt = `
+Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej (WCAG) i przygotuj raport w **języku polskim**.
+
+Dane wejściowe:
+${JSON.stringify(compactViolations, null, 2)}
+
+---
+
+Jeśli nie wykryto żadnych naruszeń:
+Zwróć tylko ten komunikat (bez żadnych dopisków):
+„Automatyczna analiza nie wykryła błędów na stronie – wygląda na to, że wszystko jest gotowe na nadchodzące zmiany w prawie!
+Warto jednak pamiętać, że automat też może coś przeoczyć. Jeśli chcesz mieć pełną pewność, mogę przeprowadzić manualny test z wykorzystaniem profesjonalnych narzędzi.”
+
+---
+
+Jeśli wykryto naruszenia:
+- Nie dodawaj tytułu raportu (jest już podany w innym miejscu).
+- Styl: profesjonalny, zrozumiały, neutralny i uprzejmy.
+- Napisz krótkie podsumowanie (4–5 zdań) opisujące ogólny charakter wykrytych błędów dostępności.
+- Nie używaj języka technicznego (np. znaczników HTML, fragmentów kodu, nazw atrybutów).
+- Nie sugeruj gotowych rozwiązań technicznych.
+- Skup się na zrozumiałym opisie charakteru problemów, nie ich naprawie 
+- Na końcu dodaj nienachalną propozycję zamówienia pełnego audytu manualnego z raportem i instrukcją naprawy.
+`;
+
+
+/*    
+Prompt vol 2
+const prompt = `
 Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej i przygotuj raport w całości jedynie w JĘZYKU POLSKIM.
 
 Jeśli nie wykryto żadnych naruszeń:
@@ -87,7 +115,7 @@ Skup się na ogólnym charakterze problemów, bez sugerowania gotowych rozwiąza
 Wymień, które elementy strony wymagają dodatkowego audytu manualnego.
 Na końcu dodaj krótkie, nienachalne zdanie zachęcające do zakupu pełnego audytu manualnego, po którym klient otrzyma szczegółowy raport z instrukcją naprawy.
 
-`;
+`; */
 
 /*  
 PROMPT vol 1
