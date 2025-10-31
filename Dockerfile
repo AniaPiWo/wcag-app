@@ -20,6 +20,10 @@ RUN npm ci
 # Kopiowanie reszty aplikacji
 COPY . .
 
+# Ustawienie placeholder dla DATABASE_URL (wymagany przez Prisma podczas buildu)
+# Rzeczywisty DATABASE_URL będzie ustawiony przez Railway w runtime
+ENV DATABASE_URL="postgresql://placeholder:placeholder@placeholder:5432/placeholder?schema=public"
+
 # Budowanie aplikacji Next.js
 RUN npm run build
 
