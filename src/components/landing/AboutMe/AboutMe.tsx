@@ -41,7 +41,7 @@ export const AboutMe = () => {
                   <div className={styles.column}>
                   <p className={styles.desc}>
     Jestem <strong>certyfikowanym specjalistą dostępności cyfrowej</strong> z ponad 15-letnim doświadczeniem w branży e-commerce oraz tworzeniu serwisów internetowych.  
-    Ukończyłam państwowe, <strong>certyfikowane szkolenie z zakresu dostępności cyfrowej prowadzone przez Ministerstwo Cyfryzacji</strong>, co potwierdza moją znajomość i stosowanie standardów WCAG w praktyce. 
+    Ukończyłam <strong> państwowy kurs z zakresu dostępności cyfrowej prowadzony przez Ministerstwo Cyfryzacji</strong>, co potwierdza moją znajomość i stosowanie standardów WCAG w praktyce. 
    
   </p>
                     <p className={styles.desc}>

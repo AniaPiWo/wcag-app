@@ -68,8 +68,43 @@ export async function analyzeAccessibilityResults(
     occurrences: v.nodes?.length || 0
   }))
   
-  console.log("\x1b[33m%s\x1b[0m", "compactViolations ====>", compactViolations);
+  //console.log("\x1b[33m%s\x1b[0m", "compactViolations ====>", compactViolations);
 
+
+  const prompt = `
+Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej (WCAG) i przygotuj raport w **języku polskim**.
+
+Dane wejściowe:
+${JSON.stringify(compactViolations, null, 2)}
+
+---
+
+Jeśli nie wykryto żadnych naruszeń:
+Zwróć tylko ten komunikat (bez żadnych dopisków):
+„Automatyczna analiza nie wykryła błędów na stronie – wygląda na to, że wszystko jest w bardzo dobrej kondycji!
+Warto jednak pamiętać, że test automatyczny nie jest w stanie ocenić wszystkich aspektów dostępności — dlatego zachęcamy do wykonania manualnego audytu, który sprawdza elementy wymagające ludzkiej oceny, takie jak kontrast wizualny, kolejność nawigacji czy zrozumiałość treści.”
+
+---
+
+Jeśli wykryto naruszenia:
+- Nie dodawaj tytułu raportu (jest już podany w innym miejscu).
+- Styl: profesjonalny, zrozumiały, neutralny i uprzejmy.
+- Napisz krótkie podsumowanie (2-3 zdań) ogólnie opisujące charakter wykrytych błędów dostępności, bez szczegółów technicznych.
+- Nie wymieniaj konkretnych nazw atrybutów, selektorów ani kodu.
+- Nie proponuj gotowych rozwiązań.
+- Zaznacz, że automatyczny audyt ma ograniczenia i nie obejmuje wszystkich aspektów dostępności.
+- Na końcu dodaj sekcję:
+  „Elementy wymagające audytu manualnego:”
+  - Wypisz w punktach (krótkimi opisami) elementy oznaczone jako wymagające audytu manualnego, np.:
+    - „Sprawdzenie poprawności alternatywnych opisów obrazów”
+    - „Ocena kolejności fokusu klawiatury”
+    - „Weryfikacja kontrastu tekstu względem tła”
+- Zakończ delikatnym zaproszeniem do zamówienia pełnego audytu manualnego, np.:
+  „Pełny audyt manualny pozwoli dokładnie zidentyfikować problemy, których automaty nie są w stanie wykryć, oraz przygotować instrukcje naprawy dopasowane do Twojej strony.”
+
+`;
+
+  /* prompt vol 3
   const prompt = `
 Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej (WCAG) i przygotuj raport w **języku polskim**.
 
@@ -94,7 +129,7 @@ Jeśli wykryto naruszenia:
 - Skup się na zrozumiałym opisie charakteru problemów, nie ich naprawie 
 - Na końcu dodaj nienachalną propozycję zamówienia pełnego audytu manualnego z raportem i instrukcją naprawy.
 `;
-
+*/
 
 /*    
 Prompt vol 2
