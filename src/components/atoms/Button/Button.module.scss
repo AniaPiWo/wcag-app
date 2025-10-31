@@ -1,9 +1,9 @@
 .button {
   font-weight: 700;
   font-size: 0.875rem; /* 14px */
-  min-width: 8rem; /* ~103px */
-  min-height: 3rem; /* 48px - Extra safe for WCAG touch target (exceeds 44px minimum) */
-  padding: 0.875rem 1.5rem; /* 14px 24px - zwiększony padding dla touch target */
+  min-width: 44px; /* WCAG 2.5.8 minimum */
+  min-height: 44px; /* WCAG 2.5.8 minimum */
+  padding: 0.875rem 1.5rem; /* 14px 24px */
   line-height: 1.25rem; /* 20px */
   display: flex;
   align-items: center;
@@ -20,13 +20,12 @@
   transform: translate(-0.15rem, -0.15rem);
   margin: 0.5rem 0.5rem 1rem 0;
   font-family: inherit;
-  box-sizing: border-box; /* Ensure border is included in min-height */
+  box-sizing: border-box;
   
   &:hover {
     transform: translate(0, 0);
     box-shadow: 0 0 0 var(--button-shadow);
   }
-  
   
   @media (prefers-reduced-motion: reduce) {
     transition: none;

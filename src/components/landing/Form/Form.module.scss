@@ -102,7 +102,14 @@
   gap: 0.5rem;
   width: 100%;
   position: relative;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem; /* Zwiększony odstęp między polami dla WCAG 2.5.8 */
+}
+
+/* WCAG 2.5.8 - Touch target size dla wszystkich interaktywnych elementów */
+.inputWrapper input,
+.inputWrapper button {
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .label {
@@ -114,26 +121,27 @@
 }
 
 .input {
-  border-radius: 0.243rem;
+  border-radius: 0.5rem;
   width: 100%;
   outline: 0.0625rem solid #bebebe;
-  border: none;
-  display: block; /* Changed from flex - inputs should be block */
-  padding: 0.875rem 1.457rem; /* 14px vertical padding for better touch target */
-  min-height: 3rem; /* 48px - Extra safe for WCAG touch target (exceeds 44px minimum) */
-  height: 3rem; /* Force exact height */
-  box-sizing: border-box; /* Ensure padding is included in height */
+  border: 1px solid #ddd;
+  display: block;
+  padding: 0.875rem 1.457rem;
+  min-height: 44px; /* WCAG 2.5.8 minimum */
+  box-sizing: border-box;
   background-color: var(--form-bg-color);
   color: white;
   z-index: 1;
   position: relative;
-  font-size: 1rem; /* 16px - prevents zoom on mobile */
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: 1.4;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .input:focus {
-  outline: 0.0625rem solid white;
-    background-color: var(--form-bg-color);
+  outline: 3px solid white;
+  outline-offset: 2px;
+  background-color: var(--form-bg-color);
 }
 
 .inputError {
@@ -281,7 +289,20 @@
 }
 
 @media (max-width: 768px) {
-
+  /* WCAG 2.5.8 - Większe touch targets na mobile */
+  .inputWrapper input,
+  .inputWrapper button {
+    min-height: 48px;
+  }
+  
+  .inputWrapper {
+    margin-bottom: 0.75rem; /* Mniejsze odstępy na mobile */
+  }
+  
+  .input {
+    padding: 1rem 1.457rem; /* Większy padding pionowy na mobile */
+    font-size: 1.125rem; /* 18px - większa czcionka na mobile */
+  }
 
   .wrapper {
     gap: 0;
