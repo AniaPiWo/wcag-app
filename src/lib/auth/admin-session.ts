@@ -36,13 +36,20 @@ function getJwtSecret(): string {
   return secret;
 }
 
-const SESSION_SECRET = getJwtSecret();
+// Lazy initialization - pobierz sekret tylko gdy jest potrzebny (runtime, nie build time)
+let SESSION_SECRET: string | null = null;
+function getSessionSecret(): string {
+  if (!SESSION_SECRET) {
+    SESSION_SECRET = getJwtSecret();
+  }
+  return SESSION_SECRET;
+}
 
 export async function createSession(payload: object = {}): Promise<string> {
   console.log('\x1b[32m🔑 [Session] Tworzenie nowej sesji administratora\x1b[0m');
   
   // Convert secret to Uint8Array for jose
-  const secretKey = new TextEncoder().encode(SESSION_SECRET);
+  const secretKey = new TextEncoder().encode(getSessionSecret());
   
   // Create JWT token with jose
   const token = await new jose.SignJWT({ ...payload })
@@ -61,7 +68,7 @@ export async function validateSession(): Promise<boolean> {
   
   try {
     // Convert secret to Uint8Array for jose
-    const secretKey = new TextEncoder().encode(SESSION_SECRET);
+    const secretKey = new TextEncoder().encode(getSessionSecret());
     
     // Verify token using jose
     await jose.jwtVerify(token, secretKey);
