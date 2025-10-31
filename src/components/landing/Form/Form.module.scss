@@ -119,14 +119,15 @@
   outline: 0.0625rem solid #bebebe;
   border: none;
   display: flex;
-  padding: 0.971rem 1.457rem;
+  padding: 0.75rem 1.457rem; /* Min 12px (0.75rem) padding dla touch target 44px */
+  min-height: 2.75rem; /* 44px - WCAG touch target minimum */
   align-items: center;
   gap: 0.607rem;
   align-self: stretch;
   background-color: var(--form-bg-color);
   color: white;
-z-index: 1;
-position: relative;
+  z-index: 1;
+  position: relative;
 }
 
 .input:focus {

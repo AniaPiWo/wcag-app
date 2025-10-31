@@ -169,7 +169,7 @@ export const Header = () => {
         <Logo ariaLabel="WCAG by Ania - strona główna" className={styles.logoLink} onClick={scrollToTop} />
 
         <div id="menu_glowne" className={styles.menuDesktop}>
-          <nav className={styles.navigation}>
+          <nav className={styles.navigation} aria-label="Menu główne">
             <ul className={styles.navList}>
               <li className={styles.navItem}>
                 <a href="#form" className={`${styles.navLink} ${activeSection === 'form' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'form')}>Bezpłatny audyt</a>
@@ -210,7 +210,7 @@ export const Header = () => {
               isMobileMenuOpen ? styles.menuOpen : ''
             }`}
           >
-            <nav className={styles.mobileNavigation}>
+            <nav className={styles.mobileNavigation} aria-label="Menu mobilne">
               <ul className={styles.mobileNavList}>
                 <li className={styles.mobileNavItem}>
                   <a href="#form" className={`${styles.mobileNavLink} ${activeSection === 'form' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'form')}>Bezpłatny audyt</a>

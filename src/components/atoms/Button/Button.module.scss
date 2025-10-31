@@ -2,7 +2,8 @@
   font-weight: 700;
   font-size: 0.875rem; /* 14px */
   min-width: 8rem; /* ~103px */
-  padding: 0.625rem 1.5rem; /* 10px 24px */
+  min-height: 2.75rem; /* 44px - WCAG touch target minimum */
+  padding: 0.75rem 1.5rem; /* 12px 24px - zwiększony padding dla touch target */
   line-height: 1.25rem; /* 20px */
   display: flex;
   align-items: center;
@@ -33,7 +34,8 @@
 
 .primary {
   background: var(--accent); /* Fixed accent color */
-  color: #000000;
+  color: #000000; /* Kontrast 19.56:1 z #CFFF85 - WCAG AAA */
+  font-weight: 700; /* Pogrubienie dla lepszej czytelności */
 }
 
 .secondary {
