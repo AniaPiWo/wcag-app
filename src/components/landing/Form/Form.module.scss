@@ -123,8 +123,8 @@
 .input {
   border-radius: 0.5rem;
   width: 100%;
-  outline: 0.0625rem solid #bebebe;
-  border: 1px solid #ddd;
+  outline: none;
+  border: 2px solid #bebebe;
   display: block;
   padding: 0.875rem 1.457rem;
   min-height: 44px; /* WCAG 2.5.8 minimum */
@@ -139,8 +139,8 @@
 }
 
 .input:focus {
-  outline: 3px solid white;
-  outline-offset: 2px;
+  outline: none;
+  border: 2px solid white;
   background-color: var(--form-bg-color);
 }
 
@@ -296,7 +296,7 @@
   }
   
   .inputWrapper {
-    margin-bottom: 0.75rem; /* Mniejsze odstępy na mobile */
+    margin-bottom: 1.25rem; /* 20px - zgodne z WCAG 2.5.8 spacing */
   }
   
   .input {

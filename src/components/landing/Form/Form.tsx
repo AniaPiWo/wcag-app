@@ -347,13 +347,12 @@ export const Form = () => {
           <AnimatedReveal direction="up" delay={0.2}>
             <div className={styles.text}>
               <h2 className={styles.title}>
-                Wykonaj bezpłatny audyt dostępności Twojej strony
+                Zrób pierwszy krok w kierunku zgodności z WCAG 2.2
               </h2>
               <p className={styles.desc}>
-                Sprawdź, czy Twoja strona jest zgodna z standardami dostępności WCAG 2.2. <br/>
-                Audyt jest automatyczny i w ciągu kilku minut otrzymasz raport na podany adres e-mail.
+              Automatyczny audyt przeanalizuje kluczowe obszary dostępności i wskaże elementy wymagające poprawy. <br/>
+              Wyniki otrzymasz w ciągu kilku minut na podany adres e-mail.
               </p>
-              <p>Audyt może chwilkę potrwać, nie odświeżaj strony.</p>
             </div>
           </AnimatedReveal>
           
