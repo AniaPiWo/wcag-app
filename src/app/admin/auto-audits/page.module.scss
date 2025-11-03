@@ -57,9 +57,9 @@
   gap: 0.5rem;
   margin: 4rem auto;
   padding: 2rem;
-  border: 3px solid #000;
-  box-shadow: 6px 6px 0 #000;
-  background-color: #fff;
+  border: 3px solid var(--foreground);
+  box-shadow: 6px 6px 0 var(--foreground);
+  background-color: var(--background);
 }
 
 .notAuthenticated {
@@ -223,8 +223,12 @@
   cursor: pointer;
   
   &:nth-child(odd) {
-    background-color: #f9f9f9;
+    background-color: rgba(0, 0, 0, 0.03);
   }
+}
+
+html[data-theme="dark"] .auditRow:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.05);
   
   &:not(:last-child) td {
     border-bottom: 1px solid #ddd;
@@ -382,7 +386,9 @@
 
 .searchInput {
   padding: 0.75rem 1rem;
-  border: 2px solid #000;
+  border: 2px solid var(--foreground);
+  background-color: var(--background);
+  color: var(--foreground);
   width: 100%;
   font-size: 1rem;
   outline: none;
@@ -391,8 +397,8 @@
 }
 
 .createManualAuditButton {
-  background-color: #000;
-  color: white;
+  background-color: var(--foreground);
+  color: var(--background);
   border: none;
   font-size: 1.5rem;
   padding: 0.5rem 1rem;
