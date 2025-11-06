@@ -10,8 +10,8 @@ export default function CertPage() {
   const certificates = [
 
     'certyfikat_wcag1.jpg',
-    'certyfikat_wcag2.jpg',
     'certyfikat_wcag3.jpg',
+    'certyfikat_wcag2.jpg',
     'certyfikat_wcag4.jpg',
     'certyfikat_wcag5.jpg',
     'certyfikat_wcag6.jpg',

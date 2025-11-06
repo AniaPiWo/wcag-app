@@ -1,6 +1,6 @@
 .page {
   min-height: 75dvh;
-  padding: 4rem 1rem;
+  padding: 2rem 1rem;
   background-color: var(--background, #ffffff);
   color: var(--foreground, #000000);
 }
@@ -12,7 +12,6 @@
 
 .title {
   font-size: 3rem;
-  font-weight: var(--font-weight-bold);
   text-align: center;
   margin-bottom: 2rem;
   color: var(--foreground);
@@ -32,19 +31,21 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr); /* 2 kolumny na desktop */
   gap: 2rem;
-  margin-top: 3rem;
+  margin-top: 2rem;
 }
 
 .certificate {
-  min-height:800px;
   overflow: hidden;
   background: var(--background);
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.15);
+
 }
 
 .certificateImage {
   width: 100%;
   height: auto;
   display: block;
+  object-fit: contain; /* Dopasowanie obrazu do kontenera */
 }
 
 .pdfFrame {
@@ -59,15 +60,13 @@
 @media (max-width: 768px) {
   .title {
     font-size: 2rem;
+    margin-bottom: 0;
   }
   
-  .intro {
-    font-size: 1rem;
-    margin-bottom: 2rem;
-  }
-  
+
   .certificatesGrid {
     grid-template-columns: 1fr; /* 1 kolumna na mobile */
-    gap: 2rem;
+    gap: 1rem; /* Zmniejszenie przerwy na mobile */
+      margin-top: 1rem;
   }
 }
