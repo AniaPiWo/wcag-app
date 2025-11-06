@@ -193,15 +193,15 @@
   border-collapse: collapse;
   table-layout: fixed;
   width: 100%;
-  background: #fff;
+  background: var(--background);
   font-size: 0.95rem;
 }
 
 .auditHead {
-  background: var( --foreground);
+  background: var(--foreground);
   
   th {
-    color: white;
+    color: var(--background);
     padding: 1rem;
     text-align: left;
     
@@ -252,6 +252,7 @@ html[data-theme="dark"] .auditRow:nth-child(odd) {
   padding: 1rem;
   text-align: left;
   vertical-align: middle;
+  color: var(--foreground);
   
   &:first-child {
     font-weight: 500;

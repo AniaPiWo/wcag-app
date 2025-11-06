@@ -60,12 +60,18 @@ export const AboutMe = () => {
                        Skupiam się w 100% na Twoim projekcie, co oznacza 
                       bezpośredni kontakt i indywidualne podejście.
                     </p>
-                    <p className={styles.desc}>
-          
-                    </p>
+      
+                   <AnimatedReveal direction="up" delay={0.9} distance={30}>
+                <div className={styles.linkSection}>
+                  <a href="/cert" className={styles.certLink}>
+                    Zobacz moje certyfikaty
+                  </a>
+                </div>
+              </AnimatedReveal>
                   </div>
                 </AnimatedReveal>
               </div>
+     
             </div>
 
         </div>

@@ -54,6 +54,12 @@ export async function POST(req: NextRequest) {
     const adminLogin = process.env.ADMIN_LOGIN;
     const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
     
+    // DEBUG: Sprawdź co jest w zmiennych
+    console.log('🔍 [DEBUG] ADMIN_LOGIN z env:', JSON.stringify(adminLogin));
+    console.log('🔍 [DEBUG] ADMIN_PASSWORD_HASH z env:', adminPasswordHash ? `${adminPasswordHash.substring(0, 10)}...` : 'BRAK');
+    console.log('🔍 [DEBUG] Otrzymany login:', JSON.stringify(login));
+    console.log('🔍 [DEBUG] Login match:', login === adminLogin);
+    
     if (!adminPasswordHash) {
       console.error('\x1b[31m⚠️ [Security Error] ADMIN_PASSWORD_HASH nie jest ustawiony!\x1b[0m');
       return NextResponse.json(
@@ -65,6 +71,9 @@ export async function POST(req: NextRequest) {
     // 🔒 TIMING-SAFE COMPARISON dla loginu + bcrypt dla hasła
     const isValidLogin = login === adminLogin;
     const isValidPassword = isValidLogin ? await verifyPassword(password, adminPasswordHash) : false;
+    
+    console.log('🔍 [DEBUG] isValidLogin:', isValidLogin);
+    console.log('🔍 [DEBUG] isValidPassword:', isValidPassword);
     
     if (isValidLogin && isValidPassword) {
       // Utwórz token sesji

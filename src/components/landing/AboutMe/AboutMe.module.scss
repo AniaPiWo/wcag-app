@@ -116,7 +116,12 @@ margin: 0;
   line-height: 26px; /* 185.714% */
 }
 
-
+.certLink {
+  font-size: 16px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 26px; /* 185.714% */
+  text-decoration: underline;
+}
 
 .images {
   display: flex;
