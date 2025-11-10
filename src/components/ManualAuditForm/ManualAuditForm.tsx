@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
-import React, { useState, useEffect, useRef, ReactNode, useCallback } from 'react';
+import React, { useState, useEffect, useRef, ReactNode } from 'react';
 import styles from './ManualAuditForm.module.scss';
-// Dynamic imports dla lepszej wydajności - ładowanie na żądanie
-// import { auditBasic } from '@/lib/wcag_checklist/basic';
-// import { auditIntermediate } from '@/lib/wcag_checklist/intermediate';
-// import { auditAdvanced } from '@/lib/wcag_checklist/advanced';
+import { auditBasic } from '@/lib/wcag_checklist/basic';
+import { auditIntermediate } from '@/lib/wcag_checklist/intermediate';
+import { auditAdvanced } from '@/lib/wcag_checklist/advanced';
 import { Button } from '@/components';
 import { getManualAudit, updateManualAudit, updateAuditItem as updateAuditItemAction } from '@/app/actions/manual-audit';
 import ClientReadyReport from '../ClientReadyReport/ClientReadyReport';
@@ -90,19 +89,6 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
   const [advancedAduditAISummary, setAdvancedAduditAISummary] = useState<string | null>(null);
   const [consolidatedAISummary, setConsolidatedAISummary] = useState<string | null>(null);
   const [readyMadeAudit, setReadyMadeAudit] = useState<string | null>(null);
-  
-  // Dynamic WCAG checklist data
-  interface WCAGItem {
-    id: number;
-    title: string;
-    wcag: string;
-    description?: string;
-  }
-  
-  const [auditBasic, setAuditBasic] = useState<WCAGItem[]>([]);
-  const [auditIntermediate, setAuditIntermediate] = useState<WCAGItem[]>([]);
-  const [auditAdvanced, setAuditAdvanced] = useState<WCAGItem[]>([]);
-  const [isLoadingChecklists, setIsLoadingChecklists] = useState(false);
   
   // Loading states for AI summaries
   const [isLoadingBasicSummary, setIsLoadingBasicSummary] = useState(false);
@@ -214,28 +200,6 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
   });
   
   const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
-  
-  // 🚀 PERFORMANCE: Dynamic loading of WCAG checklists
-  const loadWCAGChecklists = useCallback(async () => {
-    if (auditBasic.length > 0) return; // Already loaded
-    
-    setIsLoadingChecklists(true);
-    try {
-      const [basicModule, intermediateModule, advancedModule] = await Promise.all([
-        import('@/lib/wcag_checklist/basic'),
-        import('@/lib/wcag_checklist/intermediate'),
-        import('@/lib/wcag_checklist/advanced')
-      ]);
-      
-      setAuditBasic(basicModule.auditBasic);
-      setAuditIntermediate(intermediateModule.auditIntermediate);
-      setAuditAdvanced(advancedModule.auditAdvanced);
-    } catch (error) {
-      console.error('Error loading WCAG checklists:', error);
-    } finally {
-      setIsLoadingChecklists(false);
-    }
-  }, [auditBasic.length]);
   
   /**
    * Updates a specific audit item with the given value
@@ -1025,9 +989,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
     };
     
     fetchAudit();
-    // 🚀 PERFORMANCE: Load WCAG checklists only when needed
-    loadWCAGChecklists();
-  }, [id, loadWCAGChecklists]);
+  }, [id]);
 
   const handleSave = async () => {
     if (!audit) return;
