@@ -18,7 +18,7 @@ export const Hero = () => {
   const [showThreads, setShowThreads] = useState(false);
 
   useEffect(() => {
-    // 🚀 PERFORMANCE: Ładuj Threads dopiero po interakcji użytkownika
+    // 🚀 PERFORMANCE: Ładuj Threads dopiero po interakcji użytkownika lub po 2s
     const loadThreads = () => {
       setShowThreads(true);
       // Usuń listenery po załadowaniu
@@ -27,8 +27,8 @@ export const Hero = () => {
       window.removeEventListener('touchstart', loadThreads);
     };
 
-    // Ładuj po pierwszej interakcji ALBO po 100ms
-    const timer = setTimeout(() => setShowThreads(true), 100);
+    // Ładuj po pierwszej interakcji ALBO po 2000ms (zwiększone z 100ms)
+    const timer = setTimeout(() => setShowThreads(true), 2000);
     
     window.addEventListener('scroll', loadThreads, { once: true, passive: true });
     window.addEventListener('mousemove', loadThreads, { once: true, passive: true });

@@ -38,7 +38,7 @@ export const ConditionalGoogleAnalytics: React.FC<ConditionalGoogleAnalyticsProp
         document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
       });
       
-      console.log('Google Analytics disabled and cookies cleared');
+      //console.log('Google Analytics disabled and cookies cleared');
     }
   }, [gaId]);
 
@@ -50,11 +50,11 @@ export const ConditionalGoogleAnalytics: React.FC<ConditionalGoogleAnalyticsProp
         window.gtag('consent', 'update', {
           'analytics_storage': 'granted'
         });
-        console.log('Google Analytics enabled');
+       // console.log('Google Analytics enabled');
       } else {
         // Załaduj Google Analytics dynamicznie
         setIsGALoaded(true);
-        console.log('Google Analytics loading...');
+        //console.log('Google Analytics loading...');
       }
     }
   }, []);
