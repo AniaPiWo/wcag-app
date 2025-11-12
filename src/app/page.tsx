@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 import styles from "./page.module.scss";
-import { Hero, Form } from "../components/index";
+import { Hero, Form, Chatbot } from "../components/index";
 
 // Lazy load komponentów poniżej fold dla lepszej wydajności
 const WhyWorth = dynamic(() => import("../components/index").then(mod => ({ default: mod.WhyWorth })), {
@@ -70,6 +70,7 @@ export default function Home() {
           <FAQ />
           <GoToForm />
       </main>
+      <Chatbot />
     </div>
   );
 }

@@ -62,6 +62,12 @@
   background-color: var(--background);
 }
 
+html[data-theme="dark"] .adminForm {
+  border-color: var(--foreground);
+  box-shadow: 6px 6px 0 var(--foreground);
+  background-color: var(--background);
+}
+
 .notAuthenticated {
   display: flex;
   flex-direction: column;
@@ -218,6 +224,18 @@
   }
 }
 
+html[data-theme="dark"] .auditHead {
+  background: #333;
+  
+  th {
+    color: var(--foreground);
+    
+    &:not(:last-child) {
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
 .auditRow {
   transition: background 0.15s;
   cursor: pointer;
@@ -225,10 +243,6 @@
   &:nth-child(odd) {
     background-color: rgba(0, 0, 0, 0.03);
   }
-}
-
-html[data-theme="dark"] .auditRow:nth-child(odd) {
-  background-color: rgba(255, 255, 255, 0.05);
   
   &:not(:last-child) td {
     border-bottom: 1px solid #ddd;
@@ -239,6 +253,21 @@ html[data-theme="dark"] .auditRow:nth-child(odd) {
   }
 }
 
+html[data-theme="dark"] .auditRow {
+  &:nth-child(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  &:not(:last-child) td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--foreground);
+  }
+}
+
   .sortable {
   cursor: pointer;
   position: relative;
@@ -246,6 +275,10 @@ html[data-theme="dark"] .auditRow:nth-child(odd) {
   &:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
+}
+
+html[data-theme="dark"] .sortable:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .auditCell {
@@ -360,6 +393,7 @@ html[data-theme="dark"] .auditRow:nth-child(odd) {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: var(--foreground);
     
     &:hover {
       text-decoration: underline;
@@ -370,6 +404,24 @@ html[data-theme="dark"] .auditRow:nth-child(odd) {
     font-size: 0.96rem;
     color: #666;
   }
+
+html[data-theme="dark"] {
+  .auditResult {
+    color: var(--foreground);
+  }
+  
+  .noData {
+    color: #aaa;
+  }
+  
+  .auditDate {
+    color: #999;
+  }
+  
+  .urlLink {
+    color: var(--foreground);
+  }
+}
 
 .actionsContainer {
   display: flex;
@@ -422,6 +474,21 @@ html[data-theme="dark"] .auditRow:nth-child(odd) {
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+}
+
+html[data-theme="dark"] .createManualAuditButton {
+  border-color: var(--foreground);
+  box-shadow: 4px 4px 0 rgba(255,255,255,0.2);
+  
+  &:hover {
+    background-color: var(--background);
+    color: var(--foreground);
+    border-color: var(--foreground);
+  }
+  
+  &:active {
+    box-shadow: 2px 2px 0 rgba(255,255,255,0.2);
   }
 }
 

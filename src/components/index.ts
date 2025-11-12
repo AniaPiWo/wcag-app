@@ -18,5 +18,6 @@ export { SitemapFetcher } from './SitemapFetcher/SitemapFetcher';
 export { AuditForm } from './AuditForm/AuditForm';
 export { ThemeSwitcher } from './atoms/ThemeSwitcher/ThemeSwitcher';
 export { AdminHeader } from './landing/Header/AdminHeader';
+export { default as Chatbot } from './Chatbot/Chatbot';
 export type { AuditItem, AuditResponse } from './AuditForm/AuditForm';
 // ManualAuditForm usunięty - importuj bezpośrednio z '@/components/ManualAuditForm/ManualAuditForm'

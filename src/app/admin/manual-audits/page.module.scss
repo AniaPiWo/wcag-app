@@ -208,6 +208,21 @@ html[data-theme="dark"] .sortable:hover {
     color: #888;
 }
 
+html[data-theme="dark"] {
+    .auditHead {
+        background-color: #333;
+        border-bottom: 2px solid var(--foreground);
+    }
+    
+    .noData {
+        color: #aaa;
+    }
+    
+    .noAudits {
+        color: #aaa;
+    }
+}
+
 .notAuthenticated {
     display: flex;
     flex-direction: column;
