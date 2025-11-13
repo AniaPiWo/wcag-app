@@ -16,13 +16,14 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Cześć! Jestem asystentem WCAG.co. Jak mogę Ci pomóc w kwestiach dostępności cyfrowej?',
+      text: '👋 Witaj! Jestem Twoim wirtualnym asystentem 😊\n\n🎯 Pomogę Ci z:\n• Wycenami usług dostępności\n• Informacjami o WCAG 2.2\n• Aktualnymi promocjami\n• Terminami realizacji\n\n💬 Zadaj pytanie lub napisz "kontakt" jeśli chcesz zostawić wiadomość!',
       isUser: false,
       timestamp: new Date()
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -40,13 +41,20 @@ export default function Chatbot() {
     }
   }, [isOpen]);
 
+  // Upewnij się że po każdej nowej wiadomości input jest dostępny
+  useEffect(() => {
+    if (!isSending && !isTyping && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [messages, isSending, isTyping]);
+
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isSending) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -57,48 +65,92 @@ export default function Chatbot() {
 
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
+    setIsSending(true);
     setIsTyping(true);
 
-    // Symulacja odpowiedzi bota (później zastąpić prawdziwym API)
-    setTimeout(() => {
-      const botMessage: Message = {
+    try {
+      // Przygotuj wiadomości dla API (bez wiadomości systemowej)
+      const apiMessages = [...messages, userMessage].map(msg => ({
+        role: msg.isUser ? 'user' as const : 'assistant' as const,
+        content: msg.text
+      }));
+
+      // Wywołaj API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: apiMessages
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Błąd komunikacji z serwerem');
+      }
+
+      const data = await response.json();
+      
+      if (data.message) {
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: data.message,
+          isUser: false,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, botMessage]);
+      } else {
+        throw new Error('Brak odpowiedzi od asystenta');
+      }
+    } catch (error) {
+      console.error('Chat API error:', error);
+      const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Dziękuję za wiadomość! Obecnie jestem w fazie rozwoju. Wkrótce będę mógł odpowiedzieć na Twoje pytania dotyczące dostępności cyfrowej i WCAG 2.2.',
+        text: 'Przepraszam, wystąpił błąd podczas przetwarzania Twojego pytania. Spróbuj ponownie za chwilę.',
         isUser: false,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, botMessage]);
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+      setIsSending(false);
+    }
   };
 
   return (
     <div className={styles.chatbot}>
       {/* Chat Window */}
       {isOpen && (
-        <div className={styles.chatWindow}>
+        <div 
+          className={styles.chatWindow}
+          role="dialog"
+          aria-labelledby="chat-header"
+          aria-describedby="chat-messages"
+        >
           <div className={styles.chatHeader}>
             <div className={styles.headerContent}>
               <div className={styles.botAvatar}>
                 <Image 
                   src="/chatbot.svg" 
-                  alt="Bot" 
+                  alt="Ikona asystenta WCAG.co" 
                   className={styles.botIcon}
                   width={40}
                   height={40}
                 />
               </div>
               <div className={styles.headerText}>
-                <h3>Asystent WCAG</h3>
-                <p>Pomoc w dostępności cyfrowej</p>
+                <h3 id="chat-header">SeBot - wirtualny asystent</h3>
+                <p>Dostępność cyfrowa • WCAG 2.2</p>
               </div>
             </div>
             <button
               className={styles.closeButton}
               onClick={toggleChat}
-              aria-label="Zamknij chat"
+              aria-label="Zamknij okno czatu"
+              type="button"
             >
-              ✕
+              <span aria-hidden="true">✕</span>
             </button>
           </div>
 
@@ -111,7 +163,7 @@ export default function Chatbot() {
                 }`}
               >
                 <div className={styles.messageContent}>
-                  <p>{message.text}</p>
+                  <div className={styles.messageText}>{message.text}</div>
                   <span className={styles.timestamp}>
                     {message.timestamp.toLocaleTimeString('pl-PL', {
                       hour: '2-digit',
@@ -145,14 +197,19 @@ export default function Chatbot() {
               placeholder="Napisz wiadomość..."
               className={styles.messageInput}
               maxLength={500}
+              disabled={isSending}
             />
             <button
               type="submit"
               className={styles.sendButton}
-              disabled={!inputValue.trim()}
-              aria-label="Wyślij wiadomość"
+              disabled={!inputValue.trim() || isSending}
+              aria-label={isSending ? "Wysyłanie..." : "Wyślij wiadomość"}
             >
-              <span className={styles.sendIcon}>➤</span>
+              {isSending ? (
+                <span className={styles.loadingIcon}>⏳</span>
+              ) : (
+                <span className={styles.sendIcon}>➤</span>
+              )}
             </button>
           </form>
         </div>
