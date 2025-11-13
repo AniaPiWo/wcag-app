@@ -4,6 +4,7 @@ import styles from './Header.module.scss'
 import { Logo } from '@/components/Logo/Logo'
 import Link from 'next/link'
 import { Button } from '@/components/atoms/Button/Button'
+import { ThemeSwitcher } from '@/components/atoms/ThemeSwitcher/ThemeSwitcher'
 
 export const AdminHeader = () => {
   const router = useRouter()
@@ -45,6 +46,7 @@ export const AdminHeader = () => {
             </ul>
           </nav>
           <div className={styles.accessibilityControls}>
+            <ThemeSwitcher />
             <Button 
               onClick={handleLogout} 
               className={styles.logoutButton}
@@ -67,6 +69,7 @@ export const AdminHeader = () => {
               </ul>
             </nav>
             <div className={styles.accessibilityControlsMobile}>
+              <ThemeSwitcher showLabels={true} />
               <button 
                 onClick={handleLogout} 
                 className={styles.logoutButton}

@@ -5,7 +5,7 @@ import styles from './ManualAuditForm.module.scss';
 import { auditBasic } from '@/lib/wcag_checklist/basic';
 import { auditIntermediate } from '@/lib/wcag_checklist/intermediate';
 import { auditAdvanced } from '@/lib/wcag_checklist/advanced';
-import { Button } from '@/components';
+// import { Button } from '@/components'; // Zastąpione prostymi buttonami
 import { getManualAudit, updateManualAudit, updateAuditItem as updateAuditItemAction } from '@/app/actions/manual-audit';
 import ClientReadyReport from '../ClientReadyReport/ClientReadyReport';
 
@@ -1275,7 +1275,8 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                   </label>
                 </div>
                 
-                <Button 
+                <button 
+                  className={styles.actionButton}
                   onClick={handleConsolidatedAIReview} 
                   disabled={isLoadingConsolidatedSummary ||
                     (!selectedLevelsForReport.basic && 
@@ -1283,7 +1284,7 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                      !selectedLevelsForReport.advanced)}
                 >
                   {isLoadingConsolidatedSummary ? 'Generowanie...' : 'Generuj zbiorczy raport AI'}
-                </Button>
+                </button>
               </div>
             )}
             
@@ -1293,36 +1294,35 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                   <h3>Zbiorczy raport AI</h3>
                   {!isEditingConsolidatedSummary ? (
                     <div className={styles.editButtons}>
-                      <Button 
+                      <button 
                         onClick={() => startEditingSummary('consolidated')}
-                        variant="secondary"
+                        data-variant="secondary"
                       >
                         Edytuj raport
-                      </Button>
-                      <Button 
+                      </button>
+                      <button 
                         onClick={() => {
                           setConsolidatedAISummary(null);
                           setIsLoadingConsolidatedSummary(false);
                         }}
-                        variant="secondary"
+                        data-variant="secondary"
                       >
                         Wygeneruj ponownie
-                      </Button>
+                      </button>
                     </div>
                   ) : (
                     <div className={styles.editButtons}>
-                      <Button 
+                      <button 
                         onClick={() => saveEditedSummary('consolidated')}
-                        variant="primary"
                       >
                         Zapisz
-                      </Button>
-                      <Button 
+                      </button>
+                      <button 
                         onClick={() => cancelEditingSummary('consolidated')}
-                        variant="secondary"
+                        data-variant="secondary"
                       >
                         Anuluj
-                      </Button>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -1357,25 +1357,25 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                 <p>{automatedAuditMessage.text}</p>
                 <div style={{ marginTop: '10px' }}>
                   {automatedAuditMessage.type === 'info' && !showExistingAudit && (
-                    <Button 
+                    <button 
+                      className={styles.actionButton}
                       onClick={handleAutomatedAudit}
-                      variant="primary"
                       disabled={isRunningAutomatedAudit}
                     >
                       {isRunningAutomatedAudit ? 'Uruchamianie...' : 'Uruchom audyt automatyczny'}
-                    </Button>
+                    </button>
                   )}
                   {(rawViolations || rawAiAnalysis) && (
                     <div style={{ 
                       display: 'inline-block',
                       marginLeft: (automatedAuditMessage.type === 'info' && !showExistingAudit) ? '10px' : '0' 
                     }}>
-                      <Button 
-                        onClick={() => setShowRawData(!showRawData)} 
-                        variant="secondary"
+                      <button 
+                        className={`${styles.actionButton} ${styles.secondary}`}
+                        onClick={() => setShowRawData(!showRawData)}
                       >
                         {showRawData ? 'Ukryj surowe dane' : 'Pokaż surowe dane'}
-                      </Button>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -1462,18 +1462,18 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                 )}
                 
                 <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'space-between' }}>
-                  <Button 
+                  <button 
+                    className={`${styles.actionButton} ${styles.secondary}`}
                     onClick={() => setShowExistingAudit(false)}
-                    variant="secondary"
                   >
                     Ukryj szczegóły audytu automatycznego
-                  </Button>
-                  <Button 
+                  </button>
+                  <button 
+                    className={styles.actionButton}
                     onClick={handleAutomatedAudit}
-                    variant="primary"
                   >
                     Uruchom nowy audyt automatyczny
-                  </Button>
+                  </button>
                 </div>
                 <div>
                   <h4>Istniejący audyt automatyczny</h4>
@@ -1577,36 +1577,35 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                     <h4>Raport AI - poziom podstawowy</h4>
                     {!isEditingBasicSummary ? (
                       <div className={styles.editButtons}>
-                        <Button 
+                        <button 
                           onClick={() => startEditingSummary('basic')}
-                          variant="secondary"
+                          data-variant="secondary"
                         >
                           Edytuj raport
-                        </Button>
-                        <Button 
+                        </button>
+                        <button 
                           onClick={() => {
                             setBasicAduditAISummary(null);
                             setIsLoadingBasicSummary(false);
                           }}
-                          variant="secondary"
+                          data-variant="secondary"
                         >
                           Wygeneruj ponownie
-                        </Button>
+                        </button>
                       </div>
                     ) : (
                       <div className={styles.editButtons}>
-                        <Button 
+                        <button 
                           onClick={() => saveEditedSummary('basic')}
-                          variant="primary"
                         >
                           Zapisz
-                        </Button>
-                        <Button 
+                        </button>
+                        <button 
                           onClick={() => cancelEditingSummary('basic')}
-                          variant="secondary"
+                          data-variant="secondary"
                         >
                           Anuluj
-                        </Button>
+                        </button>
                       </div>
                     )}
                   </div>
@@ -1700,36 +1699,35 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                     <h4>Raport AI - poziom średni</h4>
                     {!isEditingIntermediateSummary ? (
                       <div className={styles.editButtons}>
-                        <Button 
+                        <button 
                           onClick={() => startEditingSummary('intermediate')}
-                          variant="secondary"
+                          data-variant="secondary"
                         >
                           Edytuj raport
-                        </Button>
-                        <Button 
+                        </button>
+                        <button 
                           onClick={() => {
                             setIntermediateAduditAISummary(null);
                             setIsLoadingIntermediateSummary(false);
                           }}
-                          variant="secondary"
+                          data-variant="secondary"
                         >
                           Wygeneruj ponownie
-                        </Button>
+                        </button>
                       </div>
                     ) : (
                       <div className={styles.editButtons}>
-                        <Button 
+                        <button 
                           onClick={() => saveEditedSummary('intermediate')}
-                          variant="primary"
                         >
                           Zapisz
-                        </Button>
-                        <Button 
+                        </button>
+                        <button 
                           onClick={() => cancelEditingSummary('intermediate')}
-                          variant="secondary"
-                          >
+                          data-variant="secondary"
+                        >
                           Anuluj
-                        </Button>
+                        </button>
                       </div>
                     )}
                   </div>
@@ -1823,36 +1821,35 @@ export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElemen
                     <h4>Raport AI - poziom zaawansowany</h4>
                     {!isEditingAdvancedSummary ? (
                       <div className={styles.editButtons}>
-                        <Button 
+                        <button 
                           onClick={() => startEditingSummary('advanced')}
-                          variant="secondary"
+                          data-variant="secondary"
                         >
                           Edytuj raport
-                        </Button>
-                        <Button 
+                        </button>
+                        <button 
                           onClick={() => {
                             setAdvancedAduditAISummary(null);
                             setIsLoadingAdvancedSummary(false);
                           }}
-                          variant="secondary"
+                          data-variant="secondary"
                         >
                           Wygeneruj ponownie
-                        </Button>
+                        </button>
                       </div>
                     ) : (
                       <div className={styles.editButtons}>
-                        <Button 
+                        <button 
                           onClick={() => saveEditedSummary('advanced')}
-                          variant="primary"
                         >
                           Zapisz
-                        </Button>
-                        <Button 
+                        </button>
+                        <button 
                           onClick={() => cancelEditingSummary('advanced')}
-                          variant="secondary"
+                          data-variant="secondary"
                         >
                           Anuluj
-                        </Button>
+                        </button>
                       </div>
                     )}
                   </div>

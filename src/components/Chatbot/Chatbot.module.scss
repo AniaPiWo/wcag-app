@@ -1,7 +1,7 @@
 .chatbot {
   position: fixed;
-  bottom: 1.5rem; /* 24px */
-  right: 1.5rem; /* 24px */
+  bottom: 1.725rem; /* 27.6px - zwiększone o 15% */
+  right: 1.725rem; /* 27.6px - zwiększone o 15% */
   z-index: 1000;
   font-family: inherit;
 }
@@ -66,8 +66,8 @@
 }
 
 .chatToggle {
-  width: 3.5rem; /* 56px */
-  height: 3.5rem; /* 56px */
+  width: 4.83rem; /* 77.3px - zwiększone o 38% */
+  height: 4.83rem; /* 77.3px - zwiększone o 38% */
   border-radius: 50%;
   background: var(--accent);
   border: 0.15rem solid #000000;
@@ -75,7 +75,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 2.74rem; /* Zwiększone o kolejne 15% z 2.38rem */
   transition: all 0.2s ease;
   position: relative;
   padding: 0; /* Usunięcie paddingu */
@@ -195,8 +195,7 @@
 .closeButton {
   background: none;
   border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
+  font-size: 1.5rem;
   color: #000000;
   width: 2rem;
   height: 2rem;

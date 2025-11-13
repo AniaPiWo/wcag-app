@@ -105,7 +105,7 @@
 }
 
 html[data-theme="dark"] .auditRow:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .sortable {
@@ -118,7 +118,7 @@ html[data-theme="dark"] .auditRow:hover {
 }
 
 html[data-theme="dark"] .sortable:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(255, 255, 255, 0.25);
 }
 
 .urlLink {
@@ -209,9 +209,91 @@ html[data-theme="dark"] .sortable:hover {
 }
 
 html[data-theme="dark"] {
+    .auditTableContainer {
+        background-color: var(--background);
+        border: 2px solid var(--foreground);
+    }
+    
+    .auditTable {
+        background-color: var(--background);
+        color: var(--foreground);
+    }
+    
     .auditHead {
-        background-color: #333;
+        background-color: rgba(255, 255, 255, 0.1);
         border-bottom: 2px solid var(--foreground);
+        
+        .auditCell {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--foreground);
+            font-weight: 600;
+        }
+    }
+    
+    .auditCell {
+        background-color: var(--background);
+        color: var(--foreground);
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .auditRow {
+        background-color: var(--background);
+        color: var(--foreground);
+    }
+    
+    .searchInput {
+        background-color: var(--background);
+        color: var(--foreground);
+        border: 2px solid var(--foreground);
+    }
+    
+    .urlLink {
+        color: var(--foreground);
+        
+        &:hover {
+            color: var(--vanilla);
+        }
+    }
+    
+    .deleteBtn {
+        background: none;
+        color: var(--foreground);
+        border: none;
+        padding: 0.5rem;
+        border-radius: 4px;
+        font-size: 1.2rem;
+        
+        &:hover {
+            background-color: rgba(255, 0, 0, 0.2);
+            color: #ff6b6b;
+        }
+    }
+    
+    .editBtn {
+        background: none;
+        color: var(--foreground);
+        border: none;
+        padding: 0.5rem;
+        border-radius: 4px;
+        font-size: 1.2rem;
+        
+        &:hover {
+            background-color: rgba(0, 112, 243, 0.2);
+            color: #4fc3f7;
+        }
+    }
+    
+    .newAuditButton {
+        background-color: var(--vanilla);
+        color: var(--background);
+        border: 2px solid var(--vanilla);
+        font-weight: bold;
+        
+        &:hover {
+            background-color: transparent;
+            color: var(--vanilla);
+            border: 2px solid var(--vanilla);
+        }
     }
     
     .noData {
@@ -220,6 +302,7 @@ html[data-theme="dark"] {
     
     .noAudits {
         color: #aaa;
+        background-color: var(--background);
     }
 }
 

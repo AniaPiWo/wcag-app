@@ -50,3 +50,18 @@ model AuditRequest {
   clientReadyAudit           String?
   pdfAuditData               String?
 }
+
+model ChatSession {
+  id          String   @id @default(uuid())
+  sessionId   String   @unique
+  userName    String?  // Imię użytkownika
+  userEmail   String?  // Email użytkownika
+  userPhone   String?  // Telefon użytkownika
+  userAgent   String?
+  ipAddress   String?
+  messages    Json?    @default("[]") // Cała konwersacja jako JSON
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+  
+  @@map("chat_sessions")
+}

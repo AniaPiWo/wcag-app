@@ -86,6 +86,7 @@ export const Hero = () => {
       )}
 
       <div className={styles.top}>
+        <div className={styles.tagline}>Strony bez barier</div>
         <h1 className={styles.title}>
           Popraw dostępność, zwiększ sprzedaż i widoczność – dzięki WCAG 2.2
         </h1>

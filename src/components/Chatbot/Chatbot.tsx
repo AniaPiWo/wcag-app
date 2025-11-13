@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import styles from './Chatbot.module.scss';
 
@@ -26,6 +26,21 @@ export default function Chatbot() {
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Session management dla zapisu rozmów
+  const [sessionId] = useState(() => {
+    if (typeof window !== 'undefined') {
+      let id = localStorage.getItem('wcag-chat-session');
+      if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem('wcag-chat-session', id);
+      }
+      return id;
+    }
+    return crypto.randomUUID();
+  });
+  const [unsavedMessages, setUnsavedMessages] = useState<Message[]>([]);
+  const lastSaveRef = useRef<Date>(new Date());
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -51,6 +66,109 @@ export default function Chatbot() {
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };
+
+  // Funkcja do wyciągania danych kontaktowych z wiadomości
+  const extractContactData = useCallback((messagesToCheck: Message[]) => {
+    let userName = '';
+    let userEmail = '';
+    let userPhone = '';
+
+    // Przeszukaj wiadomości w poszukiwaniu danych kontaktowych
+    for (const message of messagesToCheck) {
+      if (!message.isUser) continue;
+
+      const text = message.text.toLowerCase();
+      
+      // Szukaj emaila
+      const emailMatch = message.text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (emailMatch && !userEmail) {
+        userEmail = emailMatch[0];
+      }
+
+      // Szukaj telefonu (różne formaty)
+      const phoneMatch = message.text.match(/(?:\+48\s?)?(?:\d{3}[\s-]?\d{3}[\s-]?\d{3}|\d{9})/);
+      if (phoneMatch && !userPhone) {
+        userPhone = phoneMatch[0];
+      }
+
+      // Szukaj imienia (jeśli wiadomość zawiera tylko imię lub imię na początku)
+      if (!userName && text.length < 50) {
+        // Proste heurystyki dla imienia
+        const words = message.text.trim().split(/\s+/);
+        if (words.length === 1 && words[0].length > 2 && /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/.test(words[0])) {
+          userName = words[0];
+        } else if (words.length >= 2 && words[0].length > 2 && /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/.test(words[0])) {
+          userName = words[0];
+        }
+      }
+    }
+
+    return { userName, userEmail, userPhone };
+  }, []);
+
+  // Funkcja zapisu sesji do bazy danych
+  const saveSession = useCallback(async (messagesToSave: Message[] = unsavedMessages, endSession = false) => {
+    if (messagesToSave.length === 0 && !endSession) return;
+
+    try {
+      // Wyciągnij dane kontaktowe z wszystkich wiadomości
+      const allMessages = [...messages, ...messagesToSave];
+      const contactData = extractContactData(allMessages);
+
+      const response = await fetch('/api/chat/save-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          messages: messagesToSave.map(msg => ({
+            role: msg.isUser ? 'USER' : 'ASSISTANT',
+            content: msg.text,
+            timestamp: msg.timestamp.toISOString(),
+            metadata: msg.isUser ? null : { messageId: msg.id }
+          })),
+          userAgent: navigator.userAgent,
+          userName: contactData.userName || undefined,
+          userEmail: contactData.userEmail || undefined,
+          userPhone: contactData.userPhone || undefined,
+          endSession
+        }),
+      });
+
+      if (response.ok) {
+        console.log(`💾 Zapisano ${messagesToSave.length} wiadomości do bazy`);
+        setUnsavedMessages([]);
+        lastSaveRef.current = new Date();
+      }
+    } catch (error) {
+      console.error('Błąd zapisu sesji:', error);
+    }
+  }, [sessionId, unsavedMessages, messages, extractContactData]);
+
+  // Automatyczny zapis wsadowy - co 5 wiadomości lub co 2 minuty
+  useEffect(() => {
+    if (unsavedMessages.length === 0) return;
+
+    const shouldSaveByCount = unsavedMessages.length >= 5;
+    const shouldSaveByTime = Date.now() - lastSaveRef.current.getTime() > 2 * 60 * 1000; // 2 minuty
+
+    if (shouldSaveByCount || shouldSaveByTime) {
+      saveSession();
+    }
+  }, [unsavedMessages, saveSession]);
+
+  // Zapis przy zamknięciu przeglądarki
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (unsavedMessages.length > 0) {
+        saveSession(unsavedMessages, true);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [unsavedMessages, saveSession]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +218,10 @@ export default function Chatbot() {
           timestamp: new Date()
         };
         setMessages(prev => [...prev, botMessage]);
+        
+        // Dodaj wiadomości do unsaved buffer
+        const newUnsaved = [userMessage, botMessage];
+        setUnsavedMessages(prev => [...prev, ...newUnsaved]);
       } else {
         throw new Error('Brak odpowiedzi od asystenta');
       }
