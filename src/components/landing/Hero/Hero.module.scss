@@ -75,6 +75,29 @@
   text-align: center;
 }
 
+.subtitle {
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  color: #4a5568; /* Ciemnoszary w light mode */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  
+  html[data-theme="dark"] & {
+    color: var(--accent); /* Accent color w dark mode */
+  }
+  
+  // Animacja podobna do tytułu
+  animation: fadeInUp 0.5s ease-out;
+  animation-fill-mode: both;
+  
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .tagline {
   font-family: inherit;
   font-weight: 400;
@@ -133,7 +156,7 @@
     opacity: 1;
     transform: translateY(0);
   }
-  }
+}
 
 .top .desc {
   font-size: 1rem;
@@ -233,6 +256,18 @@
     position: relative;
     z-index: 3;
     box-sizing: border-box;
+  }
+  
+  .subtitle {
+    font-size: 0.875rem;
+    letter-spacing: 1px;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    
+    // 🚀 MOBILE LCP: Wyłącz animacje - natychmiastowa widoczność
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
   
   .tagline {

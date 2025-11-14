@@ -2,7 +2,7 @@
 import React from 'react';
 import styles from './page.module.scss';
 import Link from 'next/link';
-import { FaClipboardList, FaEdit, FaUser } from 'react-icons/fa';
+import { FaClipboardList, FaEdit, FaUser, FaComments } from 'react-icons/fa';
 
 export default function AdminDashboard() {
   const currentDate = new Date().toLocaleDateString('pl-PL', { 
@@ -45,6 +45,16 @@ export default function AdminDashboard() {
             <div className={styles.cardContent}>
               <h2>Audyty Manualne</h2>
               <p>Przeglądaj i zarządzaj ręcznie utworzonymi audytami</p>
+            </div>
+          </Link>
+          
+          <Link href="/admin/chats" className={styles.card}>
+            <div className={styles.cardIcon}>
+              <FaComments />
+            </div>
+            <div className={styles.cardContent}>
+              <h2>Archiwum Chatów</h2>
+              <p>Przeglądaj konwersacje z chatbotem i analizuj interakcje użytkowników</p>
             </div>
           </Link>
           

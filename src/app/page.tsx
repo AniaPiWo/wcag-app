@@ -62,7 +62,7 @@ export default function Home() {
     <div className={styles.page}>
       <main className={styles.main}>
           <Hero />
-          <Form />
+       <Form /> 
           <WhyWorth />
           <Offer />
           <AboutMe />

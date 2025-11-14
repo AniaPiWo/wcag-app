@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import { SpeechButton } from '@/components/atoms/SpeechButton/SpeechButton';
 import styles from './Chatbot.module.scss';
 
 interface Message {
@@ -24,8 +25,12 @@ export default function Chatbot() {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [screenReaderMessage, setScreenReaderMessage] = useState('');
+  const [hasAnnouncedInstructions, setHasAnnouncedInstructions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const chatWindowRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   
   // Session management dla zapisu rozmów
   const [sessionId] = useState(() => {
@@ -42,29 +47,60 @@ export default function Chatbot() {
   const [unsavedMessages, setUnsavedMessages] = useState<Message[]>([]);
   const lastSaveRef = useRef<Date>(new Date());
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  // Auto-scroll to newest message
   useEffect(() => {
-    scrollToBottom();
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      inputRef.current.focus();
+      // Announce instructions only once when chat opens
+      if (!hasAnnouncedInstructions) {
+        // Delay to ensure live region is ready
+        setTimeout(() => {
+          setScreenReaderMessage('Witaj w chacie z SeBot! Wpisz wiadomość i naciśnij Enter aby wysłać. Użyj mikrofonu aby włączyć dyktowanie. Naciśnij Escape aby zamknąć okno czatu.');
+          setHasAnnouncedInstructions(true);
+          
+          // Clear instructions after announcement
+          setTimeout(() => {
+            setScreenReaderMessage('');
+          }, 8000);
+        }, 200);
+      }
+      
+      // Focus input when chat opens
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 300);
+    }
+  }, [isOpen, hasAnnouncedInstructions]);
+
+  // Handle Escape key to close dialog
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
     }
   }, [isOpen]);
 
-  // Upewnij się że po każdej nowej wiadomości input jest dostępny
-  useEffect(() => {
-    if (!isSending && !isTyping && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [messages, isSending, isTyping]);
+
 
   const toggleChat = () => {
-    setIsOpen(!isOpen);
+    const newIsOpen = !isOpen;
+    setIsOpen(newIsOpen);
+    
+    // Reset instructions flag when closing chat
+    if (!newIsOpen) {
+      setHasAnnouncedInstructions(false);
+    }
   };
 
   // Funkcja do wyciągania danych kontaktowych z wiadomości
@@ -185,6 +221,9 @@ export default function Chatbot() {
     setInputValue('');
     setIsSending(true);
     setIsTyping(true);
+    
+    // Announce sending message
+    setScreenReaderMessage('Wysyłanie wiadomości...');
 
     try {
       // Przygotuj wiadomości dla API (bez wiadomości systemowej)
@@ -219,6 +258,14 @@ export default function Chatbot() {
         };
         setMessages(prev => [...prev, botMessage]);
         
+        // Announce bot response
+        setScreenReaderMessage(`SeBot odpowiada: ${botMessage.text}`);
+        
+        // Clear announcement after reading
+        setTimeout(() => {
+          setScreenReaderMessage('');
+        }, 100);
+        
         // Dodaj wiadomości do unsaved buffer
         const newUnsaved = [userMessage, botMessage];
         setUnsavedMessages(prev => [...prev, ...newUnsaved]);
@@ -234,21 +281,46 @@ export default function Chatbot() {
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
+      
+      // Announce error
+      setScreenReaderMessage(`Błąd: ${errorMessage.text}`);
+      
+      // Clear announcement after reading
+      setTimeout(() => {
+        setScreenReaderMessage('');
+      }, 100);
+      
     } finally {
       setIsTyping(false);
       setIsSending(false);
     }
   };
 
+  const handleSpeechTranscript = (transcript: string) => {
+    if (transcript.trim()) {
+      setInputValue(prev => {
+        const newValue = prev ? `${prev} ${transcript}` : transcript;
+        return newValue;
+      });
+      
+      // Focus input after speech
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }
+  };
+
+
   return (
     <div className={styles.chatbot}>
       {/* Chat Window */}
       {isOpen && (
         <div 
+          ref={chatWindowRef}
           className={styles.chatWindow}
           role="dialog"
+          aria-modal="true"
           aria-labelledby="chat-header"
-          aria-describedby="chat-messages"
         >
           <div className={styles.chatHeader}>
             <div className={styles.headerContent}>
@@ -261,18 +333,18 @@ export default function Chatbot() {
                   height={40}
                 />
               </div>
-              <div className={styles.headerText}>
-                <h3 id="chat-header">SeBot - wirtualny asystent</h3>
-                <p>Dostępność cyfrowa • WCAG 2.2</p>
+              <div className={styles.botInfo}>
+                <h2 id="chat-header" className={styles.botName}>SeBot</h2>
+                <span className={styles.botStatus}>Twój wirtualny asystent</span>
               </div>
             </div>
             <button
+              ref={closeButtonRef}
               className={styles.closeButton}
               onClick={toggleChat}
-              aria-label="Zamknij okno czatu"
               type="button"
             >
-              <span aria-hidden="true">✕</span>
+              <span>✕</span>
             </button>
           </div>
 
@@ -285,13 +357,17 @@ export default function Chatbot() {
                 }`}
               >
                 <div className={styles.messageContent}>
-                  <div className={styles.messageText}>{message.text}</div>
-                  <span className={styles.timestamp}>
-                    {message.timestamp.toLocaleTimeString('pl-PL', {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </span>
+                  <div className={styles.messageText}>
+                    {message.text}
+                  </div>
+                  <div className={styles.messageFooter}>
+                    <span className={styles.timestamp}>
+                      {message.timestamp.toLocaleTimeString('pl-PL', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -310,28 +386,42 @@ export default function Chatbot() {
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Live region for screen reader announcements */}
+          <div 
+            className={styles.srOnly} 
+            role="status" 
+            aria-live="assertive" 
+            aria-atomic="true"
+          >
+            {screenReaderMessage}
+          </div>
+
           <form className={styles.inputForm} onSubmit={handleSendMessage}>
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Napisz wiadomość..."
-              className={styles.messageInput}
-              maxLength={500}
-              disabled={isSending}
-            />
+            <div className={styles.inputContainer}>
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Napisz wiadomość..."
+                className={styles.messageInput}
+                maxLength={500}
+                disabled={isSending}
+              />
+              <SpeechButton
+                onTranscript={handleSpeechTranscript}
+                disabled={isSending}
+                className={styles.speechButton}
+              />
+            </div>
             <button
               type="submit"
               className={styles.sendButton}
               disabled={!inputValue.trim() || isSending}
-              aria-label={isSending ? "Wysyłanie..." : "Wyślij wiadomość"}
             >
-              {isSending ? (
-                <span className={styles.loadingIcon}>⏳</span>
-              ) : (
-                <span className={styles.sendIcon}>➤</span>
-              )}
+              <span className={styles.sendIcon}>
+                <div className={styles.sendArrow}></div>
+              </span>
             </button>
           </form>
         </div>
@@ -343,12 +433,10 @@ export default function Chatbot() {
           <button
             className={styles.chatToggle}
             onClick={toggleChat}
-            aria-label="Otwórz chat"
-            aria-expanded={isOpen}
           >
             <Image 
               src="/chatbot.svg" 
-              alt="Chat" 
+              alt="Ikona chatbota - wirtualny asystent" 
               className={styles.chatIcon}
               width={56}
               height={56}

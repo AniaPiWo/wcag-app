@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -47,24 +47,24 @@ export async function POST(request: NextRequest) {
           userName: userName || null,
           userEmail: userEmail || null,
           userPhone: userPhone || null,
-          messages: messages || []
+          messages: (messages || []) as unknown as Prisma.InputJsonValue
         }
       })
       console.log(`📝 [chat-session] Utworzono nową sesję: ${sessionId}`)
     } else {
       // Aktualizuj istniejącą sesję
-      const currentMessages = Array.isArray(session.messages) ? session.messages as ChatMessageData[] : []
+      const currentMessages = Array.isArray(session.messages) ? session.messages as unknown as ChatMessageData[] : []
       const newMessages = messages || []
       const allMessages = [...currentMessages, ...newMessages]
       
       const updateData: {
-        messages: any
+        messages: Prisma.InputJsonValue
         userName?: string
         userEmail?: string
         userPhone?: string
         endedAt?: Date
       } = {
-        messages: allMessages as any
+        messages: allMessages as unknown as Prisma.InputJsonValue
       }
       
       // Aktualizuj dane kontaktowe jeśli zostały podane
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       sessionId: session.sessionId,
-      messagesCount: Array.isArray(session.messages) ? (session.messages as any[]).length : 0
+      messagesCount: Array.isArray(session.messages) ? (session.messages as unknown[]).length : 0
     })
 
   } catch (error) {

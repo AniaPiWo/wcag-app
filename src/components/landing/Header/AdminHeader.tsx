@@ -41,6 +41,9 @@ export const AdminHeader = () => {
                 <Link href="/admin" className={styles.navLink}>Panel administratora</Link>
               </li>
               <li className={styles.navItem}>
+                <Link href="/admin/chats" className={styles.navLink}>Archiwum chatów</Link>
+              </li>
+              <li className={styles.navItem}>
                 <Link href="/admin/sitemap" className={styles.navLink}>Sitemap</Link>
               </li>
             </ul>
@@ -62,6 +65,9 @@ export const AdminHeader = () => {
               <ul className={styles.mobileNavList}>
                 <li className={styles.mobileNavItem}>
                   <Link href="/admin" className={styles.mobileNavLink}>Panel administratora</Link>
+                </li>
+                <li className={styles.mobileNavItem}>
+                  <Link href="/admin/chats" className={styles.mobileNavLink}>Archiwum chatów</Link>
                 </li>
                 <li className={styles.mobileNavItem}>
                   <Link href="/admin/sitemap" className={styles.mobileNavLink}>Sitemap</Link>
