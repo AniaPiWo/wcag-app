@@ -127,30 +127,57 @@ ODPOWIEDŹ: Wszystkie usługi z cenami
 KONTAKT Z CZŁOWIEKIEM:
 Jeśli użytkownik WYRAŹNIE chce kontakt z człowiekiem (np. "chcę kontakt z człowiekiem", "napisz do człowieka", "chcę porozmawiać z człowiekiem", "kontakt" itp):
 
-PIERWSZY KONTAKT (użytkownik nie podawał wcześniej danych):
-ETAP 1 - PIERWSZA WIADOMOŚĆ: Zapytaj o imię i dane kontaktowe w jednej wiadomości:
+SPRAWDŹ NAJPIERW CZY ZNASZ IMIĘ UŻYTKOWNIKA:
+
+JEŚLI ZNASZ IMIĘ (użytkownik wcześniej się przedstawił):
+- NIE PYTAJ PONOWNIE O IMIĘ
+- SPRAWDŹ czy masz już email LUB telefon:
+  * JEŚLI MASZ email LUB telefon: "[IMIĘ], mam Twoje dane kontaktowe:
+    - Email: [email] (jeśli masz)
+    - Telefon: [telefon] (jeśli masz)
+    
+    Czy chcesz zmienić te dane czy możesz od razu napisać treść wiadomości?"
+  * JEŚLI NIE MASZ ani emaila ani telefonu: "[IMIĘ], aby przekazać Twoją wiadomość do naszego eksperta, potrzebuję jeszcze: • Email i/lub telefon"
+
+JEŚLI NIE ZNASZ IMIENIA (pierwszy kontakt):
+ETAP 1 - PIERWSZA WIADOMOŚĆ: Zapytaj o imię i dane kontaktowe:
 "Aby przekazać Twoją wiadomość do naszego eksperta, potrzebuję:
 • Twoje imię
 • Email i/lub telefon"
 
-ETAP 2 - DRUGA WIADOMOŚĆ: Po otrzymaniu imienia i kontaktu, poproś o treść:
+ETAP 2 - PO OTRZYMANIU IMIENIA I (EMAIL LUB TELEFON): Poproś od razu o treść:
 "Dziękuję [IMIĘ]! Teraz napisz treść swojej wiadomości:"
 
-KOLEJNY KONTAKT (użytkownik już wcześniej podawał dane):
-JEDNA WIADOMOŚĆ: Zapytaj o aktualizację danych lub od razu o treść:
-"[IMIĘ], mam Twój adres e-mail: [email] / mam Twój telefon: [telefon].
-Czy chcesz go zmienić lub uzupełnić?
-Jeśli nie, możesz od razu wpisać treść wiadomości."
+WAŻNE: Email i/lub telefon oznacza że WYSTARCZY JEDEN z tych danych. Jeśli użytkownik poda email LUB telefon, to już masz wystarczające dane kontaktowe - nie pytaj o drugi rodzaj danych!
 
 PRZYKŁADY:
-Pierwszy kontakt:
+Pierwszy kontakt (nie znam imienia):
 User: "kontakt" → AI: "Aby przekazać Twoją wiadomość do naszego eksperta, potrzebuję: • Twoje imię • Email i/lub telefon"
 User: "Anna, anna@test.com" → AI: "Dziękuję Anna! Teraz napisz treść swojej wiadomości:"
 
-Kolejny kontakt:
-User: "kontakt" → AI: "Anna, mam Twój adres e-mail: anna@test.com.
-Czy chcesz go zmienić lub uzupełnić?
-Jeśli nie, możesz od razu wpisać treść wiadomości."
+Kolejny kontakt (znam imię, nie mam kontaktu):
+User: "mam na imię Ania" → AI: "Cześć Aniu! Jak mogę Ci pomóc?"
+User: "kontakt" → AI: "Aniu, aby przekazać Twoją wiadomość do naszego eksperta, potrzebuję jeszcze: • Email i/lub telefon"
+User: "660756085" → AI: "Dziękuję Aniu! Teraz napisz treść swojej wiadomości:" (NIE PYTAJ O EMAIL!)
+
+Kolejny kontakt (mam imię + telefon):
+User: "kontakt" → AI: "Aniu, mam Twoje dane kontaktowe:
+- Telefon: 660756085
+
+Czy chcesz zmienić te dane czy możesz od razu napisać treść wiadomości?"
+
+Kolejny kontakt (mam imię + email):
+User: "kontakt" → AI: "Aniu, mam Twoje dane kontaktowe:
+- Email: ania@example.com
+
+Czy chcesz zmienić te dane czy możesz od razu napisać treść wiadomości?"
+
+Kolejny kontakt (mam imię + email + telefon):
+User: "kontakt" → AI: "Aniu, mam Twoje dane kontaktowe:
+- Email: ania@example.com
+- Telefon: 660756085
+
+Czy chcesz zmienić te dane czy możesz od razu napisać treść wiadomości?"
 
 Następnie wyślij dane używając funkcji CONTACT_HUMAN z wszystkimi zebranymi informacjami.
 
@@ -202,6 +229,25 @@ function extractUserNameFromMessages(messages: any[]): string | null {
 	for (let i = messages.length - 1; i >= 0; i--) {
 		const message = messages[i];
 		
+		// Szukaj w wiadomościach użytkownika
+		if (message.role === 'user' && message.content) {
+			const messageText = message.content.trim();
+			
+			// Wzorce dla bezpośredniego podawania imienia
+			const namePatterns = [
+				/(?:mam na imi[eę]|nazywam się|jestem|to ja|zowę się)\s+([a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{2,})/i,
+				/(?:my name is|i am|i'm|call me)\s+([a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{2,})/i,
+				/(?:imi[eę]|name)\s*[:=]\s*([a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{2,})/i
+			];
+			
+			for (const pattern of namePatterns) {
+				const match = messageText.match(pattern);
+				if (match) {
+					return match[1];
+				}
+			}
+		}
+		
 		// Szukaj w treści wiadomości asystenta czy wspomina imię użytkownika
 		if (message.role === 'assistant' && message.content) {
 			// Szukaj wzorców typu "Dziękuję [Imię]" lub "Cześć [Imię]"
@@ -211,7 +257,7 @@ function extractUserNameFromMessages(messages: any[]): string | null {
 			}
 		}
 		
-		// Szukaj w tool calls (dla przyszłych implementacji)
+		// Szukaj w tool calls
 		if (message.role === 'assistant' && message.tool_calls) {
 			for (const toolCall of message.tool_calls) {
 				if (toolCall.function.name === 'CONTACT_HUMAN') {
@@ -232,9 +278,33 @@ function extractUserNameFromMessages(messages: any[]): string | null {
 
 // Funkcja pomocnicza do wyciągania danych kontaktowych z historii rozmowy
 function extractContactDataFromMessages(messages: any[]): { email?: string, phone?: string } | null {
+	let email = '';
+	let phone = '';
+	
 	// Szukaj w historii wiadomości czy użytkownik już podawał dane kontaktowe
 	for (let i = messages.length - 1; i >= 0; i--) {
 		const message = messages[i];
+		
+		// Szukaj w wiadomościach użytkownika
+		if (message.role === 'user' && message.content) {
+			const messageText = message.content.trim();
+			
+			// Szukaj emaila
+			if (!email) {
+				const emailMatch = messageText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+				if (emailMatch) {
+					email = emailMatch[0];
+				}
+			}
+			
+			// Szukaj telefonu
+			if (!phone) {
+				const phoneMatch = messageText.match(/(?:\+48\s?)?(?:\d{3}[\s-]?\d{3}[\s-]?\d{3}|\d{9})/);
+				if (phoneMatch) {
+					phone = phoneMatch[0];
+				}
+			}
+		}
 		
 		// Szukaj w tool calls
 		if (message.role === 'assistant' && message.tool_calls) {
@@ -244,8 +314,8 @@ function extractContactDataFromMessages(messages: any[]): { email?: string, phon
 						const args = JSON.parse(toolCall.function.arguments);
 						if (args.email || args.phone) {
 							return {
-								email: args.email,
-								phone: args.phone
+								email: args.email || email,
+								phone: args.phone || phone
 							};
 						}
 					} catch (e) {
@@ -255,6 +325,12 @@ function extractContactDataFromMessages(messages: any[]): { email?: string, phon
 			}
 		}
 	}
+	
+	// Zwróć dane jeśli coś znaleziono
+	if (email || phone) {
+		return { email, phone };
+	}
+	
 	return null;
 }
 
@@ -454,9 +530,19 @@ export async function POST(request: NextRequest) {
 			}
 		}
 
-		// Zwróć odpowiedź tekstową
+		// Wyciągnij dane kontaktowe z całej rozmowy
+		const allMessages = [...messages, { role: 'assistant', content: assistantMessage.content }];
+		const extractedUserName = extractUserNameFromMessages(allMessages);
+		const extractedContactData = extractContactDataFromMessages(allMessages);
+		
+		// Zwróć odpowiedź tekstową z rozpoznanymi danymi
 		return NextResponse.json({
 			message: assistantMessage.content,
+			extractedContactData: {
+				userName: extractedUserName,
+				userEmail: extractedContactData?.email,
+				userPhone: extractedContactData?.phone
+			}
 		})
 	} catch (error) {
 		console.error('Chat API error:', error)
