@@ -27,6 +27,9 @@ export default function Chatbot() {
   const [isSending, setIsSending] = useState(false);
   const [screenReaderMessage, setScreenReaderMessage] = useState('');
   const [hasAnnouncedInstructions, setHasAnnouncedInstructions] = useState(false);
+  // Dane kontaktowe - używamy ref dla logiki, state dla UI (jeśli potrzebny)
+  const [, setContactData] = useState<{userName?: string, userEmail?: string, userPhone?: string}>({});
+  const contactDataRef = useRef<{userName?: string, userEmail?: string, userPhone?: string}>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatWindowRef = useRef<HTMLDivElement>(null);
@@ -113,7 +116,6 @@ export default function Chatbot() {
     for (const message of messagesToCheck) {
       if (!message.isUser) continue;
 
-      const text = message.text.toLowerCase();
       
       // Szukaj emaila
       const emailMatch = message.text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
@@ -127,14 +129,35 @@ export default function Chatbot() {
         userPhone = phoneMatch[0];
       }
 
-      // Szukaj imienia (jeśli wiadomość zawiera tylko imię lub imię na początku)
-      if (!userName && text.length < 50) {
-        // Proste heurystyki dla imienia
-        const words = message.text.trim().split(/\s+/);
-        if (words.length === 1 && words[0].length > 2 && /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/.test(words[0])) {
-          userName = words[0];
-        } else if (words.length >= 2 && words[0].length > 2 && /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/.test(words[0])) {
-          userName = words[0];
+      // Szukaj imienia - AI będzie rozpoznawać podczas rozmowy
+      if (!userName) {
+        const messageText = message.text.trim();
+        
+        // Podstawowe wzorce dla bezpośredniego podawania imienia
+        const directNamePatterns = [
+          // "mam na imię/imie ania", "nazywam się anna", "jestem piotr"
+          /(?:mam na imi[eę]|nazywam się|jestem|to ja|zowę się)\s+([a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{2,})/i,
+          // "my name is john", "i am sarah", "i'm mike"
+          /(?:my name is|i am|i'm|call me)\s+([a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{2,})/i,
+          // "imię: anna" lub "name: john"
+          /(?:imi[eę]|name)\s*[:=]\s*([a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{2,})/i
+        ];
+        
+        for (const pattern of directNamePatterns) {
+          const match = messageText.match(pattern);
+          if (match) {
+            userName = match[1];
+            break;
+          }
+        }
+        
+        // Jeśli nie znaleziono przez wzorce, sprawdź czy to pojedyncze słowo (imię)
+        if (!userName && messageText.length < 50) {
+          const words = messageText.split(/\s+/);
+          // Tylko pojedyncze słowo może być imieniem
+          if (words.length === 1 && words[0].length > 2 && /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/.test(words[0])) {
+            userName = words[0];
+          }
         }
       }
     }
@@ -146,10 +169,30 @@ export default function Chatbot() {
   const saveSession = useCallback(async (messagesToSave: Message[] = unsavedMessages, endSession = false) => {
     if (messagesToSave.length === 0 && !endSession) return;
 
+    // Wyciągnij dane kontaktowe z wszystkich wiadomości
+    const allMessages = [...messages, ...messagesToSave];
+    const extractedContactData = extractContactData(allMessages);
+    
+    // Połącz dane kontaktowe (nowe + istniejące)
+    const finalContactData = {
+      userName: extractedContactData.userName || contactDataRef.current.userName,
+      userEmail: extractedContactData.userEmail || contactDataRef.current.userEmail,
+      userPhone: extractedContactData.userPhone || contactDataRef.current.userPhone
+    };
+    
+    // Zaktualizuj dane kontaktowe tylko jeśli się zmieniły
+    const hasChanges = 
+      finalContactData.userName !== contactDataRef.current.userName ||
+      finalContactData.userEmail !== contactDataRef.current.userEmail ||
+      finalContactData.userPhone !== contactDataRef.current.userPhone;
+    
+    if (hasChanges) {
+      contactDataRef.current = finalContactData;
+      setContactData(finalContactData);
+    }
+
+
     try {
-      // Wyciągnij dane kontaktowe z wszystkich wiadomości
-      const allMessages = [...messages, ...messagesToSave];
-      const contactData = extractContactData(allMessages);
 
       const response = await fetch('/api/chat/save-session', {
         method: 'POST',
@@ -165,20 +208,21 @@ export default function Chatbot() {
             metadata: msg.isUser ? null : { messageId: msg.id }
           })),
           userAgent: navigator.userAgent,
-          userName: contactData.userName || undefined,
-          userEmail: contactData.userEmail || undefined,
-          userPhone: contactData.userPhone || undefined,
+          userName: finalContactData.userName || null,
+          userEmail: finalContactData.userEmail || null,
+          userPhone: finalContactData.userPhone || null,
           endSession
         }),
       });
 
       if (response.ok) {
-        console.log(`💾 Zapisano ${messagesToSave.length} wiadomości do bazy`);
+        
+        // Wyczyść unsaved buffer
         setUnsavedMessages([]);
         lastSaveRef.current = new Date();
       }
     } catch (error) {
-      console.error('Błąd zapisu sesji:', error);
+      console.error('❌ Błąd podczas zapisu sesji:', error);
     }
   }, [sessionId, unsavedMessages, messages, extractContactData]);
 
@@ -232,6 +276,15 @@ export default function Chatbot() {
         content: msg.text
       }));
 
+      // Aktualizuj dane kontaktowe przed wywołaniem API
+      const currentContactData = extractContactData([...messages, userMessage]);
+      const mergedContactData = {
+        userName: currentContactData.userName || contactDataRef.current.userName,
+        userEmail: currentContactData.userEmail || contactDataRef.current.userEmail,
+        userPhone: currentContactData.userPhone || contactDataRef.current.userPhone
+      };
+
+
       // Wywołaj API
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -239,12 +292,23 @@ export default function Chatbot() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: apiMessages
+          messages: apiMessages,
+          contactData: mergedContactData,
+          sessionId,
+          extractContactData: true, // Instrukcja dla AI żeby rozpoznawał dane kontaktowe
+          instructions: "Podczas rozmowy automatycznie rozpoznawaj i zapamiętuj imię użytkownika, adres email i numer telefonu. Jeśli użytkownik poda swoje imię w naturalny sposób podczas rozmowy, zapamiętaj je."
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Błąd komunikacji z serwerem');
+        const errorText = await response.text();
+        console.error('❌ [chat-api] Błąd HTTP:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText,
+          url: response.url
+        });
+        throw new Error(`Błąd komunikacji z serwerem: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -257,6 +321,27 @@ export default function Chatbot() {
           timestamp: new Date()
         };
         setMessages(prev => [...prev, botMessage]);
+        
+        // Sprawdź czy AI rozpoznał nowe dane kontaktowe
+        if (data.extractedContactData) {
+          const aiContactData = data.extractedContactData;
+          const updatedContactData = {
+            userName: aiContactData.userName || contactDataRef.current.userName,
+            userEmail: aiContactData.userEmail || contactDataRef.current.userEmail,
+            userPhone: aiContactData.userPhone || contactDataRef.current.userPhone
+          };
+          
+          // Zaktualizuj dane kontaktowe jeśli AI coś rozpoznał
+          const hasAiChanges = 
+            (aiContactData.userName && aiContactData.userName !== contactDataRef.current.userName) ||
+            (aiContactData.userEmail && aiContactData.userEmail !== contactDataRef.current.userEmail) ||
+            (aiContactData.userPhone && aiContactData.userPhone !== contactDataRef.current.userPhone);
+          
+          if (hasAiChanges) {
+            contactDataRef.current = updatedContactData;
+            setContactData(updatedContactData);
+          }
+        }
         
         // Announce bot response
         setScreenReaderMessage(`SeBot odpowiada: ${botMessage.text}`);
@@ -276,11 +361,26 @@ export default function Chatbot() {
         // Dodaj wiadomości do unsaved buffer
         const newUnsaved = [userMessage, botMessage];
         setUnsavedMessages(prev => [...prev, ...newUnsaved]);
+        
+        // Sprawdź czy wykryto nowe dane kontaktowe i zapisz natychmiast
+        const allMessagesWithNew = [...messages, userMessage, botMessage];
+        const newContactData = extractContactData(allMessagesWithNew);
+        const hasNewContactData = 
+          (newContactData.userName && newContactData.userName !== contactDataRef.current.userName) ||
+          (newContactData.userEmail && newContactData.userEmail !== contactDataRef.current.userEmail) ||
+          (newContactData.userPhone && newContactData.userPhone !== contactDataRef.current.userPhone);
+        
+        if (hasNewContactData) {
+          // Natychmiastowy zapis gdy wykryto nowe dane kontaktowe
+          setTimeout(() => {
+            saveSession(newUnsaved);
+          }, 100);
+        }
       } else {
         throw new Error('Brak odpowiedzi od asystenta');
       }
     } catch (error) {
-      console.error('Chat API error:', error);
+      console.error('❌ [chat-api] Błąd wysyłania wiadomości:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: 'Przepraszam, wystąpił błąd podczas przetwarzania Twojego pytania. Spróbuj ponownie za chwilę.',
