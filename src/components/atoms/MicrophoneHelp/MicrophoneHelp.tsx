@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import styles from './MicrophoneHelp.module.scss';
 
 interface MicrophoneHelpProps {
@@ -39,9 +38,9 @@ export const MicrophoneHelp = ({ isVisible, onClose }: MicrophoneHelpProps) => {
             <div className={styles.stepContent}>
               <h4>Otwórz ustawienia uprawnień</h4>
               <ul>
-                <li><strong>Chrome:</strong> "Ustawienia witryny" → "Mikrofon"</li>
-                <li><strong>Firefox:</strong> "Uprawnienia" → "Mikrofon"</li>
-                <li><strong>Edge:</strong> "Uprawnienia dla tej witryny" → "Mikrofon"</li>
+                <li><strong>Chrome:</strong> &quot;Ustawienia witryny&quot; → &quot;Mikrofon&quot;</li>
+                <li><strong>Firefox:</strong> &quot;Uprawnienia&quot; → &quot;Mikrofon&quot;</li>
+                <li><strong>Edge:</strong> &quot;Uprawnienia dla tej witryny&quot; → &quot;Mikrofon&quot;</li>
               </ul>
             </div>
           </div>
@@ -49,8 +48,8 @@ export const MicrophoneHelp = ({ isVisible, onClose }: MicrophoneHelpProps) => {
           <div className={styles.step}>
             <div className={styles.stepNumber}>3</div>
             <div className={styles.stepContent}>
-              <h4>Zmień na "Zezwól"</h4>
-              <p>Wybierz opcję "Zezwól" lub "Zawsze zezwalaj" dla mikrofonu</p>
+              <h4>Zmień na &quot;Zezwól&quot;</h4>
+              <p>Wybierz opcję &quot;Zezwól&quot; lub &quot;Zawsze zezwalaj&quot; dla mikrofonu</p>
             </div>
           </div>
 

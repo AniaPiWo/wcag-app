@@ -266,6 +266,13 @@ export default function Chatbot() {
           setScreenReaderMessage('');
         }, 100);
         
+        // Focus back to input after bot response (safe timing)
+        setTimeout(() => {
+          if (inputRef.current && isOpen) {
+            inputRef.current.focus();
+          }
+        }, 1500);
+        
         // Dodaj wiadomości do unsaved buffer
         const newUnsaved = [userMessage, botMessage];
         setUnsavedMessages(prev => [...prev, ...newUnsaved]);
@@ -289,6 +296,13 @@ export default function Chatbot() {
       setTimeout(() => {
         setScreenReaderMessage('');
       }, 100);
+      
+      // Focus back to input after error (safe timing)
+      setTimeout(() => {
+        if (inputRef.current && isOpen) {
+          inputRef.current.focus();
+        }
+      }, 1500);
       
     } finally {
       setIsTyping(false);

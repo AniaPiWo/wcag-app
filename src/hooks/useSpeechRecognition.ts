@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-interface SpeechRecognitionResult {
+interface SpeechRecognitionCallbackResult {
   transcript: string;
   confidence: number;
   isFinal: boolean;
 }
 
 interface UseSpeechRecognitionProps {
-  onResult?: (result: SpeechRecognitionResult) => void;
+  onResult?: (result: SpeechRecognitionCallbackResult) => void;
   onError?: (error: string) => void;
   language?: string;
   continuous?: boolean;
@@ -26,11 +26,56 @@ interface SpeechRecognitionHook {
   resetTranscript: () => void;
 }
 
+// Speech Recognition API types
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
+interface SpeechRecognitionResult {
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+  length: number;
+}
+
+interface SpeechRecognitionResultList {
+  [index: number]: SpeechRecognitionResult;
+  length: number;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  onstart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
+declare const SpeechRecognition: {
+  prototype: SpeechRecognition;
+  new(): SpeechRecognition;
+};
+
 // Extend Window interface for Speech Recognition
 declare global {
   interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
   }
 }
 
@@ -46,7 +91,7 @@ export const useSpeechRecognition = ({
   const [confidence, setConfidence] = useState(0);
   const [error, setError] = useState<string | null>(null);
   
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   // Check browser support
   useEffect(() => {
@@ -79,7 +124,7 @@ export const useSpeechRecognition = ({
       console.log('🎤 Rozpoznawanie mowy rozpoczęte');
     };
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       let finalTranscript = '';
       let interimTranscript = '';
       let maxConfidence = 0;
@@ -117,7 +162,7 @@ export const useSpeechRecognition = ({
       }
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       const errorMessage = getErrorMessage(event.error);
       setError(errorMessage);
       setIsListening(false);
