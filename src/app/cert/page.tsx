@@ -27,6 +27,7 @@ export default function CertPage() {
         <div className={styles.certificatesGrid}>
           {certificates.map((file) => (
             <div key={file} className={styles.certificate}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src={`/certificates/${file}`}
                 alt={`Certyfikat ${file}`}

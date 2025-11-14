@@ -194,8 +194,43 @@
   }
 }
 
+/* Light mode - ciemniejszy kolor dla lepszego kontrastu */
+html[data-theme="light"] .contactBtn {
+  color: #2d5a27; /* Ciemny zielony zamiast jasnego accent */
+  
+  &::after {
+    background-color: #2d5a27;
+  }
+  
+  &:hover {
+    color: #1a3d16; /* Jeszcze ciemniejszy na hover */
+  }
+  
+  &:hover::after {
+    background-color: #1a3d16;
+  }
+}
+
+/* Light mode dla mobile contact button */
+html[data-theme="light"] .mobileContactBtn {
+  color: #2d5a27; /* Ciemny zielony zamiast jasnego foreground */
+  
+  &::after {
+    background-color: #2d5a27;
+  }
+  
+  &:hover {
+    color: #1a3d16;
+    background-color: rgba(45, 90, 39, 0.1);
+  }
+  
+  &:hover::after {
+    background-color: #1a3d16;
+  }
+}
+
 .contactBtn {
-  color: var(--foreground);
+  color: var(--accent);
   text-decoration: none;
   font-size: 1rem;
   font-weight: 500;

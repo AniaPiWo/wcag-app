@@ -4,6 +4,7 @@ import styles from './Header.module.scss'
 import { Logo } from '@/components/Logo/Logo'
 import Link from 'next/link'
 import { Button } from '@/components/atoms/Button/Button'
+import { ThemeSwitcher } from '@/components/atoms/ThemeSwitcher/ThemeSwitcher'
 
 export const AdminHeader = () => {
   const router = useRouter()
@@ -40,11 +41,15 @@ export const AdminHeader = () => {
                 <Link href="/admin" className={styles.navLink}>Panel administratora</Link>
               </li>
               <li className={styles.navItem}>
+                <Link href="/admin/chats" className={styles.navLink}>Archiwum chatów</Link>
+              </li>
+              <li className={styles.navItem}>
                 <Link href="/admin/sitemap" className={styles.navLink}>Sitemap</Link>
               </li>
             </ul>
           </nav>
           <div className={styles.accessibilityControls}>
+            <ThemeSwitcher />
             <Button 
               onClick={handleLogout} 
               className={styles.logoutButton}
@@ -62,11 +67,15 @@ export const AdminHeader = () => {
                   <Link href="/admin" className={styles.mobileNavLink}>Panel administratora</Link>
                 </li>
                 <li className={styles.mobileNavItem}>
+                  <Link href="/admin/chats" className={styles.mobileNavLink}>Archiwum chatów</Link>
+                </li>
+                <li className={styles.mobileNavItem}>
                   <Link href="/admin/sitemap" className={styles.mobileNavLink}>Sitemap</Link>
                 </li>
               </ul>
             </nav>
             <div className={styles.accessibilityControlsMobile}>
+              <ThemeSwitcher showLabels={true} />
               <button 
                 onClick={handleLogout} 
                 className={styles.logoutButton}

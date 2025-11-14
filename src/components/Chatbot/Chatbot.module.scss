@@ -1,0 +1,599 @@
+.chatbot {
+  position: fixed;
+  bottom: 1.5rem; /* 24px */
+  right: 1.5rem; /* 24px */
+  z-index: 1000;
+  font-family: inherit;
+}
+
+.chatToggleContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+}
+
+.chatIndicator {
+  position: absolute;
+  top: -1rem; /* Przesunięte wyżej */
+  right: -0.8rem;
+  width: 2.4rem; /* Powiększone z 1.8rem */
+  height: 1.8rem; /* Powiększone z 1.4rem */
+  background: #87ceeb; /* Nieprzezroczyste jasno niebieskie tło */
+  border: 2px solid #000000; /* Pogrubiona ramka */
+  border-radius: 1.2rem; /* Dostosowane do nowego rozmiaru */
+  animation: indicatorPulse 2s ease-in-out infinite;
+  opacity: 1; /* Zapewnienie nieprzezroczystości */
+  
+  /* Ogon dymka - lewy dół */
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem; /* Dostosowane */
+    left: 0.4rem; /* Dostosowane */
+    width: 0;
+    height: 0;
+    border-top: 0.6rem solid #87ceeb; /* Powiększone */
+    border-left: 0.4rem solid transparent; /* Powiększone */
+    border-right: 0.4rem solid transparent; /* Powiększone */
+  }
+  
+  /* Ramka ogona - pogrubiona */
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: -0.65rem; /* Dostosowane */
+    left: 0.3rem; /* Dostosowane */
+    width: 0;
+    height: 0;
+    border-top: 0.7rem solid #000000; /* Powiększone */
+    border-left: 0.5rem solid transparent; /* Powiększone */
+    border-right: 0.5rem solid transparent; /* Powiększone */
+    z-index: -1;
+  }
+}
+
+@keyframes indicatorPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1; /* Bez zmiany przezroczystości */
+  }
+}
+
+.chatToggle {
+  width: 5rem; 
+  height: 5rem; 
+  border-radius: 50%;
+  background: var(--accent);
+  border: 0.15rem solid #000000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+  padding: 0; /* Usunięcie paddingu */
+  
+  &:hover {
+    background: var(--vanilla);
+  }
+  
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+/* Klasa chatToggleOpen usunięta - przycisk jest ukryty gdy chat otwarty */
+
+.chatIcon {
+  display: block;
+  line-height: 1;
+  object-fit: cover; /* Wypełnienie całej powierzchni */
+  width: 100% !important; /* Pełna szerokość */
+  height: 100% !important; /* Pełna wysokość */
+  border-radius: 50%; /* Dopasowanie do kształtu przycisku */
+}
+
+.closeIcon {
+  display: block;
+  line-height: 1;
+}
+
+/* Stara klasa notificationDot usunięta - zastąpiona przez chatIndicator */
+
+.chatWindow {
+  position: absolute;
+  bottom: 1rem; /* 16px - obniżone okno */
+  right: 0;
+  width: 22rem; /* 352px */
+  height: 32rem; /* 512px - zwiększone o ~15% */
+  background: var(--background);
+  border: 0.15rem solid #000000;
+  box-shadow: 0.25rem 0.25rem 0 var(--button-shadow);
+  transform: translate(-0.15rem, -0.15rem);
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  overflow: hidden;
+  
+  /* Tryb ciemny - rozjaśnione tło i jaśniejsza ramka */
+  html[data-theme="dark"] & {
+    background: #1a1d23;
+    border-color: #4a5568;
+    box-shadow: 0.25rem 0.25rem 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  @media (max-width: 48rem) { /* 768px */
+    width: calc(100vw - 3rem);
+    height: 24rem;
+    right: -1.5rem;
+  }
+  
+  @media (max-width: 48rem) {
+    .inputContainer {
+      border-width: 0.1rem;
+    }
+    
+    .speechButton {
+      width: 2.5rem;
+      height: 2.5rem;
+      font-size: 1rem;
+    }
+    
+    .sendButton {
+      width: 2.75rem;
+      font-size: 1rem;
+    }
+    
+    .inputForm {
+      padding: 0.75rem;
+      gap: 0.5rem;
+    }
+    
+    .messageInput {
+      padding: 0.6rem 0.1rem 0.6rem 0.75rem;
+    }
+    
+    .sendButton {
+      width: 2.5rem;
+      height: 2.5rem;
+      font-size: 1rem;
+    }
+    
+    .sendArrow {
+      border-top: 0.3rem solid transparent;
+      border-bottom: 0.3rem solid transparent;
+      border-left: 0.5rem solid #000000;
+    }
+  }
+}
+
+.chatHeader {
+  background: var(--accent);
+  color: #000000;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 0.15rem solid #000000;
+  min-height: 4rem;
+}
+
+.botInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+.botName {
+  font-size: 1.25rem;
+}
+.botStatus {
+  font-size: 0.75rem;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.botAvatar {
+  width: 3rem;
+  height: 3rem;
+  background: #ffffff;
+  border: 0.1rem solid #000000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.botIcon {
+  display: block;
+  line-height: 1;
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+}
+
+.headerText {
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+  }
+  
+  p {
+    font-size: 0.75rem;
+    margin: 0;
+    opacity: 0.8;
+    line-height: 1.2;
+  }
+}
+
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: #000000;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  
+  &:focus-visible {
+    outline: 2px solid #000000;
+    outline-offset: 1px;
+  }
+}
+
+.messagesContainer {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: var(--background);
+  
+  /* Tryb ciemny - rozjaśnione tło */
+  html[data-theme="dark"] & {
+    background: #1a1d23;
+  }
+  
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 0.5rem;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 0.25rem;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
+  }
+}
+
+.message {
+  display: flex;
+  margin-bottom: 0.5rem;
+  
+  &.userMessage {
+    justify-content: flex-end;
+    
+    .messageContent {
+      background: var(--accent);
+      color: #000000;
+      border: 0.15rem solid #000000;
+      box-shadow: 0.15rem 0.15rem 0 var(--button-shadow);
+      transform: translate(-0.1rem, -0.1rem);
+    }
+  }
+  
+  &.botMessage {
+    justify-content: flex-start;
+    
+    .messageContent {
+      background: #f5f5f5;
+      color: #333333;
+      border: 0.15rem solid #e0e0e0;
+      box-shadow: 0.15rem 0.15rem 0 rgba(0, 0, 0, 0.1);
+      transform: translate(-0.1rem, -0.1rem);
+      
+      /* Tryb ciemny */
+      html[data-theme="dark"] & {
+        background: #2d3748;
+        color: #e2e8f0;
+        border-color: #4a5568;
+        box-shadow: 0.15rem 0.15rem 0 rgba(0, 0, 0, 0.3);
+      }
+    }
+  }
+}
+
+.messageContent {
+  max-width: 80%;
+  padding: 0.75rem 1rem;
+  border-radius: 0;
+  word-wrap: break-word;
+  
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+}
+
+.messageText {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-line; /* Zachowuje nowe linie i łamie długie linie */
+  word-wrap: break-word;
+}
+
+.messageFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  gap: 0.5rem;
+}
+
+.timestamp {
+  font-size: 0.6875rem;
+  opacity: 0.7;
+}
+
+
+.typingIndicator {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  
+  span {
+    width: 0.5rem;
+    height: 0.5rem;
+    background: currentColor;
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out;
+    
+    &:nth-child(1) {
+      animation-delay: 0s;
+    }
+    
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  }
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  30% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+.inputForm {
+  display: flex;
+  padding: 1rem;
+  background: var(--background);
+  border-top: 0.15rem solid #000000;
+  gap: 0.5rem;
+  
+  /* Tryb ciemny - rozjaśnione tło */
+  html[data-theme="dark"] & {
+    background: #1a1d23;
+  }
+}
+
+.inputContainer {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  flex: 1;
+  position: relative;
+  background: var(--background);
+  border: 0.15rem solid var(--border);
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+  
+  &:focus-within {
+    border-color: var(--accent);
+    
+    html[data-theme="dark"] & {
+      border-color: var(--accent);
+    }
+  }
+  
+  html[data-theme="dark"] & {
+    background: #1a1d23;
+    border-color: #374151;
+  }
+}
+
+.messageInput {
+  flex: 1;
+  padding: 0.75rem 0.25rem 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  
+  &:focus {
+    outline: none;
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  &::placeholder {
+    color: #9ca3af;
+    
+    html[data-theme="dark"] & {
+      color: #6b7280;
+    }
+  }
+}
+
+.speechButton {
+  flex-shrink: 0;
+}
+
+
+.sendButton {
+  width: 3rem;
+  height: 3rem;
+  background: var(--accent);
+  border: none;
+  border-left: 0.15rem solid var(--border);
+  color: #000000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: normal;
+  
+  &:focus {
+    outline: none;
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #9ca3af;
+  }
+}
+
+.sendIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.sendArrow {
+  width: 0;
+  height: 0;
+  border-top: 0.4rem solid transparent;
+  border-bottom: 0.4rem solid transparent;
+  border-left: 0.7rem solid #000000;
+  margin-left: 0.1rem;
+}
+
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .chatIndicator,
+  .typingIndicator span {
+    animation: none;
+  }
+  
+  .chatToggle,
+  .sendButton,
+  .closeButton {
+    transition: none;
+  }
+}
+
+/* Screen reader only class */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .chatToggle,
+  .chatWindow,
+  .messageContent,
+  .sendButton {
+    border-width: 0.2rem;
+  }
+}
+
+/* Focus management for better accessibility */
+.chatWindow {
+  &:focus-within {
+    .messagesContainer {
+      scroll-behavior: smooth;
+    }
+  }
+}
+
+/* Keyboard navigation improvements */
+.chatToggle,
+.closeButton {
+  &:focus-visible {
+    outline: 0.2rem solid var(--accent);
+    outline-offset: 0.2rem;
+  }
+}
+
+.sendButton {
+  &:focus-visible {
+    outline: 0.15rem solid #000000;
+    outline-offset: 0.1rem;
+  }
+}
+
+/* Skip to content for screen readers */
+.skipLink {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--accent);
+  color: #000;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 1000;
+  
+  &:focus {
+    top: 6px;
+  }
+}

@@ -86,6 +86,10 @@ export const Hero = () => {
       )}
 
       <div className={styles.top}>
+        <div className={styles.subtitle}>
+          Twoja strona może więcej!
+        </div>
+        
         <h1 className={styles.title}>
           Popraw dostępność, zwiększ sprzedaż i widoczność – dzięki WCAG 2.2
         </h1>
