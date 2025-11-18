@@ -11,6 +11,12 @@
   
   // 🚀 OPTYMALIZACJA TBT: Containment dla całej sekcji
   contain: layout style;
+    
+  @media (max-width: 768px) {
+  padding-top: 2rem !important;
+  height:auto !important;
+
+  }
 }
 
 .threadsContainer {
@@ -73,6 +79,9 @@
   align-items: center;
   justify-content: flex-start;
   text-align: center;
+    @media (max-width: 768px) {
+    gap: 1rem;
+  }
 }
 
 .subtitle {
@@ -155,6 +164,10 @@
     animation: none;
     opacity: 1;
     transform: translateY(0);
+  }
+
+    @media (max-width: 768px) {
+font-size: 2rem;
   }
 }
 

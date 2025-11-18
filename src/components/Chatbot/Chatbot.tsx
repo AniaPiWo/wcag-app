@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -522,11 +523,11 @@ export default function Chatbot() {
                 maxLength={500}
                 disabled={isSending}
               />
-              <SpeechButton
+{/*               <SpeechButton
                 onTranscript={handleSpeechTranscript}
                 disabled={isSending}
                 className={styles.speechButton}
-              />
+              /> */}
             </div>
             <button
               type="submit"

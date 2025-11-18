@@ -219,14 +219,19 @@ export default function ChatSessionDetailPage() {
               >
                 <div className={styles.messageWrapper}>
                   <div className={styles.messageSender}>
-                    {message.role === 'user' ? 'Użytkownik' : 'SeBot'}
+                    {message.role === 'USER' ? 'User' : 'SeBot'}
                   </div>
-                  <div className={styles.messageContent}>
+                 <div
+  className={`${styles.messageContent} ${
+    message.role === 'USER' ? styles.userMessage : styles.botMessage
+  }`}
+>
                     {message.content}
-                  </div>
-                  <div className={styles.messageTime}>
+                              <div className={styles.messageTime}>
                     {formatTime(message.timestamp)}
                   </div>
+                  </div>
+        
                 </div>
               </div>
             ))}

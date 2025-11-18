@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
@@ -15,13 +16,13 @@ export async function POST(request: NextRequest) {
     
     const { name, email, phone, message, source }: ContactRequest = await request.json()
     
-    console.log('📧 [contact-api] Otrzymane dane:', {
+/*     console.log('📧 [contact-api] Otrzymane dane:', {
       name: name || 'BRAK',
       email: email || 'BRAK', 
       phone: phone || 'BRAK',
       messageLength: message?.length || 0,
       source: source || 'BRAK'
-    });
+    }); */
 
     // Walidacja danych - wymagane: imię, wiadomość i przynajmniej email LUB telefon
     if (!name || !message) {
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     console.log('📧 [contact-api] Konfiguracja Resend:', {
       hasApiKey: !!process.env.RESEND_API_KEY,
       fromEmail: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
-      toEmail: process.env.CONTACT_EMAIL || 'biuro@wcag.co'
+      toEmail: process.env.RESEND_FROM_EMAIL || 'biuro@wcag.co'
     });
 
     // Przygotowanie treści emaila
@@ -88,7 +89,7 @@ ${message}
     // Przygotowanie parametrów emaila
     const emailParams = {
       from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
-      to: process.env.CONTACT_EMAIL || 'biuro@wcag.co',
+      to: process.env.RESEND_FROM_EMAIL || 'biuro@wcag.co',
       subject: `🔔 Nowa wiadomość kontaktowa od ${name}`,
       text: emailContent,
       replyTo: email // Umożliwia odpowiedź bezpośrednio do użytkownika
