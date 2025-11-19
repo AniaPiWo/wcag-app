@@ -4,37 +4,175 @@ import { NextRequest, NextResponse } from 'next/server'
 import { chatbotKnowledgeBase } from '@/lib/data/chatbot-data'
 
 interface ToolCall {
-	id: string
-	type: 'function'
-	function: {
-		name: string
-		arguments: string
-	}
+  id: string
+  type: 'function'
+  function: {
+    name: string
+    arguments: string
+  }
 }
 
 interface Message {
-	role: 'user' | 'assistant' | 'system'
-	content: string
+  role: 'user' | 'assistant' | 'system'
+  content: string
 }
 
 interface ChatRequest {
-	messages: Message[]
+  messages: Message[]
 }
 
+// ============================================
+// FUNKCJE WALIDACYJNE
+// ============================================
+
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+function validateAndCleanPhone(phone: string): { isValid: boolean; cleaned?: string } {
+  const cleaned = phone.replace(/\D/g, '')
+  
+  if (cleaned.length === 9) {
+    return { isValid: true, cleaned }
+  }
+  
+  if (cleaned.length === 11 && cleaned.startsWith('48')) {
+    return { isValid: true, cleaned: cleaned.slice(2) }
+  }
+  
+  return { isValid: false }
+}
+
+// ============================================
+// EKSTRAKCJA IMIENIA
+// ============================================
+
+function extractUserNameFromMessages(messages: any[]): string | null {
+  const commonPolishNames = ['Anna', 'Maria', 'Katarzyna', 'Małgorzata', 'Agnieszka', 'Barbara', 'Ewa', 'Elżbieta', 'Zofia', 'Jadwiga', 
+    'Jan', 'Andrzej', 'Piotr', 'Krzysztof', 'Stanisław', 'Tomasz', 'Paweł', 'Józef', 'Marcin', 'Marek', 'Michał', 'Grzegorz', 'Jerzy']
+  
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i]
+    
+    if (message.role === 'user' && message.content) {
+      const messageText = message.content.trim()
+      
+      const namePatterns = [
+        /^(?:mam na imi[eęeę]|nazywam się|jestem|to ja|zowię się|na imię mi|hej,? jestem|siemka,? jestem|cześć,? jestem|witam,? jestem)\s+([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,})(\s|$|,|\.)/i,
+        /([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{2,})$/
+      ]
+      
+      for (const pattern of namePatterns) {
+        const match = messageText.match(pattern)
+        if (match) {
+          const name = match[1] || match[0]
+          if (name && name.length >= 2 && name.length <= 20) {
+            const normalizedName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
+            if (commonPolishNames.includes(normalizedName) || !/\s/.test(normalizedName)) {
+              return normalizedName
+            }
+          }
+        }
+      }
+    }
+    
+    if (message.role === 'assistant' && message.tool_calls) {
+      for (const toolCall of message.tool_calls) {
+        if (toolCall.function.name === 'CONTACT_HUMAN') {
+          try {
+            const args = JSON.parse(toolCall.function.arguments)
+            if (args.name) {
+              return args.name
+            }
+          } catch (e) {}
+        }
+      }
+    }
+  }
+  return null
+}
+
+// ============================================
+// EKSTRAKCJA DANYCH KONTAKTOWYCH
+// ============================================
+
+function extractContactDataFromMessages(messages: any[]): { email?: string; phone?: string } | null {
+  let email = ''
+  let phone = ''
+  
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i]
+    
+    if (message.role === 'user' && message.content) {
+      const messageText = message.content.trim()
+      
+      if (!email) {
+        const emailMatch = messageText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)
+        if (emailMatch && validateEmail(emailMatch[0])) {
+          email = emailMatch[0]
+        }
+      }
+      
+      if (!phone) {
+        const phoneMatch = messageText.match(/(?:\+48\s?)?(?:\d{3}[\s-]?\d{3}[\s-]?\d{3}|\d{9})/)
+        if (phoneMatch) {
+          const validation = validateAndCleanPhone(phoneMatch[0])
+          if (validation.isValid) {
+            phone = validation.cleaned!
+          }
+        }
+      }
+    }
+    
+    if (message.role === 'assistant' && message.tool_calls) {
+      for (const toolCall of message.tool_calls) {
+        if (toolCall.function.name === 'CONTACT_HUMAN') {
+          try {
+            const args = JSON.parse(toolCall.function.arguments)
+            if (args.email || args.phone) {
+              return {
+                email: args.email || email,
+                phone: args.phone || phone
+              }
+            }
+          } catch (e) {}
+        }
+      }
+    }
+  }
+  
+  if (email || phone) {
+    return { email, phone }
+  }
+  
+  return null
+}
+
+// ============================================
+// SYSTEM PROMPT
+// ============================================
+
 function buildSystemPrompt(messages: any[] = []): string {
-	const userName = extractUserNameFromMessages(messages);
-	const contactData = extractContactDataFromMessages(messages);
-	const { offers, promotions, contactInfo, businessInfo } = chatbotKnowledgeBase;
-	
-	let userContext = '';
-	if (userName) {
-		userContext += `\n\nPAMIĘTAJ: Użytkownik podał swoje imię: ${userName}. Zwracaj się do niego po imieniu w rozmowie.`;
-	}
-	if (contactData) {
-		userContext += `\n\nDANE KONTAKTOWE: Użytkownik wcześniej podał: ${contactData.email ? `email: ${contactData.email}` : ''}${contactData.email && contactData.phone ? ', ' : ''}${contactData.phone ? `telefon: ${contactData.phone}` : ''}. Przy kolejnym kontakcie poproś o potwierdzenie tych danych.`;
-	}
-	
-	return `<system_role>
+  const userName = extractUserNameFromMessages(messages)
+  const contactData = extractContactDataFromMessages(messages)
+  const { offers, promotions, contactInfo, businessInfo } = chatbotKnowledgeBase
+  
+  let userContext = ''
+  
+  if (userName) {
+    userContext += `\n\n<KNOWN_USER_NAME>${userName}</KNOWN_USER_NAME>`
+    userContext += `\n\n⚠️  **MUSISZ** używać imienia "${userName}" w KAŻDEJ odpowiedzi, zwracając się bezpośrednio do użytkownika!`
+  }
+  
+  if (contactData) {
+    userContext += `\n\n<KNOWN_CONTACT_DATA>`
+    if (contactData.email) userContext += `\n- Email: ${contactData.email}`
+    if (contactData.phone) userContext += `\n- Telefon: ${contactData.phone}`
+    userContext += `\n</KNOWN_CONTACT_DATA>`
+  }
+  
+  return `<system_role>
 Masz na imie SeBot i jesteś asystentem AI dla firmy WCAG.co, specjalizującej się w dostępności cyfrowej.${userContext}
 Pomagasz klientom w kwestiach związanych z WCAG 2.2, audytami dostępności i wdrożeniami.
 </system_role>
@@ -111,8 +249,8 @@ ODPOWIEDŹ: Wszystkie usługi z cenami
 </response_examples>
 
 <instructions>
-1. JEŚLI ZNASZ IMIĘ UŻYTKOWNIKA - ZAWSZE zwracaj się do niego po imieniu w każdej odpowiedzi
-2. NAJPIERW przeanalizuj pytanie i określ kategorię (audyt/dostosowanie/nowa strona/ogólne)
+1. **JEŚLI ZNASZ IMIĘ** (znajduje się w <KNOWN_USER_NAME>): UŻYWAJ GO W KAŻDEJ ODPOWIEDZI
+2. **NAJPIERW** przeanalizuj pytanie i określ kategorię (audyt/dostosowanie/nowa strona/ogólne)
 3. Odpowiadaj TYLKO o konkretnej usłudze zgodnie z kategoryzacją
 4. Używaj prostego języka, wyjaśniaj terminy techniczne
 5. Odwołuj się do konkretnych wytycznych WCAG 2.2
@@ -124,433 +262,319 @@ ODPOWIEDŹ: Wszystkie usługi z cenami
 11. Podawaj konkretne ceny i warunki tylko dla pytanej usługi
 12. NIE wymieniaj innych usług, chyba że pytanie jest ogólne o całą ofertę
 
-KONTAKT Z CZŁOWIEKIEM:
-Jeśli użytkownik WYRAŹNIE chce kontakt z człowiekiem (np. "chcę kontakt z człowiekiem", "napisz do człowieka", "chcę porozmawiać z człowiekiem", "kontakt" itp):
+<contact_flow>
+KONTAKT Z CZŁOWIEKIEM - TYLKO gdy użytkownik WYRAŹNIE prosi o kontakt:
 
-SPRAWDŹ NAJPIERW CZY ZNASZ IMIĘ UŻYTKOWNIKA:
+1. SPRAWDŹ <KNOWN_USER_NAME> i <KNOWN_CONTACT_DATA>
+2. POSTĘPUJ ZGODNIE ZE SCENARIUSZEM:
 
-JEŚLI ZNASZ IMIĘ (użytkownik wcześniej się przedstawił):
-- NIE PYTAJ PONOWNIE O IMIĘ
-- SPRAWDŹ czy masz już email LUB telefon:
-  * JEŚLI MASZ email LUB telefon: "[IMIĘ], mam Twoje dane kontaktowe:
-    - Email: [email] (jeśli masz)
-    - Telefon: [telefon] (jeśli masz)
-    
-    Czy chcesz zmienić te dane czy możesz od razu napisać treść wiadomości?"
-  * JEŚLI NIE MASZ ani emaila ani telefonu: "[IMIĘ], aby przekazać Twoją wiadomość do naszego eksperta, potrzebuję jeszcze: • Email i/lub telefon"
+SCENARIUSZ A - NIE ZNAM IMIENIA:
+→ "Aby przekazać Twoją wiadomość, potrzebuję: • Twoje imię • Email i/lub telefon"
 
-JEŚLI NIE ZNASZ IMIENIA (pierwszy kontakt):
-ETAP 1 - PIERWSZA WIADOMOŚĆ: Zapytaj o imię i dane kontaktowe:
-"Aby przekazać Twoją wiadomość do naszego eksperta, potrzebuję:
-• Twoje imię
-• Email i/lub telefon"
+SCENARIUSZ B - ZNAM IMIĘ (np. "Ania") ALE NIE MAM KONTAKTU:
+→ "Aniu, aby przekazać Twoją wiadomość, potrzebuję jeszcze: • Email i/lub telefon"
 
-ETAP 2 - PO OTRZYMANIU IMIENIA I (EMAIL LUB TELEFON): Poproś od razu o treść:
-"Dziękuję [IMIĘ]! Teraz napisz treść swojej wiadomości:"
+SCENARIUSZ C - ZNAM IMIĘ I MAM EMAIL/TELEFON:
+→ "Aniu, mam Twoje dane: - Email: ania@example.com (jeśli masz) - Telefon: 660123456 (jeśli masz)
+   Czy chcesz zmienić dane, czy napisać wiadomość?"
 
-WAŻNE: Email i/lub telefon oznacza że WYSTARCZY JEDEN z tych danych. Jeśli użytkownik poda email LUB telefon, to już masz wystarczające dane kontaktowe - nie pytaj o drugi rodzaj danych!
-
-PRZYKŁADY:
-Pierwszy kontakt (nie znam imienia):
-User: "kontakt" → AI: "Aby przekazać Twoją wiadomość do naszego eksperta, potrzebuję: • Twoje imię • Email i/lub telefon"
-User: "Anna, anna@test.com" → AI: "Dziękuję Anna! Teraz napisz treść swojej wiadomości:"
-
-Kolejny kontakt (znam imię, nie mam kontaktu):
-User: "mam na imię Ania" → AI: "Cześć Aniu! Jak mogę Ci pomóc?"
-User: "kontakt" → AI: "Aniu, aby przekazać Twoją wiadomość do naszego eksperta, potrzebuję jeszcze: • Email i/lub telefon"
-User: "660756085" → AI: "Dziękuję Aniu! Teraz napisz treść swojej wiadomości:" (NIE PYTAJ O EMAIL!)
-
-Kolejny kontakt (mam imię + telefon):
-User: "kontakt" → AI: "Aniu, mam Twoje dane kontaktowe:
-- Telefon: 660756085
-
-Czy chcesz zmienić te dane czy możesz od razu napisać treść wiadomości?"
-
-Kolejny kontakt (mam imię + email):
-User: "kontakt" → AI: "Aniu, mam Twoje dane kontaktowe:
-- Email: ania@example.com
-
-Czy chcesz zmienić te dane czy możesz od razu napisać treść wiadomości?"
-
-Kolejny kontakt (mam imię + email + telefon):
-User: "kontakt" → AI: "Aniu, mam Twoje dane kontaktowe:
-- Email: ania@example.com
-- Telefon: 660756085
-
-Czy chcesz zmienić te dane czy możesz od razu napisać treść wiadomości?"
-
-Następnie wyślij dane używając funkcji CONTACT_HUMAN z wszystkimi zebranymi informacjami.
-
-WAŻNE: 
-- Po zebraniu danych kontaktowych ZAWSZE zwracaj się do użytkownika po imieniu w dalszej rozmowie
-- Treść wiadomości przekazuj DOKŁADNIE jak użytkownik napisał - NIE zmieniaj, nie poprawiaj, nie dodawaj nic
-- Po wysłaniu wiadomości kontaktowej WRACASZ do normalnej rozmowy o usługach WCAG (ale pamiętaj imię!)
-- NIE wysyłaj kolejnych wiadomości emailem, chyba że użytkownik ponownie poprosi o kontakt z człowiekiem
-- Funkcji CONTACT_HUMAN używaj TYLKO gdy użytkownik wyraźnie chce kontakt z człowiekiem
+3. PO WYSŁANIU: POTWIERDŹ UŻYJĄC IMIENIA i WRÓĆ DO NORMALNEJ ROZMOWY
+</contact_flow>
 </instructions>`
 }
 
-// Definicja dostępnych tools/functions
+// ============================================
+// TOOLS
+// ============================================
+
 const tools = [
-	{
-		type: 'function',
-		function: {
-			name: 'CONTACT_HUMAN',
-			description: 'Wysyła wiadomość kontaktową do człowieka TYLKO gdy użytkownik WYRAŹNIE prosi o kontakt z człowiekiem. NIE używaj tej funkcji dla zwykłych pytań o usługi.',
-			parameters: {
-				type: 'object',
-				properties: {
-					name: {
-						type: 'string',
-						description: 'Imię użytkownika'
-					},
-					email: {
-						type: 'string',
-						description: 'Adres email użytkownika'
-					},
-					phone: {
-						type: 'string',
-						description: 'Numer telefonu użytkownika (opcjonalny)'
-					},
-					message: {
-						type: 'string',
-						description: 'Treść wiadomości od użytkownika'
-					}
-				},
-				required: ['name', 'message']
-			}
-		}
-	}
+  {
+    type: 'function',
+    function: {
+      name: 'CONTACT_HUMAN',
+      description: 'Wysyła wiadomość kontaktową do człowieka TYLKO gdy użytkownik WYRAŹNIE prosi o kontakt z człowiekiem. NIE używaj tej funkcji dla zwykłych pytań o usługi.',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: {
+            type: 'string',
+            description: 'Imię użytkownika (minimum 2 znaki)'
+          },
+          email: {
+            type: 'string',
+            description: 'Adres email użytkownika (opcjonalny, ale wymagany jeśli nie podano telefonu)'
+          },
+          phone: {
+            type: 'string',
+            description: 'Numer telefonu użytkownika - DOKŁADNIE 9 CYFR (opcjonalny, ale wymagany jeśli nie podano emaila)'
+          },
+          message: {
+            type: 'string',
+            description: 'Treść wiadomości od użytkownika (minimum 5 znaków)'
+          }
+        },
+        required: ['name', 'message']
+      }
+    }
+  }
 ]
 
-// Funkcja pomocnicza do wyciągania imienia z historii rozmowy
-function extractUserNameFromMessages(messages: any[]): string | null {
-	// Szukaj w historii wiadomości czy użytkownik już podawał imię
-	for (let i = messages.length - 1; i >= 0; i--) {
-		const message = messages[i];
-		
-		// Szukaj w wiadomościach użytkownika
-		if (message.role === 'user' && message.content) {
-			const messageText = message.content.trim();
-			
-			// Wzorce dla bezpośredniego podawania imienia
-			const namePatterns = [
-				/(?:mam na imi[eę]|nazywam się|jestem|to ja|zowę się)\s+([a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{2,})/i,
-				/(?:my name is|i am|i'm|call me)\s+([a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{2,})/i,
-				/(?:imi[eę]|name)\s*[:=]\s*([a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{2,})/i
-			];
-			
-			for (const pattern of namePatterns) {
-				const match = messageText.match(pattern);
-				if (match) {
-					return match[1];
-				}
-			}
-		}
-		
-		// Szukaj w treści wiadomości asystenta czy wspomina imię użytkownika
-		if (message.role === 'assistant' && message.content) {
-			// Szukaj wzorców typu "Dziękuję [Imię]" lub "Cześć [Imię]"
-			const nameMatch = message.content.match(/(?:Dziękuję|Cześć|Witaj|Hej)\s+([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)[!,\s]/i);
-			if (nameMatch && nameMatch[1]) {
-				return nameMatch[1];
-			}
-		}
-		
-		// Szukaj w tool calls
-		if (message.role === 'assistant' && message.tool_calls) {
-			for (const toolCall of message.tool_calls) {
-				if (toolCall.function.name === 'CONTACT_HUMAN') {
-					try {
-						const args = JSON.parse(toolCall.function.arguments);
-						if (args.name) {
-							return args.name;
-						}
-					} catch (e) {
-						// Ignoruj błędy parsowania
-					}
-				}
-			}
-		}
-	}
-	return null;
+// ============================================
+// EXECUTE TOOL
+// ============================================
+
+async function executeToolCall(toolName: string, args: any, baseUrl: string): Promise<any> {
+  switch (toolName) {
+    case 'CONTACT_HUMAN':
+      try {
+        // Walidacja imienia
+        if (!args.name || typeof args.name !== 'string' || args.name.trim().length < 2) {
+          return {
+            success: false,
+            error: 'Brak lub nieprawidłowe imię. Imię musi mieć co najmniej 2 znaki.'
+          }
+        }
+
+        // Walidacja treści wiadomości
+        if (!args.message || typeof args.message !== 'string' || args.message.trim().length < 5) {
+          return {
+            success: false,
+            error: 'Treść wiadomości jest wymagana i musi mieć co najmniej 5 znaków.'
+          }
+        }
+
+        // Sprawdź czy podano email lub telefon
+        const hasEmail = args.email && typeof args.email === 'string' && args.email.trim().length > 0
+        const hasPhone = args.phone && typeof args.phone === 'string' && args.phone.trim().length > 0
+        
+        if (!hasEmail && !hasPhone) {
+          return {
+            success: false,
+            error: 'Podaj email lub telefon kontaktowy (telefon: 9 cyfr).'
+          }
+        }
+
+        // Walidacja formatu email
+        if (hasEmail) {
+          if (!validateEmail(args.email)) {
+            return {
+              success: false,
+              error: `Nieprawidłowy format emaila: "${args.email}". Popraw i spróbuj ponownie.`
+            }
+          }
+        }
+
+        // Walidacja i czyszczenie telefonu
+        if (hasPhone) {
+          const phoneValidation = validateAndCleanPhone(args.phone)
+          if (!phoneValidation.isValid) {
+            return {
+              success: false,
+              error: `Nieprawidłowy format telefonu: "${args.phone}". Podaj DOKŁADNIE 9 cyfr (np. 123456789).`
+            }
+          }
+          // Zaktualizuj numer do czystej wersji
+          args.phone = phoneValidation.cleaned
+        }
+
+        console.log('📧 [CONTACT_HUMAN] Wysyłanie nowej wiadomości kontaktowej:', {
+          name: args.name,
+          email: args.email || 'brak',
+          phone: args.phone || 'brak',
+          messageLength: args.message.length
+        })
+
+        const response = await fetch(`${baseUrl}/api/chat/contact`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...args,
+            source: 'chatbot'
+          }),
+        })
+
+        const data = await response.json()
+        
+        if (response.ok) {
+          return {
+            success: true,
+            message: data.message
+          }
+        } else {
+          return {
+            success: false,
+            error: data.error || 'Błąd wysyłania wiadomości'
+          }
+        }
+      } catch (error) {
+        console.error('Error in CONTACT_HUMAN tool:', error)
+        return {
+          success: false,
+          error: 'Błąd połączenia z serwerem'
+        }
+      }
+
+    default:
+      return {
+        success: false,
+        error: 'Nieznana funkcja'
+      }
+  }
 }
 
-// Funkcja pomocnicza do wyciągania danych kontaktowych z historii rozmowy
-function extractContactDataFromMessages(messages: any[]): { email?: string, phone?: string } | null {
-	let email = '';
-	let phone = '';
-	
-	// Szukaj w historii wiadomości czy użytkownik już podawał dane kontaktowe
-	for (let i = messages.length - 1; i >= 0; i--) {
-		const message = messages[i];
-		
-		// Szukaj w wiadomościach użytkownika
-		if (message.role === 'user' && message.content) {
-			const messageText = message.content.trim();
-			
-			// Szukaj emaila
-			if (!email) {
-				const emailMatch = messageText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-				if (emailMatch) {
-					email = emailMatch[0];
-				}
-			}
-			
-			// Szukaj telefonu
-			if (!phone) {
-				const phoneMatch = messageText.match(/(?:\+48\s?)?(?:\d{3}[\s-]?\d{3}[\s-]?\d{3}|\d{9})/);
-				if (phoneMatch) {
-					phone = phoneMatch[0];
-				}
-			}
-		}
-		
-		// Szukaj w tool calls
-		if (message.role === 'assistant' && message.tool_calls) {
-			for (const toolCall of message.tool_calls) {
-				if (toolCall.function.name === 'CONTACT_HUMAN') {
-					try {
-						const args = JSON.parse(toolCall.function.arguments);
-						if (args.email || args.phone) {
-							return {
-								email: args.email || email,
-								phone: args.phone || phone
-							};
-						}
-					} catch (e) {
-						// Ignoruj błędy parsowania
-					}
-				}
-			}
-		}
-	}
-	
-	// Zwróć dane jeśli coś znaleziono
-	if (email || phone) {
-		return { email, phone };
-	}
-	
-	return null;
-}
-
-// Wykonanie tool call
-async function executeToolCall(toolName: string, args: any): Promise<any> {
-	switch (toolName) {
-		case 'CONTACT_HUMAN':
-			try {
-				// Dodatkowa walidacja danych kontaktowych
-				if (!args.name || !args.message) {
-					return {
-						success: false,
-						error: 'Brak wymaganych danych. Poproś użytkownika o podanie imienia i treści wiadomości.'
-					}
-				}
-
-				if (!args.email && !args.phone) {
-					return {
-						success: false,
-						error: 'Brak danych kontaktowych. Poproś użytkownika o podanie emaila i / lub telefonu.'
-					}
-				}
-
-				console.log('📧 [CONTACT_HUMAN] Wysyłanie nowej wiadomości kontaktowej:', {
-					name: args.name,
-					email: args.email || 'brak',
-					phone: args.phone || 'brak',
-					messageLength: args.message?.length || 0
-				});
-
-				const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/contact`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						...args,
-						source: 'chatbot'
-					}),
-				})
-
-				const data = await response.json()
-				
-				if (response.ok) {
-					return {
-						success: true,
-						message: data.message
-					}
-				} else {
-					return {
-						success: false,
-						error: data.error || 'Błąd wysyłania wiadomości'
-					}
-				}
-			} catch (error) {
-				return {
-					success: false,
-					error: 'Błąd połączenia z serwerem'
-				}
-			}
-
-		default:
-			return {
-				success: false,
-				error: 'Nieznana funkcja'
-			}
-	}
-}
-
-// Chat API z obsługą tools
+// ============================================
+// MAIN API
+// ============================================
 
 export async function POST(request: NextRequest) {
-	try {
-		const { messages }: ChatRequest = await request.json()
+	   const host = request.headers.get('host')
+    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https'
+    const baseUrl = `${protocol}://${host}`
+  try {
+    const { messages }: ChatRequest = await request.json()
 
-		if (!messages || !Array.isArray(messages)) {
-			return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 })
-		}
+    if (!messages || !Array.isArray(messages)) {
+      return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 })
+    }
 
-		const apiKey = process.env.OPENAI_API_KEY
+    const apiKey = process.env.OPENAI_API_KEY
 
-		if (!apiKey) {
-			console.error('OPENAI_API_KEY not configured')
-			return NextResponse.json(
-				{
-					message:
-						'Przepraszam, asystent AI nie jest obecnie skonfigurowany. Skontaktuj się z administratorem.',
-				},
-				{ status: 200 }
-			)
-		}
+    if (!apiKey) {
+      console.error('OPENAI_API_KEY not configured')
+      return NextResponse.json(
+        {
+          message: 'Przepraszam, asystent AI nie jest obecnie skonfigurowany. Skontaktuj się z administratorem.',
+        },
+        { status: 200 }
+      )
+    }
 
-		// Przygotuj wiadomości z system promptem dla WCAG.co
-		const systemPrompt = buildSystemPrompt(messages)
-		const apiMessages = [{ role: 'system', content: systemPrompt }, ...messages]
+    // Przygotuj wiadomości z system promptem
+    const systemPrompt = buildSystemPrompt(messages)
+    const apiMessages = [{ role: 'system', content: systemPrompt }, ...messages]
 
-		// Wywołanie OpenAI API z tools
-		const response = await fetch('https://api.openai.com/v1/chat/completions', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${apiKey}`,
-			},
-			body: JSON.stringify({
-				model: 'gpt-4o-mini',
-				messages: apiMessages,
-				tools: tools,
-				tool_choice: 'auto',
-				temperature: 0.7,
-				max_tokens: 800,
-			}),
-		})
+    // Wywołanie OpenAI API z tools
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: apiMessages,
+        tools: tools,
+        tool_choice: 'auto',
+        temperature: 0.7,
+        max_tokens: 800,
+      }),
+    })
 
-		if (!response.ok) {
-			const error = await response.json()
-			console.error('OpenAI API error:', error)
-			throw new Error('OpenAI API request failed')
-		}
+    if (!response.ok) {
+      const error = await response.json()
+      console.error('OpenAI API error:', error)
+      throw new Error('OpenAI API request failed')
+    }
 
-		const data = await response.json()
-		const choice = data.choices[0]
-		const assistantMessage = choice?.message
+    const data = await response.json()
+    const choice = data.choices[0]
+    const assistantMessage = choice?.message
 
-		if (!assistantMessage) {
-			throw new Error('No response from OpenAI')
-		}
+    if (!assistantMessage) {
+      throw new Error('No response from OpenAI')
+    }
 
-		// Sprawdź czy model chce wywołać funkcję
-		if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-			const toolCalls = assistantMessage.tool_calls
-			const toolResults: any[] = []
+    // Obsługa tool calls
+    if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
+      const toolCalls = assistantMessage.tool_calls
+      const toolResults: any[] = []
 
-			// Wykonaj wszystkie tool calls
-			for (const toolCall of toolCalls) {
-				const functionName = toolCall.function.name
-				const functionArgs = JSON.parse(toolCall.function.arguments)
+      // Wykonaj wszystkie tool calls
+      for (const toolCall of toolCalls) {
+        const functionName = toolCall.function.name
+        const functionArgs = JSON.parse(toolCall.function.arguments)
 
-				console.log(`Executing tool: ${functionName}`, functionArgs)
+        console.log(`Executing tool: ${functionName}`, functionArgs)
 
-				const result = await executeToolCall(functionName, functionArgs)
-				toolResults.push({
-					tool_call_id: toolCall.id,
-					result: result,
-				})
-			}
+        const result = await executeToolCall(functionName, functionArgs, baseUrl)
+        toolResults.push({
+          tool_call_id: toolCall.id,
+          result: result,
+        })
+      }
 
-			// Po wykonaniu tool call, poproś AI o wygenerowanie odpowiedzi
-			const toolMessages = [
-				...apiMessages,
-				{
-					role: 'assistant',
-					content: null,
-					tool_calls: toolCalls
-				},
-				{
-					role: 'tool',
-					content: JSON.stringify(toolResults[0].result) + `\n\nINSTRUKCJA: Po wysłaniu wiadomości kontaktowej wracasz do normalnej rozmowy o usługach WCAG. PAMIĘTAJ: Użytkownik podał swoje imię (${toolCalls[0].function.arguments ? JSON.parse(toolCalls[0].function.arguments).name : 'nieznane'}) - zwracaj się do niego po imieniu w dalszej rozmowie. NIE wysyłaj więcej emaili, chyba że użytkownik ponownie poprosi o kontakt z człowiekiem.`,
-					tool_call_id: toolCalls[0].id
-				}
-			]
+      // Przygotuj follow-up message z instrukcją użycia imienia
+      const userName = extractUserNameFromMessages(messages)
+      const followUpInstruction = userName 
+        ? `\n\nINSTRUKCJA: Po wysłaniu wiadomości kontaktowej wracasz do normalnej rozmowy. PAMIĘTAJ: Użytkownik podał imię "${userName}" - MUSISZ używać go w KAŻDEJ odpowiedzi. NIE wysyłaj więcej emaili, chyba że użytkownik ponownie poprosi o kontakt z człowiekiem.`
+        : '\n\nINSTRUKCJA: Po wysłaniu wiadomości kontaktowej wracasz do normalnej rozmowy. NIE wysyłaj więcej emaili, chyba że użytkownik ponownie poprosi o kontakt z człowiekiem.'
 
-			// Wywołaj AI ponownie aby wygenerował odpowiedź po tool call
-			const followUpResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${apiKey}`,
-				},
-				body: JSON.stringify({
-					model: 'gpt-4o-mini',
-					messages: toolMessages,
-					temperature: 0.7,
-					max_tokens: 800,
-				}),
-			})
+      // Po wykonaniu tool call, poproś AI o wygenerowanie odpowiedzi
+      const toolMessages = [
+        ...apiMessages,
+        {
+          role: 'assistant',
+          content: null,
+          tool_calls: toolCalls
+        },
+        {
+          role: 'tool',
+          content: JSON.stringify(toolResults[0].result) + followUpInstruction,
+          tool_call_id: toolCalls[0].id
+        }
+      ]
 
-			if (followUpResponse.ok) {
-				const followUpData = await followUpResponse.json()
-				const followUpMessage = followUpData.choices[0]?.message
+      // Wywołaj AI ponownie
+      const followUpResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: toolMessages,
+          temperature: 0.7,
+          max_tokens: 800,
+        }),
+      })
 
-				if (followUpMessage?.content) {
-					return NextResponse.json({
-						message: followUpMessage.content,
-					})
-				}
-			}
+      if (followUpResponse.ok) {
+        const followUpData = await followUpResponse.json()
+        const followUpMessage = followUpData.choices[0]?.message
 
-			// Fallback - zwróć wynik tool call
-			if (toolResults.length > 0 && toolResults[0].result.success) {
-				return NextResponse.json({
-					message: toolResults[0].result.message,
-				})
-			} else {
-				return NextResponse.json({
-					message: toolResults[0]?.result?.error || 'Wystąpił błąd podczas przetwarzania żądania.',
-				})
-			}
-		}
+        if (followUpMessage?.content) {
+          return NextResponse.json({
+            message: followUpMessage.content,
+          })
+        }
+      }
 
-		// Wyciągnij dane kontaktowe z całej rozmowy
-		const allMessages = [...messages, { role: 'assistant', content: assistantMessage.content }];
-		const extractedUserName = extractUserNameFromMessages(allMessages);
-		const extractedContactData = extractContactDataFromMessages(allMessages);
-		
-		// Zwróć odpowiedź tekstową z rozpoznanymi danymi
-		return NextResponse.json({
-			message: assistantMessage.content,
-			extractedContactData: {
-				userName: extractedUserName,
-				userEmail: extractedContactData?.email,
-				userPhone: extractedContactData?.phone
-			}
-		})
-	} catch (error) {
-		console.error('Chat API error:', error)
-		return NextResponse.json(
-			{
-				message: 'Przepraszam, wystąpił błąd podczas przetwarzania Twojego pytania. Spróbuj ponownie.',
-			},
-			{ status: 200 }
-		)
-	}
+      // Fallback
+      if (toolResults.length > 0 && toolResults[0].result.success) {
+        return NextResponse.json({
+          message: toolResults[0].result.message,
+        })
+      } else {
+        return NextResponse.json({
+          message: toolResults[0]?.result?.error || 'Wystąpił błąd podczas przetwarzania żądania.',
+        })
+      }
+    }
+
+    // Zwróć odpowiedź tekstową
+    return NextResponse.json({
+      message: assistantMessage.content,
+    })
+  } catch (error) {
+    console.error('Chat API error:', error)
+    return NextResponse.json(
+      {
+        message: 'Przepraszam, wystąpił błąd podczas przetwarzania Twojego pytania. Spróbuj ponownie.',
+      },
+      { status: 200 }
+    )
+  }
 }
