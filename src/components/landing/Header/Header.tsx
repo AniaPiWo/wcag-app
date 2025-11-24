@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { usePathname } from 'next/navigation'
 import styles from './Header.module.scss'
 import { ThemeSwitcher } from '@/components/atoms/ThemeSwitcher/ThemeSwitcher'
 import { Logo } from '@/components/Logo/Logo'
@@ -12,6 +13,10 @@ export const Header = () => {
   const [activeSection, setActiveSection] = useState('')
   const mobileMenuRef = useRef<HTMLDivElement>(null)
   const mobileButtonRef = useRef<HTMLButtonElement>(null)
+  const pathname = usePathname()
+  
+  // Sprawdź czy jesteśmy na stronie głównej
+  const isHomePage = pathname === '/'
 
   useEffect(() => {
     const header = document.querySelector('header')
@@ -37,26 +42,28 @@ export const Header = () => {
         setIsScrolled(false)
       }
 
-      // Scroll spy functionality
-      const sections = ['form', 'Offer', 'aboutMe', 'faq']
-      const scrollPosition = window.scrollY + headerHeight + 100 // Add offset for better detection
+      // Scroll spy functionality - tylko na stronie głównej
+      if (isHomePage) {
+        const sections = ['form', 'Offer', 'aboutMe', 'faq']
+        const scrollPosition = window.scrollY + headerHeight + 100
 
-      let currentSection = ''
-      
-      for (const sectionId of sections) {
-        const section = document.getElementById(sectionId)
-        if (section) {
-          const sectionTop = section.offsetTop
-          const sectionBottom = sectionTop + section.offsetHeight
-          
-          if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
-            currentSection = sectionId
-            break
+        let currentSection = ''
+        
+        for (const sectionId of sections) {
+          const section = document.getElementById(sectionId)
+          if (section) {
+            const sectionTop = section.offsetTop
+            const sectionBottom = sectionTop + section.offsetHeight
+            
+            if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+              currentSection = sectionId
+              break
+            }
           }
         }
+        
+        setActiveSection(currentSection)
       }
-      
-      setActiveSection(currentSection)
     }
     
     // Observe theme changes
@@ -71,7 +78,6 @@ export const Header = () => {
     
     observer.observe(document.documentElement, { attributes: true })
     
-    // Wywołaj funkcję raz, aby ustawić początkowy stan
     handleScroll()
     
     window.addEventListener('resize', handleResize)
@@ -82,9 +88,8 @@ export const Header = () => {
       window.removeEventListener('scroll', handleScroll)
       observer.disconnect()
     }
-  }, [headerHeight])
+  }, [headerHeight, isHomePage])
 
-  // Zamykanie menu po kliknięciu poza nim
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -116,14 +121,12 @@ export const Header = () => {
     const section = document.getElementById(sectionId)
     
     if (section) {
-
       if (isMobileMenuOpen) {
         setIsMobileMenuOpen(false)
       }
       
       const sectionTop = section.getBoundingClientRect().top + window.pageYOffset
       const offsetTop = sectionTop - headerHeight - 20 
-      
 
       window.scrollTo({
         top: offsetTop,
@@ -149,53 +152,36 @@ export const Header = () => {
     }, 500);
   }, []);
 
-  // CTA Button scroll function - zakomentowane, do użycia w przyszłości
-  /* const scrollToForm = () => {
-    const formElement = document.getElementById('form');
-    if (formElement) {
-      const sectionTop = formElement.getBoundingClientRect().top + window.pageYOffset;
-      const offsetTop = sectionTop - headerHeight - 20;
-      
-      window.scrollTo({
-        top: offsetTop,
-        behavior: 'smooth'
-      });
-    }
-  }; */
-
   return (
-      <header className={`${styles.wrapper} ${isScrolled ? (currentTheme === 'dark' ? styles.scrolledDark : styles.scrolled) : ''}`}>
+    <header className={`${styles.wrapper} ${isScrolled ? (currentTheme === 'dark' ? styles.scrolledDark : styles.scrolled) : ''}`}>
       <div className={styles.container}>
         <Logo ariaLabel="WCAG by Ania - strona główna" className={styles.logoLink} onClick={scrollToTop} />
 
         <div id="menu_glowne" className={styles.menuDesktop}>
           <nav className={styles.navigation} aria-label="Menu główne">
             <ul className={styles.navList}>
-              <li className={styles.navItem}>
-                <a href="#form" className={`${styles.navLink} ${activeSection === 'form' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'form')}>Bezpłatny audyt</a>
-              </li>
-              <li className={styles.navItem}>
-                <a href="#Offer" className={`${styles.navLink} ${activeSection === 'Offer' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'Offer')}>Oferta</a>
-              </li>     
-              <li className={styles.navItem}>
-                <a href="#aboutMe" className={`${styles.navLink} ${activeSection === 'aboutMe' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'aboutMe')}>O mnie</a>
-              </li>
-              <li className={styles.navItem}>
-                <a href="#faq" className={`${styles.navLink} ${activeSection === 'faq' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>
-              </li>
+              {isHomePage && (
+                <>
+                  <li className={styles.navItem}>
+                    <a href="#form" className={`${styles.navLink} ${activeSection === 'form' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'form')}>Bezpłatny audyt</a>
+                  </li>
+                  <li className={styles.navItem}>
+                    <a href="#Offer" className={`${styles.navLink} ${activeSection === 'Offer' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'Offer')}>Oferta</a>
+                  </li>     
+                  <li className={styles.navItem}>
+                    <a href="#aboutMe" className={`${styles.navLink} ${activeSection === 'aboutMe' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'aboutMe')}>O mnie</a>
+                  </li>
+                  <li className={styles.navItem}>
+                    <a href="#faq" className={`${styles.navLink} ${activeSection === 'faq' ? styles.active : ''}`} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>
+                  </li>
+                </>
+              )}
               <li className={styles.navItem}>
                 <button className={styles.contactBtn} onClick={handleContactClick}>Kontakt</button>
               </li>
             </ul>
           </nav>
           <div className={styles.accessibilityControls}>
-            {/* <button 
-              onClick={scrollToForm}
-              className={styles.ctaLink}
-              aria-label="Przejdź do formularza audytu WCAG"
-            >
-              Wykonaj audyt
-            </button> */}
             <ThemeSwitcher />
           </div>
         </div>
@@ -212,18 +198,22 @@ export const Header = () => {
           >
             <nav className={styles.mobileNavigation} aria-label="Menu mobilne">
               <ul className={styles.mobileNavList}>
-                <li className={styles.mobileNavItem}>
-                  <a href="#form" className={`${styles.mobileNavLink} ${activeSection === 'form' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'form')}>Bezpłatny audyt</a>
-                </li>
-                <li className={styles.mobileNavItem}>
-                  <a href="#Offer" className={`${styles.mobileNavLink} ${activeSection === 'Offer' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'Offer')}>Oferta</a>
-                </li>
-                <li className={styles.mobileNavItem}>
-                  <a href="#aboutMe" className={`${styles.mobileNavLink} ${activeSection === 'aboutMe' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'aboutMe')}>O mnie</a>
-                </li>
-                <li className={styles.mobileNavItem}>
-                  <a href="#faq" className={`${styles.mobileNavLink} ${activeSection === 'faq' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>
-                </li>
+                {isHomePage && (
+                  <>
+                    <li className={styles.mobileNavItem}>
+                      <a href="#form" className={`${styles.mobileNavLink} ${activeSection === 'form' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'form')}>Bezpłatny audyt</a>
+                    </li>
+                    <li className={styles.mobileNavItem}>
+                      <a href="#Offer" className={`${styles.mobileNavLink} ${activeSection === 'Offer' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'Offer')}>Oferta</a>
+                    </li>
+                    <li className={styles.mobileNavItem}>
+                      <a href="#aboutMe" className={`${styles.mobileNavLink} ${activeSection === 'aboutMe' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'aboutMe')}>O mnie</a>
+                    </li>
+                    <li className={styles.mobileNavItem}>
+                      <a href="#faq" className={`${styles.mobileNavLink} ${activeSection === 'faq' ? styles.activeMobile : ''}`} onClick={(e) => scrollToSection(e, 'faq')}>FAQ</a>
+                    </li>
+                  </>
+                )}
                 <li className={styles.mobileNavItem}>
                   <button className={styles.mobileContactBtn} onClick={handleContactClick}>Kontakt</button>
                 </li>
@@ -236,6 +226,5 @@ export const Header = () => {
         </div>
       </div>
     </header>
-
   )
 }
