@@ -65,7 +65,12 @@ export const Footer = () => {
     <footer className={styles.footer}>
  
         <div className={styles.footerContent}>
-        <Logo ariaLabel="Logo WCAG by Ania - powrót na górę strony" className={styles.logoLink} onClick={scrollToTop} />
+        <Logo 
+          ariaLabel="Logo WCAG by Ania - powrót na górę strony" 
+          className={styles.logoLink} 
+          onClick={scrollToTop}
+          scrollToTop={true}
+        />
 
         <div className={styles.footerText}>
 
