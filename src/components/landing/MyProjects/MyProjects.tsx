@@ -39,10 +39,10 @@ export const projects = [
     id: '4',
     image: '/images/zus.png',
       title: 'Kalkulator Emerytalny ZUS',
-    imageAlt: 'Strona główna Kalkulatora Emerytalnego ZUS – przejrzysty interfejs z formularzem do obliczania przyszłej emerytury.',
+    imageAlt: 'Strona główna Kalkulatora Emerytalnego ZUS – formularz do obliczania przyszłej emerytury.',
     description: 'Projekt powstał podczas HackYeah – największego hackathonu w Europie, gdzie na realizację zadania mieliśmy zaledwie 24 godziny. W tym czasie razem z zespołem stworzyliśmy Kalkulator Emerytalny ZUS, który w prosty i przejrzysty sposób pozwala obliczyć przyszłą emeryturę. Skupiliśmy się na czytelnym interfejsie, dostępności i rzetelnych danych, aby narzędzie było naprawdę użyteczne dla użytkowników. Nasza praca została doceniona przez jury i zdobyła 3. miejsce, co potwierdziło, że zgrany zespół nawet w tak krótkim czasie może stworzyć funkcjonalny i wartościowy produkt.',
     technologies: ['WCAG 2.2', 'NextJS', 'TypeScript', 'SEO', "AI"],
-    url: 'https://wcag.co',
+    url: 'https://prawy-but.vercel.app/',
     isLink: true
   },
   {
