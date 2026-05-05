@@ -1,7 +1,7 @@
 import { prisma } from '../prisma';
 import type { AuditSummary, AxeViolation } from '@/app/api/audit/types';
 import { analyzeAccessibilityResults } from '../ai/ai-analysis';
-import { Resend } from 'resend';
+import { sendAuditResults } from '../email/email-service';
 
 export const auditService = {
 
@@ -127,120 +127,40 @@ export const auditService = {
     });
   },
 
-  // uruchamia analizę AI w tle, zapisuje wyniki do bazy danych i wysyła email z wynikami
+  // uruchamia analizę AI w tle, zapisuje wyniki i wysyła email
   async runAiAnalysisInBackground(requestId: string, violations: AxeViolation[], summary: AuditSummary) {
     try {
-      console.log('\x1b[36m%s\x1b[0m', `⚙️ Rozpoczynam analizę AI dla audytu ${requestId}...`);
-      
-      // Pobieramy dane audytu, aby uzyskać adres email
       const auditRequest = await this.getAuditRequest(requestId);
-      if (!auditRequest || !auditRequest.email) {
-        console.log('\x1b[33m%s\x1b[0m', `⚠️ Brak adresu email dla audytu ${requestId}, nie będzie możliwe wysłanie wyników`);
-      }
-      
-      const aiAnalysisPromise = analyzeAccessibilityResults(violations, summary);
-      const timeoutPromise = new Promise<string>((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout analizy AI')), 30000);
+
+      const aiAnalysis = await Promise.race([
+        analyzeAccessibilityResults(violations, summary),
+        new Promise<string>((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout analizy AI')), 30000)
+        ),
+      ]);
+
+      await prisma.auditRequest.update({
+        where: { id: requestId },
+        data: { aiAnalysis },
       });
-      const aiAnalysis = await Promise.race([aiAnalysisPromise, timeoutPromise]);
-      //console.log(aiAnalysis);
-      //console.log('\x1b[32m%s\x1b[0m', `✅ Analiza AI dla audytu ${requestId} zakończona`);
-      
-      try {
-        await prisma.auditRequest.update({
-          where: { id: requestId },
-          data: { aiAnalysis },
-        });
-        console.log('\x1b[32m%s\x1b[0m', `✅ Zapisano analizę AI do bazy danych dla audytu ${requestId}`);
-      } catch (dbError) {
-        console.error('\x1b[31m%s\x1b[0m', `❌ Błąd podczas zapisywania analizy AI do bazy danych:`, dbError);
- 
-      }
-      
-      // Wysyłamy wyniki audytu na email, jeśli adres email jest dostępny
-      if (auditRequest && auditRequest.email) {
-        console.log('\x1b[32m%s\x1b[0m', `Wysyłanie wyników audytu na email ${auditRequest.email}...`);
+
+      if (auditRequest?.email) {
         try {
-          const emailSubject = `Wyniki audytu dostępności dla strony ${summary.url}`;
-          //⏰ Data i czas audytu: ${summary.timestamp}
-   
-          const emailContent = `
-            Witaj ${auditRequest.name || 'Użytkowniku'},
-
-            Poniżej znajdują się wyniki audytu dostępności dla strony ${summary.url}:
-
-            Podsumowanie audytu:
-            Liczba wszystkich problemów: ${summary.totalIssuesCount}
-            ‼️Krytyczne: ${summary.criticalCount}
-            ❗Poważne: ${summary.seriousCount}
-            ⚠️ Umiarkowane: ${summary.moderateCount}
-            ⚡ Drobne: ${summary.minorCount}
-            ✅ Liczba zaliczonych reguł: ${summary.passedRules}
-            ❌ Wymaga audytu manualnego: ${summary.incompleteRules}
-
-           ${aiAnalysis}   
-  
-            Dziękujemy za skorzystanie z naszego narzędzia!
-
-            --
-Pozdrawiam serdecznie,  
-Anna Piotrowiak  
-Specjalista dostępności cyfrowej  
-
-🌐 https://wcag.co  
-✉️ ${process.env.RESEND_FROM_EMAIL || 'biuro@wcag.co'}
-
-          `.trim().replace(/^ +/gm, '');
-          
-          // Validate Resend API key
-          if (!process.env.RESEND_API_KEY) {
-            console.error('📧 [audit-service] Brak RESEND_API_KEY w zmiennych środowiskowych');
-            throw new Error('Brak klucza API do wysyłki emaili');
-          }
-
-          // Initialize Resend client
-          const resend = new Resend(process.env.RESEND_API_KEY);
-          const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-          
-          // Wysyłamy email bezpośrednio
-          const { error: sendError } = await resend.emails.send({
-            from: `Audyt Dostępności <${fromEmail}>`,
+          await sendAuditResults({
             to: auditRequest.email,
-            subject: emailSubject,
-            text: emailContent,
+            name: auditRequest.name ?? '',
+            summary,
+            aiAnalysis,
           });
-
-          if (sendError) {
-            console.error('📧 [audit-service] Błąd Resend przy wysyłce do użytkownika:', sendError);
-            throw new Error(`Resend API error: ${sendError.message}`);
-          }
-
-          // Wysyłamy kopię do biura (jeśli użytkownik nie jest z biura)
-          const adminEmail = process.env.ADMIN_EMAIL || 'biuro@wcag.co';
-          if (auditRequest.email !== adminEmail) {
-            const { error: copyError } = await resend.emails.send({
-              from: `Audyt Dostępności <${fromEmail}>`,
-              to: adminEmail,
-              subject: `Kopia: ${emailSubject}`,
-              text: emailContent,
-            });
-
-            if (copyError) {
-              console.warn('📧 [audit-service] Błąd przy wysyłce kopii do biura:', copyError);
-              // Nie rzucamy błędem - kopia to nie jest krytyczne
-            }
-          }
-
-          console.log('\x1b[32m%s\x1b[0m', `✅ Wysłano wyniki audytu na adres ${auditRequest.email}`);
         } catch (emailError) {
-          console.error('\x1b[31m%s\x1b[0m', `❌ Błąd podczas wysyłania wyników audytu na email:`, emailError);
-          // Kontynuujemy mimo błędu wysyłania emaila - analiza została już wygenerowana i zapisana w bazie
+          // Email nie jest krytyczny — audyt jest już zapisany w bazie
+          console.error(`Błąd wysyłki emaila dla audytu ${requestId}:`, emailError);
         }
       }
 
       return aiAnalysis;
     } catch (error) {
-      console.error('\x1b[31m%s\x1b[0m', `❌ Błąd podczas analizy AI dla audytu ${requestId}:`, error);
+      console.error(`Błąd analizy AI dla audytu ${requestId}:`, error);
       return null;
     }
   },
