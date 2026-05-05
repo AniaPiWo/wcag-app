@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server'
 import { chatbotKnowledgeBase } from '@/lib/data/chatbot-data'
 
@@ -15,10 +13,24 @@ interface ToolCall {
 interface Message {
   role: 'user' | 'assistant' | 'system'
   content: string
+  tool_calls?: ToolCall[]
 }
 
 interface ChatRequest {
   messages: Message[]
+}
+
+interface ContactHumanArgs {
+  name: string
+  email?: string
+  phone?: string
+  message: string
+}
+
+interface ToolCallResult {
+  success: boolean
+  message?: string
+  error?: string
 }
 
 // ============================================
@@ -48,7 +60,7 @@ function validateAndCleanPhone(phone: string): { isValid: boolean; cleaned?: str
 // EKSTRAKCJA IMIENIA
 // ============================================
 
-function extractUserNameFromMessages(messages: any[]): string | null {
+function extractUserNameFromMessages(messages: Message[]): string | null {
   const commonPolishNames = ['Anna', 'Maria', 'Katarzyna', 'Małgorzata', 'Agnieszka', 'Barbara', 'Ewa', 'Elżbieta', 'Zofia', 'Jadwiga', 
     'Jan', 'Andrzej', 'Piotr', 'Krzysztof', 'Stanisław', 'Tomasz', 'Paweł', 'Józef', 'Marcin', 'Marek', 'Michał', 'Grzegorz', 'Jerzy']
   
@@ -97,7 +109,7 @@ function extractUserNameFromMessages(messages: any[]): string | null {
 // EKSTRAKCJA DANYCH KONTAKTOWYCH
 // ============================================
 
-function extractContactDataFromMessages(messages: any[]): { email?: string; phone?: string } | null {
+function extractContactDataFromMessages(messages: Message[]): { email?: string; phone?: string } | null {
   let email = ''
   let phone = ''
   
@@ -153,7 +165,7 @@ function extractContactDataFromMessages(messages: any[]): { email?: string; phon
 // SYSTEM PROMPT
 // ============================================
 
-function buildSystemPrompt(messages: any[] = []): string {
+function buildSystemPrompt(messages: Message[] = []): string {
   const userName = extractUserNameFromMessages(messages)
   const contactData = extractContactDataFromMessages(messages)
   const { offers, promotions, contactInfo, businessInfo } = chatbotKnowledgeBase
@@ -323,7 +335,7 @@ const tools = [
 // EXECUTE TOOL
 // ============================================
 
-async function executeToolCall(toolName: string, args: any, baseUrl: string): Promise<any> {
+async function executeToolCall(toolName: string, args: ContactHumanArgs, baseUrl: string): Promise<ToolCallResult> {
   switch (toolName) {
     case 'CONTACT_HUMAN':
       try {
@@ -489,7 +501,7 @@ export async function POST(request: NextRequest) {
     // Obsługa tool calls
     if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
       const toolCalls = assistantMessage.tool_calls
-      const toolResults: any[] = []
+      const toolResults: { tool_call_id: string; result: ToolCallResult }[] = []
 
       // Wykonaj wszystkie tool calls
       for (const toolCall of toolCalls) {
