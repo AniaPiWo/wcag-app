@@ -39,40 +39,6 @@ async function verifyUrl(url: string): Promise<{ success: boolean; url?: string;
 }
 
 
-/* interface AuditViolation {
-  id: string;
-  impact: string;
-  tags: string[];
-  description: string;
-  help: string;
-  nodes: Array<{ [key: string]: unknown }>;
-}
-
-interface AuditSummary {
-  url: string;
-  totalIssuesCount: number;
-  criticalCount: number;
-  seriousCount: number;
-  moderateCount: number;
-  minorCount: number;
-  passedRules: number;
-  incompleteRules: number;
-  timestamp: string;
-} */
-
-/* interface AuditResults {
-  summary: AuditSummary;
-  violations: AuditViolation[];
-}
- */
-/* interface AuditResponse {
-  success: boolean;
-  url: string;
-  email: string;
-  name: string;
-  results: AuditResults;
-} */
-
 // walidacja url, akceptuje www i bez www
 const websiteSchema = z.string()
   .nonempty('Podaj adres strony internetowej')

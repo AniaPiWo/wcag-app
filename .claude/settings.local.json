@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm \"C:/projekty/wcag-app/src/app/api/debug/route.ts\")",
+      "Bash(rmdir \"C:/projekty/wcag-app/src/app/api/debug\")",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(vercel:*)",
+      "Bash(npm uninstall:*)"
+    ]
+  }
+}

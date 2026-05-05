@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
+import { randomBytes, timingSafeEqual } from 'crypto';
 
 const CSRF_COOKIE_NAME = 'csrf_token';
 const CSRF_HEADER_NAME = 'X-CSRF-Token';
@@ -11,7 +11,7 @@ const CSRF_TOKEN_EXPIRY = 24 * 60 * 60; // 24 godziny w sekundach
  */
 export function generateCsrfTokenResponse(): NextResponse {
   // Generuj losowy token
-  const token = crypto.randomBytes(32).toString('hex');
+  const token = randomBytes(32).toString('hex');
   
   // Utwórz odpowiedź z tokenem
   const response = NextResponse.json({ token });
@@ -47,8 +47,9 @@ export function validateCsrfToken(req: NextRequest): boolean {
     return false;
   }
   
-  // Porównaj tokeny
-  return headerToken === cookieToken;
+  // Porównaj tokeny w sposób odporny na timing attacks
+  if (headerToken.length !== cookieToken.length) return false;
+  return timingSafeEqual(Buffer.from(headerToken), Buffer.from(cookieToken));
 }
 
 /**

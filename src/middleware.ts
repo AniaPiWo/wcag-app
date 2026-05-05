@@ -5,170 +5,175 @@ import crypto from 'crypto';
 // Import session constants from admin-session module
 import { SESSION_COOKIE_NAME } from '@/lib/auth/admin-session';
 
-// Walidacja i pobranie sekretu JWT
+// ---------------------------------------------------------------------------
+// Rate limiting
+// Uwaga: Map jest per-instancja procesu. W środowisku serverless (Vercel)
+// każda zimna instancja zaczyna od zera — rate limiting jest best-effort.
+// Dla gwarancji produkcyjnych użyj zewnętrznego store (np. Upstash Redis).
+// ---------------------------------------------------------------------------
+const apiRequests = new Map<string, { count: number; timestamp: number }>();
+
+const rateLimits: Record<string, { windowMs: number; max: number }> = {
+  '/api/admin-login': { windowMs: 15 * 60 * 1000, max: 10 },
+  '/api/queue-audit': { windowMs: 60 * 1000, max: 30 },
+  '/api/audit':       { windowMs: 60 * 1000, max: 30 },
+  default:            { windowMs: 60 * 1000, max: 60 },
+};
+
+function applyRateLimit(req: NextRequest): NextResponse | null {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown';
+  const { pathname } = req.nextUrl;
+
+  const limitConfig =
+    Object.entries(rateLimits)
+      .filter(([key]) => key !== 'default')
+      .find(([key]) => pathname.startsWith(key))?.[1] ?? rateLimits.default;
+
+  const key = `${ip}:${pathname}`;
+  const now = Date.now();
+  const data = apiRequests.get(key) ?? { count: 0, timestamp: now };
+
+  if (now - data.timestamp > limitConfig.windowMs) {
+    data.count = 1;
+    data.timestamp = now;
+  } else {
+    data.count++;
+  }
+  apiRequests.set(key, data);
+
+  if (data.count > limitConfig.max) {
+    const retryAfter = Math.ceil((data.timestamp + limitConfig.windowMs - now) / 1000);
+    const reset = Math.ceil((data.timestamp + limitConfig.windowMs) / 1000);
+    return NextResponse.json(
+      { error: 'Zbyt wiele zapytań. Spróbuj ponownie później.', retryAfter },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': retryAfter.toString(),
+          'X-RateLimit-Limit': limitConfig.max.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': reset.toString(),
+        },
+      }
+    );
+  }
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// JWT session validation
+// ---------------------------------------------------------------------------
 function getSessionSecret(): string {
   const secret = process.env.SESSION_SECRET;
-  
+
   if (!secret) {
     throw new Error('SESSION_SECRET jest wymagany! Ustaw go w pliku .env');
   }
-  
+
   if (secret.length < 32) {
     throw new Error(`SESSION_SECRET jest za krótki (${secret.length} znaków). Wymagane minimum: 32 znaki`);
   }
-  
+
   if (secret === 'dev-secret' || secret.includes('example')) {
     throw new Error('SESSION_SECRET nie może być domyślną wartością');
   }
-  
+
   return secret;
 }
 
 const SESSION_SECRET = getSessionSecret();
 
-// Validate session directly in middleware to avoid import issues
 async function validateSessionInMiddleware(req: NextRequest): Promise<boolean> {
   const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
-  
-  // Dodaj szczegółowe debugowanie cookie
-  //console.log(`\x1b[35m📝 [Cookie Debug] Sprawdzanie cookie ${SESSION_COOKIE_NAME}: ${token ? token.substring(0, 10) + '...' : 'brak'}\x1b[0m`);
-  
-  // Wyświetl wszystkie cookies dla debugowania
-  //console.log('\x1b[35m📝 [Cookie Debug] Wszystkie cookies:\x1b[0m');
-  //req.cookies.getAll().forEach(cookie => {
-  //console.log(`\x1b[35m📝 [Cookie Debug] - ${cookie.name}: ${cookie.value.substring(0, 10)}...\x1b[0m`);
-  //});
-  
-  if (!token) {
-    console.log('\x1b[31m❌ [Auth Debug] Brak tokenu w cookie\x1b[0m');
-    return false;
-  }
-  
+
+  if (!token) return false;
+
   try {
-    // Używamy jose zamiast jsonwebtoken - kompatybilne z Edge Runtime
     const secretKey = new TextEncoder().encode(SESSION_SECRET);
-    const { payload } = await jose.jwtVerify(token, secretKey, {
-      algorithms: ['HS256'],
-    });
-    
-    console.log(`\x1b[32m✅ [Auth Debug] Token zweryfikowany pomyślnie: ${JSON.stringify(payload)}\x1b[0m`);
+    await jose.jwtVerify(token, secretKey, { algorithms: ['HS256'] });
     return true;
-  } catch (error) {
-    console.log(`\x1b[31m❌ [Auth Debug] Błąd weryfikacji tokenu: ${error}\x1b[0m`);
+  } catch {
     return false;
   }
 }
 
+// ---------------------------------------------------------------------------
+// Middleware
+// ---------------------------------------------------------------------------
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  
-  console.log(`\x1b[35m🔄 [Middleware] Przetwarzanie ścieżki: ${pathname}\x1b[0m`);
-  
-  // Wypisujemy wszystkie nagłówki dla celów diagnostycznych
-  //  console.log('\x1b[36m📡 [Headers Debug] TEST Wszystkie nagłówki:\x1b[0m');
-  //req.headers.forEach((value, key) => {
-  //  console.log(`\x1b[36m - ${key}: ${value}\x1b[0m`);
-  //});
-  
-  // Ścieżki wyłącznie API, które mogą mieć specjalne traktowanie
-  const apiPaths = [
-    '/api/admin-audits'
-  ];
-  
-  // Dla ścieżek API, możemy dodać dodatkowe mechanizmy uwierzytelniania, np. token API
-  const isApiPath = apiPaths.some(path => pathname === path || pathname.startsWith(path + '/'));
-  if (isApiPath) {
-    // Uwaga: Nawet dla API wymagamy uwierzytelniania, ale można dodać tutaj specjalną logikę
-    // np. sprawdzanie tokenu API zamiast sesji
+
+  // Rate limiting dla wszystkich ścieżek /api
+  if (pathname.startsWith('/api/')) {
+    const rateLimitResponse = applyRateLimit(req);
+    if (rateLimitResponse) return rateLimitResponse;
+  }
+
+  // API Key dla /api/admin-audits
+  if (pathname === '/api/admin-audits' || pathname.startsWith('/api/admin-audits/')) {
     const apiKey = req.headers.get('x-api-key');
     const expectedApiKey = process.env.API_SECRET_KEY;
-    
-    // 🔒 TIMING-SAFE COMPARISON dla API key (zapobiega timing attacks)
+
     if (apiKey && expectedApiKey && apiKey.length === expectedApiKey.length) {
       const apiKeyBuffer = Buffer.from(apiKey);
       const expectedBuffer = Buffer.from(expectedApiKey);
-      
+
       if (crypto.timingSafeEqual(apiKeyBuffer, expectedBuffer)) {
-        console.log('\x1b[32m✅ [API] Uwierzytelnianie przez API Key - dozwolone\x1b[0m');
         return NextResponse.next();
       }
     }
   }
-  
-  // Protect /admin root and all subpages except /admin/login
-  if ((pathname === '/admin' || (pathname.startsWith('/admin/') && pathname !== '/admin/login'))) {
-    console.log('\x1b[33m🔍 [Auth Check] Sprawdzanie sesji dla ścieżki administracyjnej\x1b[0m');
+
+  // Ochrona panelu admina
+  if (pathname === '/admin' || (pathname.startsWith('/admin/') && pathname !== '/admin/login')) {
     const isValid = await validateSessionInMiddleware(req);
-    
     if (!isValid) {
-      console.log('\x1b[31m❌ [Auth Fail] Sesja nieprawidłowa, przekierowanie do logowania\x1b[0m');
-      // Redirect to login page
-      const loginUrl = new URL('/admin/login', req.url);
-      return NextResponse.redirect(loginUrl);
+      return NextResponse.redirect(new URL('/admin/login', req.url));
     }
-    
-    console.log('\x1b[32m✅ [Auth Success] Sesja prawidłowa, kontynuacja\x1b[0m');
   }
-  
-  // If user is already authenticated and tries to access /admin/login, redirect to /admin
+
+  // Przekierowanie zalogowanego admina z /admin/login do /admin
   if (pathname === '/admin/login') {
-    console.log('\x1b[33m🔍 [Auth Check] Sprawdzanie sesji dla strony logowania\x1b[0m');
     const isValid = await validateSessionInMiddleware(req);
-    
     if (isValid) {
-      console.log('\x1b[32m✅ [Auth Success] Sesja prawidłowa, przekierowanie do panelu admina\x1b[0m');
-      const adminUrl = new URL('/admin', req.url);
-      return NextResponse.redirect(adminUrl);
+      return NextResponse.redirect(new URL('/admin', req.url));
     }
-    
-    console.log('\x1b[33mℹ️ [Auth Info] Sesja nieprawidłowa, pozostanie na stronie logowania\x1b[0m');
   }
-  
-  // Dodaj nagłówki bezpieczeństwa
+
+  // Nagłówki bezpieczeństwa
   const response = NextResponse.next();
-  
-  // Content-Security-Policy - ogranicza źródła zasobów
+
   response.headers.set(
     'Content-Security-Policy',
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.vercel-insights.com; frame-ancestors 'self';"
   );
-  
-  // X-Content-Type-Options - zapobiega sniffing MIME
   response.headers.set('X-Content-Type-Options', 'nosniff');
-  
-  // X-Frame-Options - zapobiega clickjacking
   response.headers.set('X-Frame-Options', 'DENY');
-  
-  // X-XSS-Protection - dodatkowa warstwa ochrony XSS dla starszych przeglądarek
   response.headers.set('X-XSS-Protection', '1; mode=block');
-  
-  // Referrer-Policy - kontroluje informacje referrer
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  
-  // Strict-Transport-Security - wymusza HTTPS
-  response.headers.set(
-    'Strict-Transport-Security',
-    'max-age=63072000; includeSubDomains; preload'
-  );
-  
-  // Permissions-Policy - kontroluje dostęp do funkcji przeglądarki
-  response.headers.set(
-    'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=()'
-  );
-  
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+  if (pathname.startsWith('/api/')) {
+    const { max } = Object.entries(rateLimits)
+      .filter(([key]) => key !== 'default')
+      .find(([key]) => pathname.startsWith(key))?.[1] ?? rateLimits.default;
+    const key = `${req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'}:${pathname}`;
+    const data = apiRequests.get(key);
+    if (data) {
+      response.headers.set('X-RateLimit-Limit', max.toString());
+      response.headers.set('X-RateLimit-Remaining', Math.max(0, max - data.count).toString());
+    }
+  }
+
   return response;
 }
 
-// Konfiguracja middleware - określa, które ścieżki mają być chronione
 export const config = {
   matcher: [
-    /*
-     * Dopasuj wszystkie ścieżki administracyjne:
-     * - /admin (strona główna panelu)
-     * - /admin/* (wszystkie podstrony panelu)
-     */
     '/admin',
     '/admin/:path*',
+    '/api/:path*',
   ],
 };

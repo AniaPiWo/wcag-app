@@ -39,54 +39,21 @@ const answerOptions: AnswerOption[] = [
 ];
 
 export const AuditForm: React.FC<AuditFormProps> = ({ auditItems, auditType, domain, onResponsesChange, initialResponses }) => {
-  const [responses, setResponses] = useState<Record<number, Evaluation>>({});
+  const [responses, setResponses] = useState<Partial<Record<number, Evaluation>>>({});
   const [notes, setNotes] = useState<Record<number, string>>({});
-  const [debugInfo, setDebugInfo] = useState<string>('');
-  
+
   // Inicjalizacja odpowiedzi z initialResponses, jeśli są dostępne
   useEffect(() => {
     if (initialResponses && initialResponses.length > 0) {
-      console.log(`AuditForm (${auditType}) initializing with responses:`, initialResponses);
-      console.log(`AuditForm (${auditType}) audit items:`, auditItems);
-      
-      // Create a debug string to help diagnose issues
-      let debugStr = `Audit type: ${auditType}\n`;
-      debugStr += `Initial responses count: ${initialResponses.length}\n`;
-      debugStr += `Audit items count: ${auditItems.length}\n`;
-      
-      // Map of item IDs to help identify missing items
-      const auditItemIds = new Set(auditItems.map(item => item.id));
-      const responseItemIds = new Set(initialResponses.map(resp => resp.itemId));
-      
-      debugStr += `Audit item IDs: ${[...auditItemIds].join(', ')}\n`;
-      debugStr += `Response item IDs: ${[...responseItemIds].join(', ')}\n`;
-      
-      // Find missing items
-      const missingInAudit = [...responseItemIds].filter(id => !auditItemIds.has(id));
-      const missingInResponses = [...auditItemIds].filter(id => !responseItemIds.has(id));
-      
-      debugStr += `Items in responses but not in audit: ${missingInAudit.join(', ')}\n`;
-      debugStr += `Items in audit but not in responses: ${missingInResponses.join(', ')}\n`;
-      
-      setDebugInfo(debugStr);
-      
-      const initialResponsesMap: Record<number, Evaluation> = {};
+      const initialResponsesMap: Partial<Record<number, Evaluation>> = {};
       const initialNotesMap: Record<number, string> = {};
-      
-      // Ensure all audit items have an entry in the responses map
-      auditItems.forEach(item => {
-        // Default to undefined so we don't show a selected radio button if there's no response
-        initialResponsesMap[item.id] = undefined as unknown as Evaluation;
-      });
-      
-      // Now overlay the actual responses
+
+      // Overlay the actual responses
       initialResponses.forEach(response => {
-        console.log(`Setting response for item ${response.itemId}:`, response.evaluation);
         initialResponsesMap[response.itemId] = response.evaluation;
         initialNotesMap[response.itemId] = response.notes || '';
       });
       
-      console.log(`AuditForm (${auditType}) final response map:`, initialResponsesMap);
       setResponses(initialResponsesMap);
       setNotes(initialNotesMap);
     }
@@ -101,11 +68,13 @@ export const AuditForm: React.FC<AuditFormProps> = ({ auditItems, auditType, dom
     
     // Notify parent component of changes
     if (onResponsesChange) {
-      const formattedResponses = Object.keys(updatedResponses).map(key => ({
-        itemId: parseInt(key),
-        evaluation: updatedResponses[parseInt(key)],
-        notes: notes[parseInt(key)] || ''
-      }));
+      const formattedResponses = Object.keys(updatedResponses)
+        .filter(key => updatedResponses[parseInt(key)] !== undefined)
+        .map(key => ({
+          itemId: parseInt(key),
+          evaluation: updatedResponses[parseInt(key)] as Evaluation,
+          notes: notes[parseInt(key)] || ''
+        }));
       onResponsesChange(formattedResponses);
     }
   };
@@ -119,11 +88,13 @@ export const AuditForm: React.FC<AuditFormProps> = ({ auditItems, auditType, dom
     
     // Notify parent component of changes
     if (onResponsesChange) {
-      const formattedResponses = Object.keys(responses).map(key => ({
-        itemId: parseInt(key),
-        evaluation: responses[parseInt(key)],
-        notes: parseInt(key) === itemId ? value : (notes[parseInt(key)] || '')
-      }));
+      const formattedResponses = Object.keys(responses)
+        .filter(key => responses[parseInt(key)] !== undefined)
+        .map(key => ({
+          itemId: parseInt(key),
+          evaluation: responses[parseInt(key)] as Evaluation,
+          notes: parseInt(key) === itemId ? value : (notes[parseInt(key)] || '')
+        }));
       onResponsesChange(formattedResponses);
     }
   };
@@ -131,25 +102,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({ auditItems, auditType, dom
   return (
     <div className={styles.container}>
       <h1 className={styles.heading}>Audyt {auditType} WCAG dla domeny {domain}</h1>
-      
-      {/* Debug information - remove in production */}
-      <details className={styles.debugInfo}>
-        <summary>Debug Info</summary>
-        <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px', padding: '10px', background: '#f5f5f5', border: '1px solid #ddd' }}>
-          {debugInfo}
-          {initialResponses && (
-            <>
-              <br />
-              <strong>Initial Responses JSON:</strong><br />
-              {JSON.stringify(initialResponses, null, 2)}
-            </>
-          )}
-          <br />
-          <strong>Current Responses:</strong><br />
-          {JSON.stringify(responses, null, 2)}
-        </pre>
-      </details>
-      
+
       <div className={styles.tableWrapper}>
         <table className={styles.table}>
           <thead>
@@ -196,7 +149,6 @@ export const AuditForm: React.FC<AuditFormProps> = ({ auditItems, auditType, dom
                         name={`audit-${item.id}`}
                         value={option.value}
                         checked={responses[item.id] === option.value}
-                        // Debug: {`Item ${item.id} response: ${responses[item.id]}, option: ${option.value}, match: ${responses[item.id] === option.value}`}
                         onChange={() => handleResponseChange(item.id, option.value)}
                         className={styles.radioInput}
                       />

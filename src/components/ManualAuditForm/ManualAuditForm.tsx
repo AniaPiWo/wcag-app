@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 import React, { useState, useEffect, useRef, ReactNode } from 'react';
 import styles from './ManualAuditForm.module.scss';
 import { auditBasic } from '@/lib/wcag_checklist/basic';
 import { auditIntermediate } from '@/lib/wcag_checklist/intermediate';
 import { auditAdvanced } from '@/lib/wcag_checklist/advanced';
-// import { Button } from '@/components'; // Zastąpione prostymi buttonami
 import { getManualAudit, updateManualAudit, updateAuditItem as updateAuditItemAction } from '@/app/actions/manual-audit';
 import ClientReadyReport from '../ClientReadyReport/ClientReadyReport';
 
@@ -53,35 +51,33 @@ interface Audit {
   errorMessage?: string | null;
 }
 
+interface AuditItemData {
+  itemId: number;
+  evaluation: string;
+  notes: string;
+}
+
+interface UpdateAuditData {
+  basicAudit?: AuditItemData[];
+  intermediateAudit?: AuditItemData[];
+  advancedAudit?: AuditItemData[];
+  basicAuditAISummary?: string;
+  intermediateAuditAISummary?: string;
+  advancedAuditAISummary?: string;
+  consolidatedAuditAISummary?: string;
+  readyMadeAudit?: string;
+}
+
 interface ManualAuditFormProps {
   id: string;
 }
 
 export function ManualAuditForm({ id }: ManualAuditFormProps): React.ReactElement {
   const [audit, setAudit] = useState<Audit | null>(null);
-  
-  // Interface for audit item data that we send to the API
-  interface AuditItemData {
-    itemId: number;
-    evaluation: string;
-    notes: string;
-  }
-  
-  // Interface for the UpdateAuditData type that we use with updateManualAudit
-  interface UpdateAuditData {
-    basicAudit?: AuditItemData[];
-    intermediateAudit?: AuditItemData[];
-    advancedAudit?: AuditItemData[];
-    basicAuditAISummary?: string;
-    intermediateAuditAISummary?: string;
-    advancedAuditAISummary?: string;
-    consolidatedAuditAISummary?: string;
-    readyMadeAudit?: string;
-  };
   const [isLoading, setIsLoading] = useState(true);
-  const [basicAuditData, setBasicAuditData] = useState<Array<{itemId: number, evaluation: string, notes: string}>>([]);
-  const [intermediateAuditData, setIntermediateAuditData] = useState<Array<{itemId: number, evaluation: string, notes: string}>>([]);
-  const [advancedAuditData, setAdvancedAuditData] = useState<Array<{itemId: number, evaluation: string, notes: string}>>([]);
+  const [basicAuditData, setBasicAuditData] = useState<AuditItemData[]>([]);
+  const [intermediateAuditData, setIntermediateAuditData] = useState<AuditItemData[]>([]);
+  const [advancedAuditData, setAdvancedAuditData] = useState<AuditItemData[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
   const [basicAduditAISummary, setBasicAduditAISummary] = useState<string | null>(null);

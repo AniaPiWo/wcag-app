@@ -1,17 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const PRIVATE_IP_PATTERNS = [
+  /^localhost$/i,
+  /^127\./,
+  /^10\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^192\.168\./,
+  /^169\.254\./,   // link-local / AWS metadata
+  /^::1$/,
+  /^fc00:/i,
+  /^fe80:/i,
+];
+
+function isSafeUrl(raw: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
+  const hostname = parsed.hostname;
+  return !PRIVATE_IP_PATTERNS.some(re => re.test(hostname));
+}
+
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get('url');
-  
+
   if (!url) {
-    //console.error('Proxy error: Missing URL parameter');
     return NextResponse.json(
       { error: 'URL parameter is required' },
       { status: 400 }
     );
   }
 
-  //console.log('Proxy: Fetching URL:', url);
+  if (!isSafeUrl(url)) {
+    return NextResponse.json(
+      { error: 'Invalid or disallowed URL' },
+      { status: 400 }
+    );
+  }
 
   try {
     const response = await fetch(url, {

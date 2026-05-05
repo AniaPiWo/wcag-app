@@ -1,14 +1,19 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 import React, { useState } from 'react';
 import styles from './page.module.scss';
 import Loader from '@/components/Loader/Loader';
-import Link from 'next/link';
 import { GoBackBtn } from '@/components/GoBackBtn/GoBackBtn';
 import { useRouter } from 'next/navigation';
 import { convertToManualAudit } from '@/app/actions/convert-to-manual-audit';
 
+interface AuditRow {
+  id: string;
+  email: string;
+  url: string;
+  status: 'pending' | 'in-progress' | 'completed' | 'failed';
+  totalIssuesCount: number | null;
+  createdAt: string;
+}
 
 export default function AdminPage() {
   const router = useRouter();
@@ -54,7 +59,7 @@ export default function AdminPage() {
     }
   }
 
-  const [audits, setAudits] = useState<any[]>([]);
+  const [audits, setAudits] = useState<AuditRow[]>([]);
   const [auditsLoaded, setAuditsLoaded] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -119,8 +124,7 @@ export default function AdminPage() {
     return <Loader />;
   }
 
-  if (auditsLoaded) {
-    return (
+  return (
       <div className={styles.page}>
      <GoBackBtn href="/admin" text="Powrót" />
         <div className={styles.headerContainer}>
@@ -163,13 +167,13 @@ export default function AdminPage() {
                   key={audit.id}
                   className={styles.auditRow}
                 >
-                  <td className={styles.auditCell} onClick={() => window.location.href = `/admin/auto-audits/${audit.id}`}>{audit.email}</td>
-                  <td className={styles.auditCell} onClick={() => window.location.href = `/admin/auto-audits/${audit.id}`}>
+                  <td className={styles.auditCell} onClick={() => router.push(`/admin/auto-audits/${audit.id}`)}>{audit.email}</td>
+                  <td className={styles.auditCell} onClick={() => router.push(`/admin/auto-audits/${audit.id}`)}>
                     <a href={audit.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className={styles.urlLink}>
                       {audit.url}
                     </a>
                   </td>
-                  <td className={styles.auditCell} onClick={() => window.location.href = `/admin/auto-audits/${audit.id}`}>
+                  <td className={styles.auditCell} onClick={() => router.push(`/admin/auto-audits/${audit.id}`)}>
                     {audit.status === 'failed' ? (
                       <span className={styles.errorMessage}>
                         Błąd audytu
@@ -182,7 +186,7 @@ export default function AdminPage() {
                       <span className={styles.noData}>Brak danych</span>
                     )}
                   </td>
-                  <td className={`${styles.auditCell} ${styles.auditStatus} ${styles[audit.status]}`} onClick={() => window.location.href = `/admin/auto-audits/${audit.id}`}>
+                  <td className={`${styles.auditCell} ${styles.auditStatus} ${styles[audit.status]}`} onClick={() => router.push(`/admin/auto-audits/${audit.id}`)}>
                     {
                     audit.status === 'completed' ? '✅' :
                     audit.status === 'failed' ? '⛔' :
@@ -190,7 +194,7 @@ export default function AdminPage() {
                     audit.status === 'in-progress' ? '🔄' :
                     audit.status
                   }</td>
-                  <td className={styles.auditCell} onClick={() => window.location.href = `/admin/auto-audits/${audit.id}`}>{audit.createdAt ? new Date(audit.createdAt).toLocaleString() : ''}</td>
+                  <td className={styles.auditCell} onClick={() => router.push(`/admin/auto-audits/${audit.id}`)}>{audit.createdAt ? new Date(audit.createdAt).toLocaleString() : ''}</td>
                   <td className={styles.auditCell + ' ' + styles.actionsCell} onClick={(e) => e.stopPropagation()}>
                     <div className={styles.actionButtons}>
                       <button
@@ -220,10 +224,5 @@ export default function AdminPage() {
         </div>
       </div>
     );
-  }
-
-
-  return <Loader />;
-  
 };
 

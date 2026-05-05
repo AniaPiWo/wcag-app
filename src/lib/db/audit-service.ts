@@ -1,6 +1,6 @@
 import { prisma } from '../prisma';
 import type { AuditSummary, AxeViolation } from '@/app/api/audit/types';
-import { analyzeAccessibilityResults, AccessibilityViolation } from '../ai/ai-analysis';
+import { analyzeAccessibilityResults } from '../ai/ai-analysis';
 import { Resend } from 'resend';
 
 export const auditService = {
@@ -18,7 +18,7 @@ export const auditService = {
 
 
   // aktualizuje status audytu
-  async updateAuditRequestStatus(id: string, p0: string, errorMessage: string, status: 'pending' | 'in-progress' | 'completed' | 'failed') {
+  async updateAuditRequestStatus(id: string, errorMessage: string, status: 'pending' | 'in-progress' | 'completed' | 'failed') {
     return prisma.auditRequest.update({
       where: { id },
       data: { status, errorMessage },
@@ -138,9 +138,7 @@ export const auditService = {
         console.log('\x1b[33m%s\x1b[0m', `⚠️ Brak adresu email dla audytu ${requestId}, nie będzie możliwe wysłanie wyników`);
       }
       
-      // Konwertujemy violations na typ AccessibilityViolation
-      const accessibilityViolations = violations as unknown as AccessibilityViolation[];
-      const aiAnalysisPromise = analyzeAccessibilityResults(accessibilityViolations, summary);
+      const aiAnalysisPromise = analyzeAccessibilityResults(violations, summary);
       const timeoutPromise = new Promise<string>((_, reject) => {
         setTimeout(() => reject(new Error('Timeout analizy AI')), 30000);
       });
@@ -148,9 +146,11 @@ export const auditService = {
       //console.log(aiAnalysis);
       //console.log('\x1b[32m%s\x1b[0m', `✅ Analiza AI dla audytu ${requestId} zakończona`);
       
-      // Zapisujemy analizę AI do bazy danych za pomocą bezpośredniego zapytania SQL
       try {
-        await prisma.$executeRaw`UPDATE "AuditRequest" SET "aiAnalysis" = ${aiAnalysis} WHERE id = ${requestId}`;
+        await prisma.auditRequest.update({
+          where: { id: requestId },
+          data: { aiAnalysis },
+        });
         console.log('\x1b[32m%s\x1b[0m', `✅ Zapisano analizę AI do bazy danych dla audytu ${requestId}`);
       } catch (dbError) {
         console.error('\x1b[31m%s\x1b[0m', `❌ Błąd podczas zapisywania analizy AI do bazy danych:`, dbError);
@@ -216,10 +216,11 @@ Specjalista dostępności cyfrowej
           }
 
           // Wysyłamy kopię do biura (jeśli użytkownik nie jest z biura)
-          if (auditRequest.email !== "biuro@wcag.co") {
+          const adminEmail = process.env.ADMIN_EMAIL || 'biuro@wcag.co';
+          if (auditRequest.email !== adminEmail) {
             const { error: copyError } = await resend.emails.send({
               from: `Audyt Dostępności <${fromEmail}>`,
-              to: "biuro@wcag.co",
+              to: adminEmail,
               subject: `Kopia: ${emailSubject}`,
               text: emailContent,
             });
@@ -259,31 +260,27 @@ Specjalista dostępności cyfrowej
 
   // znajduje audyty po URL
   async findAuditRequestsByUrl(url: string) {
-    // Normalizacja URL - usunięcie protokołu, www i trailing slash
-    const normalizeUrl = (inputUrl: string) => {
-      let normalized = inputUrl.toLowerCase();
-      normalized = normalized.replace(/^https?:\/\//, '');
-      normalized = normalized.replace(/^www\./, '');
-      normalized = normalized.replace(/\/$/, '');
-      return normalized;
-    };
+    const normalizeUrl = (inputUrl: string) =>
+      inputUrl.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
 
-    const normalizedSearchUrl = normalizeUrl(url);
-    
-    // Pobieramy wszystkie audyty i filtrujemy po znormalizowanym URL
-    const allAudits = await prisma.auditRequest.findMany({
+    const base = normalizeUrl(url);
+    const urlVariants = [
+      `http://${base}`,
+      `https://${base}`,
+      `http://www.${base}`,
+      `https://www.${base}`,
+      `http://${base}/`,
+      `https://${base}/`,
+      `http://www.${base}/`,
+      `https://www.${base}/`,
+    ];
+
+    return prisma.auditRequest.findMany({
       where: {
-        status: 'completed' // Szukamy tylko ukończonych audytów
+        status: 'completed',
+        url: { in: urlVariants },
       },
-      orderBy: { completedAt: 'desc' }
+      orderBy: { completedAt: 'desc' },
     });
-
-    // Filtrujemy audyty, które mają ten sam znormalizowany URL
-    const matchingAudits = allAudits.filter(audit => {
-      if (!audit.url) return false;
-      return normalizeUrl(audit.url) === normalizedSearchUrl;
-    });
-
-    return matchingAudits;
   },
 };

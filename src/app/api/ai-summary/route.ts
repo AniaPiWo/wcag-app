@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateManualAuditSummary } from '@/lib/ai/ai-summary';
+import { validateSession } from '@/lib/auth/admin-session';
 
 export async function POST(request: NextRequest) {
+  const isAuthenticated = await validateSession();
+  if (!isAuthenticated) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const { auditData, level, selectedLevels } = await request.json();
     

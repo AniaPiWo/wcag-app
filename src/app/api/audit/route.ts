@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 import { chromium, Page, Browser, BrowserContext } from 'playwright';
 import { z } from 'zod';
@@ -184,7 +183,7 @@ export async function POST(request: NextRequest) {
       try {
 
         if (auditRequest) {
-          await auditService.updateAuditRequestStatus(auditRequest.id, 'Audyt w toku', '', 'in-progress');
+          await auditService.updateAuditRequestStatus(auditRequest.id, '', 'in-progress');
         }
         
         auditResults = await queueAudit(url, runAccessibilityAudit);

@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { openai } from '../openai';
+import type { AuditSummary, AxeViolation } from '@/app/api/audit/types';
 
 export const defaultModelParams = {
   model: 'gpt-4o',
@@ -20,13 +20,7 @@ export async function createChatCompletion(
       ...options,
       messages,
     });
-    
-    // Logowanie informacji o liczbie tokenów
-    console.log('\x1b[36m%s\x1b[0m', '📊 Informacje o tokenach:');
-    console.log('\x1b[36m%s\x1b[0m', `   - Tokeny wejściowe: ${response.usage?.prompt_tokens || 'brak danych'}`);
-    console.log('\x1b[36m%s\x1b[0m', `   - Tokeny wyjściowe: ${response.usage?.completion_tokens || 'brak danych'}`);
-    console.log('\x1b[36m%s\x1b[0m', `   - Łącznie tokenów: ${response.usage?.total_tokens || 'brak danych'}`);
-    
+
     return response.choices[0].message.content;
   } catch (error) {
     console.error('Błąd OpenAI:', error);
@@ -34,42 +28,14 @@ export async function createChatCompletion(
   }
 }
 
-// Definicja typu dla naruszeń dostępności
-// Kompatybilny z AxeViolation z @/app/api/audit/types
-export interface AccessibilityViolation {
-  id: string;
-  impact?: 'critical' | 'serious' | 'moderate' | 'minor' | null;
-  description?: string;
-  help?: string;
-  helpUrl?: string;
-  nodes?: Array<{
-    html?: string;
-    target?: string[];
-    failureSummary?: string;
-    impact?: string;
-    any?: Array<{ id: string; message: string; data: unknown; relatedNodes: unknown[] }>;
-    all?: Array<{ id: string; message: string; data: unknown; relatedNodes: unknown[] }>;
-    none?: Array<{ id: string; message: string; data: unknown; relatedNodes: unknown[] }>;
-  }>;
-  [key: string]: unknown;
-}
-
-// Now takes both violations and summary for full context
-import type { AuditSummary } from '@/app/api/audit/types';
-
 export async function analyzeAccessibilityResults(
-  violations: AccessibilityViolation[],
+  violations: AxeViolation[],
   summary: AuditSummary
 ) {
-
-
   const compactViolations = violations.map(v => ({
     description: v.description,
     occurrences: v.nodes?.length || 0
-  }))
-  
-  //console.log("\x1b[33m%s\x1b[0m", "compactViolations ====>", compactViolations);
-
+  }));
 
   const prompt = `
 Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej (WCAG) i przygotuj raport w **języku polskim**.
@@ -82,7 +48,7 @@ ${JSON.stringify(compactViolations, null, 2)}
 Jeśli nie wykryto żadnych naruszeń:
 Zwróć tylko ten komunikat (bez żadnych dopisków):
 „Automatyczna analiza nie wykryła błędów na stronie – wygląda na to, że wszystko jest w bardzo dobrej kondycji!
-Warto jednak pamiętać, że test automatyczny nie jest w stanie ocenić wszystkich aspektów dostępności — dlatego zachęcamy do wykonania manualnego audytu, który sprawdza elementy wymagające ludzkiej oceny, takie jak kontrast wizualny, kolejność nawigacji czy zrozumiałość treści.”
+Warto jednak pamiętać, że test automatyczny nie jest w stanie ocenić wszystkich aspektów dostępności — dlatego zachęcamy do wykonania manualnego audytu, który sprawdza elementy wymagające ludzkiej oceny, takie jak kontrast wizualny, kolejność nawigacji czy zrozumiałość treści."
 
 ---
 
@@ -94,89 +60,30 @@ Jeśli wykryto naruszenia:
 - Nie proponuj gotowych rozwiązań.
 - Zaznacz, że automatyczny audyt ma ograniczenia i nie obejmuje wszystkich aspektów dostępności.
 - Na końcu dodaj sekcję:
-  „Elementy wymagające audytu manualnego:”
+  „Elementy wymagające audytu manualnego:"
   - Wypisz w punktach (krótkimi opisami) elementy oznaczone jako wymagające audytu manualnego, np.:
-    - „Sprawdzenie poprawności alternatywnych opisów obrazów”
-    - „Ocena kolejności fokusu klawiatury”
-    - „Weryfikacja kontrastu tekstu względem tła”
+    - „Sprawdzenie poprawności alternatywnych opisów obrazów"
+    - „Ocena kolejności fokusu klawiatury"
+    - „Weryfikacja kontrastu tekstu względem tła"
 - Zakończ delikatnym zaproszeniem do zamówienia pełnego audytu manualnego, np.:
-  „Pełny audyt manualny pozwoli dokładnie zidentyfikować problemy, których automaty nie są w stanie wykryć, oraz przygotować instrukcje naprawy dopasowane do Twojej strony.”
-
+  „Pełny audyt manualny pozwoli dokładnie zidentyfikować problemy, których automaty nie są w stanie wykryć, oraz przygotować instrukcje naprawy dopasowane do Twojej strony."
 `;
 
-  /* prompt vol 3
-  const prompt = `
-Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej (WCAG) i przygotuj raport w **języku polskim**.
+  try {
+    const messages = [
+      {
+        role: 'system' as const,
+        content: 'Jesteś ekspertem ds. dostępności stron internetowych. Twoje odpowiedzi są zwięzłe, techniczne i zawsze zawierają praktyczne przykłady kodu. Masz doskonałą wiedzę na temat zasad WCAG 2.2'
+      },
+      { role: 'user' as const, content: prompt }
+    ];
 
-Dane wejściowe:
-${JSON.stringify(compactViolations, null, 2)}
-
----
-
-Jeśli nie wykryto żadnych naruszeń:
-Zwróć tylko ten komunikat (bez żadnych dopisków):
-„Automatyczna analiza nie wykryła błędów na stronie – wygląda na to, że wszystko jest gotowe na nadchodzące zmiany w prawie!
-Warto jednak pamiętać, że automat też może coś przeoczyć. Jeśli chcesz mieć pełną pewność, mogę przeprowadzić manualny test z wykorzystaniem profesjonalnych narzędzi.”
-
----
-
-Jeśli wykryto naruszenia:
-- Nie dodawaj tytułu raportu (jest już podany w innym miejscu).
-- Styl: profesjonalny, zrozumiały, neutralny i uprzejmy.
-- Napisz krótkie podsumowanie (4–5 zdań) opisujące ogólny charakter wykrytych błędów dostępności.
-- Nie używaj języka technicznego (np. znaczników HTML, fragmentów kodu, nazw atrybutów).
-- Nie sugeruj gotowych rozwiązań technicznych.
-- Skup się na zrozumiałym opisie charakteru problemów, nie ich naprawie 
-- Na końcu dodaj nienachalną propozycję zamówienia pełnego audytu manualnego z raportem i instrukcją naprawy.
-`;
-*/
-
-/*    
-Prompt vol 2
-const prompt = `
-Przeanalizuj wyniki automatycznego audytu dostępności strony internetowej i przygotuj raport w całości jedynie w JĘZYKU POLSKIM.
-
-Jeśli nie wykryto żadnych naruszeń:
-- Wyświetl komunikat: „Automatyczna analiza nie wykryła błędów na stronie – wygląda na to, że wszystko jest gotowe na nadchodzące zmiany w prawie!
-Warto jednak pamiętać, że automat też może coś przeoczyć. Jeśli chcesz mieć pełną pewność, mogę przeprowadzić manualny test z wykorzystaniem profesjonalnych narzędzi.”
-
-Jeśli wykryto naruszenia:
-Użyj poniższych danych jako danych wejściowych:
-${JSON.stringify(compactViolations, null, 2)}
-Nie dodawaj tytułu (tytuł maila jest już podany wcześniej).
-Napisz krótkie podsumowanie po polsku (4–5 zdań), opisujące ogólnie wykryte błędy w dostępności.
-Nie pokazuj fragmentów kodu, znaczników HTML ani dokładnych lokalizacji błędów.
-Skup się na ogólnym charakterze problemów, bez sugerowania gotowych rozwiązań.
-Wymień, które elementy strony wymagają dodatkowego audytu manualnego.
-Na końcu dodaj krótkie, nienachalne zdanie zachęcające do zakupu pełnego audytu manualnego, po którym klient otrzyma szczegółowy raport z instrukcją naprawy.
-
-`; */
-
-/*  
-PROMPT vol 1
- - nie dawaj tytułu (Raport z automatycznego audytu dostępności strony internetowej itp), tytuł jest już w treści maila przed twoim tekstem
- - opisz krótko PO POLSKU wykryte błędy w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj fragmentów kodu ani znaczników HTML, nie wskazuj miejsca występowania i nie opisuj zbyt szczegółowo (nie chcemy dawać gotowych rozwiązań!), 
- - dopisz także, które elementy WYMAGAJĄ audytu manualnego
- - nie używaj ozdobników **
- - nienachalnie zachęć do zakupu dokładniejszego testu manualnego, po którym zostanie przesłany raport z pełnymi informacjami o błedach oraz instrukcją naprawy.
-- opisz krótko PO POLSKU zaliczone reguły w zbiorczym podsumowaniu 4-5 zdań, nie pokazuj fragmentów kodu ani znaczników HTML, */
-    
-    try {
-      const messages = [
-        { 
-          role: 'system' as const, 
-          content: 'Jesteś ekspertem ds. dostępności stron internetowych. Twoje odpowiedzi są zwięzłe, techniczne i zawsze zawierają praktyczne przykłady kodu. Masz doskonałą wiedzę na temat zasad WCAG 2.2' 
-        },
-        { role: 'user' as const, content: prompt }
-      ];
-      
-      return await createChatCompletion(messages, {
-        temperature: 0.5,
-        max_tokens: 3000,
-      });
-    } catch (error) {
+    return await createChatCompletion(messages, {
+      temperature: 0.5,
+      max_tokens: 3000,
+    });
+  } catch (error) {
     console.error('Błąd analizy dostępności:', error);
     return 'Nie udało się przeprowadzić analizy wyników. Spróbuj ponownie później.';
   }
 }
-       

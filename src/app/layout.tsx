@@ -81,7 +81,9 @@ export default function RootLayout({
         <Header />
         {children}
         <Footer />
-        <ConditionalGoogleAnalytics gaId="G-KXXM92H52S" />
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <ConditionalGoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   );
